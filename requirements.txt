@@ -1,0 +1,7 @@
+# Core dependencies for the Telegram bot and web server
+# StreamBot/requirements.txt
+pyrofork
+tgcrypto>=1.2.5
+aiohttp>=3.9.0
+aiohttp_cors>=0.7.0
+python-dotenv>=1.0.0 
