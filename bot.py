@@ -7,7 +7,7 @@ from pyrogram.errors import FloodWait, UserNotParticipant, FloodWait, UserIsBloc
 from database import add_user, del_user, full_userbase
 from config import Var
 from utils import get_file_attr, humanbytes, encode_message_id
-
+from rate_limiter import check_and_record_link_generation, get_user_link_count_and_wait_time
 logger = logging.getLogger(__name__)
 
 TgDlBot = Client(
@@ -118,6 +118,28 @@ async def start_handler(client: Client, message: Message):
 ))
 async def file_handler(client: Client, message: Message):
     """Handles incoming media messages to generate download links."""
+    user_id = message.from_user.id
+
+    # --- Rate Limiting Check ---
+    if Var.MAX_LINKS_PER_DAY > 0: # Only apply if limit is positive
+        can_generate = await check_and_record_link_generation(user_id)
+        if not can_generate:
+            # Get current count and wait time to provide more info to user
+            _, wait_time_seconds = await get_user_link_count_and_wait_time(user_id)
+            wait_hours = wait_time_seconds / 3600
+            wait_minutes = (wait_time_seconds % 3600) / 60
+
+            if wait_time_seconds > 0:
+                reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT.format(
+                    max_links=Var.MAX_LINKS_PER_DAY,
+                    wait_hours=wait_hours,
+                    wait_minutes=wait_minutes
+                )
+            else: # Should not happen if can_generate is False and wait_time is 0, but as a fallback
+                reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT_NO_WAIT.format(max_links=Var.MAX_LINKS_PER_DAY)
+
+            await message.reply_text(reply_text, quote=True)
+            return # Stop processing
 
     # --- Force Subscription Check ---
     if not await check_force_sub(client, message):
