@@ -85,6 +85,10 @@ class Var:
     DB_URI = get_env("DATABASE_URL", required=True) # Changed from DATABASE_URL in reference to DB_URI
     # Name of the database to use
     DB_NAME = get_env("DATABASE_NAME", "TgDlBotUsers") # Changed default name
+    # --- Rate Limiting ---
+    # Maximum number of links a user can generate in a 24-hour period.
+    # Set to 0 or a negative number to disable rate limiting.
+    MAX_LINKS_PER_DAY = get_env("MAX_LINKS_PER_DAY", default=5, is_int=True)
     # --- Text Messages ---
     # Function to calculate human-readable duration
     @staticmethod
@@ -173,3 +177,15 @@ You must join the channel below to use this bot. After joining, please send the 
 
     LINK_EXPIRED_TEXT = "❌ **Error:** This download link has expired (valid for 24 hours)."
 
+    RATE_LIMIT_EXCEEDED_TEXT = """
+**Daily Limit Reached** 🤦‍♂️
+
+You have generated the maximum of **{max_links}** links allowed in a 24-hour period.
+Please try again in approximately **{wait_hours:.1f} hours **.
+    """
+    RATE_LIMIT_EXCEEDED_TEXT_NO_WAIT = """
+❗ **Daily Limit Reached** ❗
+
+You have generated the maximum of **{max_links}** links allowed in a 24-hour period.
+Please try again later.
+    """
