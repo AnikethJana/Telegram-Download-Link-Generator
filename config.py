@@ -135,11 +135,11 @@ class Var:
     START_TEXT = f"""
 Hello {{mention}}! 👋
 
-I am a simple Telegram File Downloader Bot.
+I am Telegram File to Link Bot.
 
-➡️ **Send me any file (document, video, audio)** and I will generate a direct download link for you (valid for 24 hours).
+➡️ **Send me any file** and I will generate a direct download link for you .
 
-{{force_sub_info}}⚠️ **Note:** Links might expire or become invalid if the file is deleted from logs channel.
+{{force_sub_info}}
     """
 
     FORCE_SUB_INFO_TEXT = "❗**You must join our channel to use this bot:**\n\n" # Added for start message
