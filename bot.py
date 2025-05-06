@@ -3,10 +3,10 @@ import logging
 import asyncio
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from pyrogram.errors import FloodWait, UserNotParticipant
-
+from pyrogram.errors import FloodWait, UserNotParticipant, FloodWait, UserIsBlocked, InputUserDeactivated
+from database import add_user, del_user, full_userbase
 from config import Var
-from utils import get_file_attr, humanbytes
+from utils import get_file_attr, humanbytes, encode_message_id
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +95,13 @@ async def start_handler(client: Client, message: Message):
         except Exception as e:
             logger.warning(f"Could not get ForceSub channel info for start message: {e}")
             force_sub_info = "❗**Please ensure you join the required channel to use the bot.**\n\n"
-
+    user_id = message.from_user.id
+    try:
+         await add_user(user_id)
+         # logger.info(f"Checked/Added user {user_id} on /start command.")
+    except Exception as e:
+         logger.error(f"Database error adding user {user_id} on start: {e}")
+    
     # Use the START_TEXT directly from Var which now includes dynamic duration
     await message.reply_text(
         Var.START_TEXT.format(
@@ -152,17 +158,17 @@ async def file_handler(client: Client, message: Message):
              await processing_msg.edit_text(Var.ERROR_TEXT)
              return
 
-        # Generate the download link using the log message ID
-        download_link = f"{Var.BASE_URL.rstrip('/')}/dl/{log_msg.id}"
+        # Generate the download link using the encoded log message ID
+        encoded_log_id = encode_message_id(log_msg.id)
+        download_link = f"{Var.BASE_URL.rstrip('/')}/dl/{encoded_log_id}"
 
-        # Use the LINK_GENERATED_TEXT directly from Var which now includes dynamic duration
         await processing_msg.edit_text(
             Var.LINK_GENERATED_TEXT.format(
                 file_name=file_name,
                 file_size=humanbytes(file_size),
-                download_link=download_link
+                download_link=download_link # This now uses the encoded ID
             ),
-            disable_web_page_preview=True # Optional: prevent link preview
+            disable_web_page_preview=True
         )
         # logger.info(f"Generated download link for message {log_msg.id} (original: {message.id}) for user {message.from_user.id}")
 
@@ -184,3 +190,107 @@ async def file_handler(client: Client, message: Message):
             await processing_msg.edit_text(Var.ERROR_TEXT)
         except Exception as edit_err:
             logger.error(f"Error editing processing message to show final error: {edit_err}")
+
+@TgDlBot.on_message(filters.command("broadcast") & filters.private)
+async def broadcast_handler(client: Client, message: Message):
+    """Handles the /broadcast command for admins."""
+
+    # --- Admin Check ---
+    if not Var.ADMINS or message.from_user.id not in Var.ADMINS:
+        await message.reply_text(Var.BROADCAST_ADMIN_ONLY, quote=True)
+        return
+
+    # --- Check if it's a reply ---
+    if not message.reply_to_message:
+        await message.reply_text(Var.BROADCAST_REPLY_PROMPT, quote=True)
+        return
+
+    broadcast_msg = message.reply_to_message
+    status_msg = await message.reply_text(Var.BROADCAST_STARTING, quote=True)
+
+    # --- Get Users ---
+    try:
+        all_users = await full_userbase()
+        total_users = len(all_users)
+        logger.info(f"Starting broadcast to {total_users} users.")
+    except Exception as e:
+        logger.error(f"Database error fetching users for broadcast: {e}")
+        await status_msg.edit_text(f"❌ Error fetching users from database: {e}")
+        return
+
+    if total_users == 0:
+         await status_msg.edit_text("No users found in the database to broadcast to.")
+         return
+
+    # --- Broadcast Loop ---
+    successful = 0
+    blocked_deleted = 0
+    unsuccessful = 0
+    start_time = asyncio.get_event_loop().time()
+
+    for i, user_id in enumerate(all_users):
+        try:
+            await broadcast_msg.copy(chat_id=user_id)
+            successful += 1
+        except FloodWait as e:
+            wait_time = e.value + 2 # Add buffer
+            logger.warning(f"FloodWait during broadcast to {user_id}. Sleeping for {wait_time}s.")
+            await asyncio.sleep(wait_time)
+            # Retry after wait
+            try:
+                await broadcast_msg.copy(chat_id=user_id)
+                successful += 1
+            except Exception as retry_e: # Catch potential errors on retry
+                 logger.error(f"Broadcast failed to {user_id} after FloodWait retry: {retry_e}")
+                 unsuccessful += 1
+        except (UserIsBlocked, InputUserDeactivated) as e:
+            logger.info(f"User {user_id} is blocked or deactivated. Removing.")
+            await del_user(user_id) # Remove from DB
+            blocked_deleted += 1
+        except Exception as e:
+            logger.error(f"Broadcast failed to {user_id}: {type(e).__name__} - {e}")
+            unsuccessful += 1
+
+        # --- Optional: Update status periodically ---
+        # Avoid editing too frequently to prevent flood waits on the status message itself
+        if (i + 1) % 50 == 0 or (i + 1) == total_users: # Update every 50 users or at the end
+            try:
+                await status_msg.edit_text(
+                    Var.BROADCAST_STATUS_UPDATE.format(
+                        total=total_users,
+                        successful=successful,
+                        blocked_deleted=blocked_deleted,
+                        unsuccessful=unsuccessful
+                    )
+                )
+            except FloodWait as fe:
+                 logger.warning(f"FloodWait editing broadcast status message: {fe.value}s")
+                 await asyncio.sleep(fe.value) # Wait if editing status gets limited
+            except Exception as edit_e:
+                 logger.error(f"Could not edit broadcast status message: {edit_e}")
+
+
+    end_time = asyncio.get_event_loop().time()
+    duration = round(end_time - start_time)
+    logger.info(f"Broadcast finished in {duration} seconds.")
+
+    # --- Final Status ---
+    try:
+         await status_msg.edit_text(
+             Var.BROADCAST_COMPLETED.format(
+                 total=total_users,
+                 successful=successful,
+                 blocked_deleted=blocked_deleted,
+                 unsuccessful=unsuccessful
+             )
+         )
+    except Exception as final_edit_e:
+         logger.error(f"Failed to edit final broadcast status: {final_edit_e}")
+         # Send as a new message if editing fails
+         await message.reply_text(
+             Var.BROADCAST_COMPLETED.format(
+                 total=total_users,
+                 successful=successful,
+                 blocked_deleted=blocked_deleted,
+                 unsuccessful=unsuccessful
+             ), quote=True)

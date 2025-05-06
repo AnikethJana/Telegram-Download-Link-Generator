@@ -1,6 +1,11 @@
 import mimetypes
 from pyrogram.types import Message, Audio, Document, Photo, Video, Animation, Sticker, Voice
+import base64
+import binascii # For catching specific base64 errors
+from config import Var # To access LOG_CHANNEL for the key
+import logging
 
+logger = logging.getLogger(__name__)
 # --- Human Readable Size ---
 def humanbytes(size: int) -> str:
     """Converts bytes to a human-readable format."""
@@ -51,3 +56,60 @@ def get_file_attr(message: Message):
 
     return file_id, file_name, file_size, mime_type, file_unique_id
 
+def get_id_encoder_key():
+    """
+    Returns the key used for encoding/decoding message IDs.
+    Ensures the key is not zero.
+    """
+    key = abs(Var.LOG_CHANNEL)
+    if key == 0:
+        logger.critical("LOG_CHANNEL is 0, which is invalid for ID encoding. Please set a valid LOG_CHANNEL.")
+        # Fallback to a default prime if LOG_CHANNEL is somehow 0, though LOG_CHANNEL should always be non-zero.
+        # This is a safeguard; configuration should ensure LOG_CHANNEL is valid.
+        return 961748927 # A large prime number
+    return key
+
+def encode_message_id(message_id: int) -> str:
+    """Encodes a message ID for use in URLs."""
+    try:
+        key = get_id_encoder_key()
+        transformed_id = message_id * key
+        encoded_bytes = base64.urlsafe_b64encode(str(transformed_id).encode('utf-8'))
+        return encoded_bytes.decode('utf-8').rstrip("=") # Remove padding
+    except Exception as e:
+        logger.error(f"Error encoding message ID {message_id}: {e}", exc_info=True)
+        # Fallback to plain message_id if encoding fails, though this should be rare
+        return str(message_id)
+
+def decode_message_id(encoded_id_str: str) -> int | None:
+    """Decodes an encoded ID string back to a message ID."""
+    try:
+        key = get_id_encoder_key()
+        # Add padding back if it was removed
+        padding = "=" * (-len(encoded_id_str) % 4)
+        decoded_bytes = base64.urlsafe_b64decode((encoded_id_str + padding).encode('utf-8'))
+        transformed_id_str = decoded_bytes.decode('utf-8')
+
+        transformed_id = int(transformed_id_str)
+
+        if transformed_id % key != 0:
+            # This means the number wasn't a clean multiple, so it's likely invalid or tampered
+            logger.warning(f"Invalid encoded ID (key mismatch): {encoded_id_str}")
+            return None
+
+        original_message_id = transformed_id // key
+
+        # Sanity check: re-encode and see if it matches part of the logic
+        # This helps ensure the division was "clean" and it's not a random number
+        # that happens to be divisible by the key.
+        if (original_message_id * key) != transformed_id:
+            logger.warning(f"Encoded ID verification failed for {encoded_id_str}. Potential tampering or wrong key.")
+            return None
+
+        return original_message_id
+    except (binascii.Error, ValueError, UnicodeDecodeError) as e:
+        logger.warning(f"Error decoding ID '{encoded_id_str}': {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error decoding ID '{encoded_id_str}': {e}", exc_info=True)
+        return None

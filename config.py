@@ -80,6 +80,11 @@ class Var:
     # URL to the bot's GitHub repository (Optional)
     GITHUB_REPO_URL = get_env("GITHUB_REPO_URL", default=None)
 
+    # --- Database Config (MongoDB) ---
+    # Connection URI string for your MongoDB database
+    DB_URI = get_env("DATABASE_URL", required=True) # Changed from DATABASE_URL in reference to DB_URI
+    # Name of the database to use
+    DB_NAME = get_env("DATABASE_NAME", "TgDlBotUsers") # Changed default name
     # --- Text Messages ---
     # Function to calculate human-readable duration
     @staticmethod
@@ -92,7 +97,41 @@ class Var:
 
     # Calculate expiry duration string dynamically
     _expiry_duration_str = _human_readable_duration(LINK_EXPIRY_SECONDS)
+    # --- Admin Users ---
+    # List of user IDs who are allowed to use admin commands like /broadcast
+    # Separate multiple IDs with spaces in the environment variable
+    # Example: ADMINS="12345678 98765432"
+    _admin_str = get_env("ADMINS", default="")
+    try:
+        ADMINS = [int(admin_id.strip()) for admin_id in _admin_str.split() if admin_id.strip()]
+        if ADMINS:
+            logger.info(f"Admin user IDs loaded: {ADMINS}")
+        else:
+            logger.warning("No ADMINS specified in environment variables. Broadcast command will not work.")
+    except ValueError:
+        logger.error(f"Invalid ADMINS value '{_admin_str}'. Ensure it's a space-separated list of numbers.")
+        ADMINS = [] # Set to empty list on error
 
+    # --- Broadcast Messages ---
+    BROADCAST_REPLY_PROMPT = "Reply to the message you want to broadcast with the `/broadcast` command."
+    BROADCAST_ADMIN_ONLY = "❌ Only authorized admins can use this command."
+    BROADCAST_STARTING = "⏳ Starting broadcast... This may take some time."
+    BROADCAST_STATUS_UPDATE = """
+    📢 **Broadcast Progress**
+
+    Total Users: {total}
+    Sent: {successful}
+    Blocked/Deleted: {blocked_deleted}
+    Failed: {unsuccessful}
+    """
+    BROADCAST_COMPLETED = """
+    ✅ **Broadcast Completed**
+
+    Total Users: `{total}`
+    Successful: `{successful}`
+    Blocked/Deactivated Users Removed: `{blocked_deleted}`
+    Failed Attempts: `{unsuccessful}`
+    """
     START_TEXT = f"""
 Hello {{mention}}! 👋
 

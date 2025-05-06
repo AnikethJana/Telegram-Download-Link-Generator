@@ -8,9 +8,9 @@ import aiohttp_cors
 from pyrogram import Client
 from pyrogram.errors import FloodWait, FileIdInvalid, RPCError
 from pyrogram.types import Message, User
-
+from database import total_users_count
 from config import Var
-from utils import get_file_attr, humanbytes 
+from utils import get_file_attr, humanbytes, decode_message_id
 
 logger = logging.getLogger(__name__)
 
@@ -97,20 +97,24 @@ async def get_media_message(bot_client: Client, message_id: int) -> Message:
     return media_msg
 
 # --- Download Route (Refactored) ---
-@routes.get("/dl/{message_id}")
+@routes.get("/dl/{encoded_id_str}") # Renamed from message_id
 async def download_route(request: web.Request):
     """Handles the download request, streaming the file (Refactored)."""
     bot_client: Client = request.app['bot_client']
 
-    try:
-        message_id = int(request.match_info['message_id'])
-    except ValueError:
-        raise web.HTTPBadRequest(text="Invalid message ID format.")
+    encoded_id = request.match_info['encoded_id_str']
 
+    message_id = decode_message_id(encoded_id)
+
+    if message_id is None:
+        logger.warning(f"Received invalid or undecodable ID: {encoded_id}")
+        raise web.HTTPBadRequest(text="Invalid or malformed download link.") # Or HTTPNotFound
+
+    # The rest of the function remains the same, using the decoded `message_id`
     try:
+        # message_id is now an integer
         media_msg = await get_media_message(bot_client, message_id)
     except (web.HTTPNotFound, web.HTTPServiceUnavailable, web.HTTPTooManyRequests, web.HTTPGone, web.HTTPInternalServerError) as e:
-        
         raise e
     except Exception as e:
         logger.error(f"Unexpected error retrieving/checking message {message_id} for download: {e}", exc_info=True)
@@ -248,7 +252,11 @@ async def api_info_route(request: web.Request):
     """Provides bot status and information via API."""
     bot_client: Client = request.app['bot_client']
     start_time: datetime.datetime = request.app['start_time']
-
+    user_count = 0 # Default value
+    try:
+        user_count = await total_users_count()
+    except Exception as e:
+         logger.error(f"Failed to get total user count for API info: {e}")
     if not bot_client or not bot_client.is_connected:
         # Return basic info even if bot is down, but indicate status
         return web.json_response({
@@ -257,6 +265,7 @@ async def api_info_route(request: web.Request):
             "message": "Bot client is not currently connected to Telegram.",
             "uptime": format_uptime(start_time),
             "github_repo": Var.GITHUB_REPO_URL,
+            "totaluser": user_count,
         }, status=503) 
 
     try:
@@ -286,7 +295,8 @@ async def api_info_route(request: web.Request):
             "features": features,
             "uptime": format_uptime(start_time),
             "github_repo": Var.GITHUB_REPO_URL,
-            "server_time_utc": datetime.datetime.now(datetime.timezone.utc).isoformat()
+            "server_time_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "totaluser": user_count
         }
         return web.json_response(info_data)
 
@@ -298,6 +308,7 @@ async def api_info_route(request: web.Request):
             "message": f"An error occurred while fetching bot details: {str(e)}",
             "uptime": format_uptime(start_time),
             "github_repo": Var.GITHUB_REPO_URL,
+            "totaluser": user_count,
         }, status=500) 
 
 # --- Setup Web App --- (keep as is, ensure CORS is added below)
