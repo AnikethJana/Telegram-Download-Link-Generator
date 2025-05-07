@@ -121,7 +121,7 @@ async def file_handler(client: Client, message: Message):
     user_id = message.from_user.id
 
     # --- Rate Limiting Check ---
-    if Var.MAX_LINKS_PER_DAY > 0: # Only apply if limit is positive
+    if Var.MAX_LINKS_PER_DAY > 0 and user_id not in Var.ADMINS: # Only apply if limit is positive
         can_generate = await check_and_record_link_generation(user_id)
         if not can_generate:
             # Get current count and wait time to provide more info to user
@@ -174,11 +174,6 @@ async def file_handler(client: Client, message: Message):
 
         file_name = attrs[1] # Index 1 is file_name
         file_size = attrs[2] # Index 2 is file_size
-
-        if file_name is None or file_size is None:
-             logger.error(f"Extracted null file_name or file_size for message {message.id}.")
-             await processing_msg.edit_text(Var.ERROR_TEXT)
-             return
 
         # Generate the download link using the encoded log message ID
         encoded_log_id = encode_message_id(log_msg.id)
