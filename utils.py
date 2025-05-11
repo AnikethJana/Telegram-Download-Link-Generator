@@ -3,13 +3,9 @@ from pyrogram.types import Message, Audio, Document, Photo, Video, Animation, St
 import base64
 import binascii # For catching specific base64 errors
 from config import Var # To access LOG_CHANNEL for the key
+import logging
 
-from logger import get_logger
-from exceptions import BotError, handle_exceptions
-
-# Get logger for this module
-logger = get_logger(__name__)
-
+logger = logging.getLogger(__name__)
 # --- Human Readable Size ---
 def humanbytes(size: int) -> str:
     """Converts bytes to a human-readable format."""
@@ -116,22 +112,24 @@ def get_id_encoder_key():
         return 961748927 # A large prime number
     return key
 
-@handle_exceptions(fallback_return="")
 def encode_message_id(message_id: int) -> str:
     """Encodes a message ID for use in URLs."""
-    key = get_id_encoder_key()
-    transformed_id = message_id * key
-    encoded_bytes = base64.urlsafe_b64encode(str(transformed_id).encode('utf-8'))
-    return encoded_bytes.decode('utf-8').rstrip("=") # Remove padding
+    try:
+        key = get_id_encoder_key()
+        transformed_id = message_id * key
+        encoded_bytes = base64.urlsafe_b64encode(str(transformed_id).encode('utf-8'))
+        return encoded_bytes.decode('utf-8').rstrip("=") # Remove padding
+    except Exception as e:
+        logger.error(f"Error encoding message ID {message_id}: {e}", exc_info=True)
+        # Fallback to plain message_id if encoding fails, though this should be rare
+        return str(message_id)
 
-@handle_exceptions(fallback_return=None)
 def decode_message_id(encoded_id_str: str) -> int | None:
     """Decodes an encoded ID string back to a message ID."""
-    key = get_id_encoder_key()
-    # Add padding back if it was removed
-    padding = "=" * (-len(encoded_id_str) % 4)
-    
     try:
+        key = get_id_encoder_key()
+        # Add padding back if it was removed
+        padding = "=" * (-len(encoded_id_str) % 4)
         decoded_bytes = base64.urlsafe_b64decode((encoded_id_str + padding).encode('utf-8'))
         transformed_id_str = decoded_bytes.decode('utf-8')
 
@@ -154,4 +152,7 @@ def decode_message_id(encoded_id_str: str) -> int | None:
         return original_message_id
     except (binascii.Error, ValueError, UnicodeDecodeError) as e:
         logger.warning(f"Error decoding ID '{encoded_id_str}': {e}")
+        return None
+    except Exception as e:
+        logger.error(f"Unexpected error decoding ID '{encoded_id_str}': {e}", exc_info=True)
         return None
