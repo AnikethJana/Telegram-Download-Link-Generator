@@ -1,11 +1,8 @@
 # StreamBot/database.py
 import pymongo
+import logging
 from config import Var # Import Var from your config
-from logger import get_logger
-from exceptions import DatabaseError, handle_async_exceptions
-
-# Get logger for this module
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 # Establish MongoDB connection
 try:
@@ -29,46 +26,59 @@ except Exception as e:
 # User collection
 user_data = database['users']
 
-@handle_async_exceptions(fallback_return=False)
 async def present_user(user_id: int) -> bool:
     """Checks if a user exists in the database."""
-    found = user_data.find_one({'_id': user_id})
-    return bool(found)
+    try:
+        found = user_data.find_one({'_id': user_id})
+        return bool(found)
+    except Exception as e:
+        logger.error(f"Error checking user presence for {user_id}: {e}", exc_info=True)
+        return False # Assume not present on error to potentially allow retry/add
 
-@handle_async_exceptions()
 async def add_user(user_id: int):
     """Adds a new user to the database."""
     if await present_user(user_id):
-        # User already exists
+        # logger.debug(f"User {user_id} already exists in the database.")
         return # Don't add if already present
 
     try:
         user_data.insert_one({'_id': user_id})
         logger.info(f"Added new user {user_id} to the database.")
     except pymongo.errors.DuplicateKeyError:
-        # User likely added between check and insert, ignore
-        pass
+        # logger.warning(f"Attempted to add duplicate user {user_id}. Already exists.")
+        pass # User likely added between check and insert, ignore
     except Exception as e:
-        raise DatabaseError(f"Error adding user {user_id}") from e
+        logger.error(f"Error adding user {user_id}: {e}", exc_info=True)
 
-@handle_async_exceptions(fallback_return=[])
+
 async def full_userbase() -> list[int]:
     """Returns a list of all user IDs in the database."""
-    user_docs = user_data.find({}, {'_id': 1}) # Only fetch the _id field
-    user_ids = [doc['_id'] for doc in user_docs]
-    return user_ids
+    try:
+        user_docs = user_data.find({}, {'_id': 1}) # Only fetch the _id field
+        user_ids = [doc['_id'] for doc in user_docs]
+        return user_ids
+    except Exception as e:
+        logger.error(f"Error retrieving full userbase: {e}", exc_info=True)
+        return []
 
-@handle_async_exceptions(fallback_return=0)
 async def total_users_count() -> int:
     """Returns the total number of users in the database."""
-    count = user_data.count_documents({})
-    return count
+    try:
+        count = user_data.count_documents({})
+        return count
+    except Exception as e:
+        logger.error(f"Error getting total users count: {e}", exc_info=True)
+        return 0 # Return 0 on error
 
-@handle_async_exceptions()
+
 async def del_user(user_id: int):
     """Deletes a user from the database."""
-    result = user_data.delete_one({'_id': user_id})
-    if result.deleted_count > 0:
-        logger.info(f"Deleted user {user_id} from the database.")
-    else:
-        logger.warning(f"Attempted to delete non-existent user {user_id}.")
+    try:
+        result = user_data.delete_one({'_id': user_id})
+        if result.deleted_count > 0:
+             logger.info(f"Deleted user {user_id} from the database.")
+        else:
+             logger.warning(f"Attempted to delete non-existent user {user_id}.")
+
+    except Exception as e:
+        logger.error(f"Error deleting user {user_id}: {e}", exc_info=True)
