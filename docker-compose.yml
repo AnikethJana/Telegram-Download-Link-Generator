@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  streambot:
+    build: .
+    restart: always
+    ports:
+      - "${PORT:-8080}:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./tgdlbot.log:/app/tgdlbot.log
+      - ./TgDlBot.session:/app/TgDlBot.session
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/info"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 20s 

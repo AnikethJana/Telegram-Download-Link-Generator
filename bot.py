@@ -1,5 +1,4 @@
 # StreamBot/bot.py
-import logging
 import asyncio
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
@@ -8,7 +7,11 @@ from database import add_user, del_user, full_userbase
 from config import Var
 from utils import get_file_attr, humanbytes, encode_message_id
 from rate_limiter import check_and_record_link_generation, get_user_link_count_and_wait_time
-logger = logging.getLogger(__name__)
+from logger import get_logger
+from exceptions import handle_async_exceptions, BotError, AuthError, RateLimitError
+
+# Get logger for this module
+logger = get_logger(__name__)
 
 TgDlBot = Client(
     name=Var.SESSION_NAME,
@@ -311,3 +314,39 @@ async def broadcast_handler(client: Client, message: Message):
                  blocked_deleted=blocked_deleted,
                  unsuccessful=unsuccessful
              ), quote=True)
+
+@TgDlBot.on_message(filters.command("logs") & filters.private)
+async def logs_handler(client: Client, message: Message):
+    """Provides the logs endpoint URL with authentication token to admins."""
+    # Check if user is admin
+    if not Var.ADMINS or message.from_user.id not in Var.ADMINS:
+        await message.reply_text("❌ Only authorized administrators can access logs.", quote=True)
+        return
+    
+    # Create logs URL with token
+    logs_url = f"{Var.BASE_URL}/api/logs?token={Var.ADMIN_TOKEN}"
+    
+    # Create response with different viewing options
+    response_text = f"""
+📊 **Logs Access**
+
+View all logs:
+{logs_url}
+
+**Useful filters:**
+• Last 100 lines: 
+{logs_url}&lines=100
+
+• Only errors:
+{logs_url}&level=ERROR
+
+• Search for term:
+{logs_url}&search=your_search_term
+
+• Paginated view (page 1, 50 per page):
+{logs_url}&tail=0&page=1&lines=50
+"""
+    
+    await message.reply_text(response_text, quote=True, disable_web_page_preview=True)
+
+# --- More handlers can be added below ---

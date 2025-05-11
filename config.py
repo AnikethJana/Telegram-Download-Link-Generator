@@ -115,6 +115,23 @@ class Var:
     except ValueError:
         logger.error(f"Invalid ADMINS value '{_admin_str}'. Ensure it's a space-separated list of numbers.")
         ADMINS = [] # Set to empty list on error
+        
+    # --- Admin Access for Logs ---
+    # Token for accessing logs endpoint: /api/logs?token=YOUR_TOKEN
+    ADMIN_TOKEN = get_env("ADMIN_TOKEN", default=None)
+    if not ADMIN_TOKEN:
+        # Generate a random token if none is provided
+        import secrets
+        ADMIN_TOKEN = secrets.token_urlsafe(16)
+        logger.warning(f"No ADMIN_TOKEN set. Using generated token for logs access: {ADMIN_TOKEN}")
+    
+    # List of IP addresses allowed to access admin endpoints
+    _admin_ips_str = get_env("ADMIN_IPS", default="")
+    ADMIN_IPS = [ip.strip() for ip in _admin_ips_str.split(',') if ip.strip()]
+    if ADMIN_IPS:
+        logger.info(f"Admin IPs loaded: {ADMIN_IPS}")
+    else:
+        logger.info("No ADMIN_IPS specified. IP-based access control for admin endpoints disabled.")
 
     # --- Broadcast Messages ---
     BROADCAST_REPLY_PROMPT = "Reply to the message you want to broadcast with the `/broadcast` command."

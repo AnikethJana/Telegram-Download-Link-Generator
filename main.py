@@ -1,34 +1,31 @@
 import sys
 import asyncio
-import logging
+import logging  # Add this back for logging.INFO reference
 import datetime 
 from aiohttp import web
 from dotenv import load_dotenv
 
 # --- Load .env file BEFORE importing config ---
 load_dotenv()
-logger = logging.getLogger(__name__) 
+
+# Import our new logger module
+from logger import setup_logger, get_logger
+
+# Configure logging
+setup_logger(
+    level=logging.INFO,
+    log_file="tgdlbot.log",
+    add_stdout=True
+)
+
+# Get logger for this module
+logger = get_logger(__name__)
 logger.info(".env file loaded (if found).")
 
 from config import Var 
 from bot import TgDlBot 
 from web import setup_webapp 
-
-# --- Logging Setup ---
-# Ensure logging is configured after potential .env load and Var import if needed
-# Basic config might be okay here, or move it after Var if log levels depend on config
-logging.basicConfig(
-    level=logging.INFO, 
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    handlers=[
-        logging.FileHandler("tgdlbot.log"), 
-        logging.StreamHandler(sys.stdout)   
-    ]
-)
-
-logging.getLogger("pyrogram").setLevel(logging.WARNING)
-logging.getLogger("aiohttp.access").setLevel(logging.WARNING)
-logger = logging.getLogger(__name__)
+import exceptions
 
 # --- Global variable for start time ---
 BOT_START_TIME = None
@@ -96,55 +93,14 @@ async def shutdown(runner):
 
 
 if __name__ == "__main__":
-     runner_ref = None # To hold runner for shutdown
-     try:
-         # Run the main asynchronous function
-         # asyncio.run(main()) # asyncio.run() handles loop creation/closing
-         # Need to manage runner for shutdown when using asyncio.run, which isn't straightforward
-         # A more manual loop management allows cleaner shutdown access to runner
-
-         loop = asyncio.get_event_loop()
-         main_task = loop.create_task(main()) # main() now implicitly sets up runner
-
-         # Need access to runner created inside main() for shutdown
-         # A better approach might be for main() to return the runner
-
-         # Temporary workaround: Access runner via web_app if needed, but ideally main returns it
-         # Or pass a reference object to main that it can populate
-
-         loop.run_until_complete(main_task) # This will run until main_task completes or is cancelled
-
-
-     except KeyboardInterrupt:
-         # Handle Ctrl+C gracefully
-         logger.info("Ctrl+C pressed. Initiating shutdown...")
-         # Find the runner - this is a bit hacky, relies on runner being setup in main
-         # A cleaner way is needed if main doesn't return runner
-         # Assuming runner is accessible somehow or shutdown logic is moved inside main's finally block
-         # For now, we call a conceptual shutdown assuming runner is available in scope
-         # This part needs refinement based on how runner is managed.
-         # Let's assume main handles its own shutdown on cancel/exception for now.
-         # The asyncio.Event().wait() inside main will raise CancelledError on Ctrl+C with asyncio.run
-         # If using manual loop, need to cancel the task
-         if 'main_task' in locals() and not main_task.done():
-             main_task.cancel()
-             try:
-                 loop.run_until_complete(main_task)
-             except asyncio.CancelledError:
-                 logger.info("Main task cancelled.")
-             except Exception as e:
-                 logger.error(f"Error during task cancellation: {e}")
-
-         logger.info("Shutdown process completed from KeyboardInterrupt.")
-         sys.exit(0) 
-
-     except Exception as e:
-         
-         logger.critical(f"CRITICAL: Unhandled exception in main execution block: {e}", exc_info=True)
-         logger.critical("Exiting due to unhandled runtime error.")
-         sys.exit(1) 
-     finally:
-         # Ensure loop is closed if using manual loop management
-         if 'loop' in locals() and loop.is_running():
-              loop.close()
-              logger.info("Asyncio event loop closed.")
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        logger.info("Ctrl+C pressed. Initiating shutdown...")
+        # No need for manual loop management; asyncio.run handles cleanup
+        logger.info("Shutdown process completed from KeyboardInterrupt.")
+        sys.exit(0)
+    except Exception as e:
+        logger.critical(f"CRITICAL: Unhandled exception in main execution block: {e}", exc_info=True)
+        logger.critical("Exiting due to unhandled runtime error.")
+        sys.exit(1)
