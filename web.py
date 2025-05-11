@@ -1,6 +1,6 @@
 # StreamBot/web.py
+from collections import deque
 import re
-import logging
 import asyncio
 import datetime
 from aiohttp import web
@@ -12,8 +12,11 @@ from pyrogram.types import Message, User
 from config import Var
 # Ensure decode_message_id is imported from utils
 from utils import get_file_attr, humanbytes, decode_message_id
+from logger import get_logger
+from exceptions import handle_async_exceptions, MediaError, RateLimitError
 
-logger = logging.getLogger(__name__)
+# Get logger for this module
+logger = get_logger(__name__)
 
 routes = web.RouteTableDef()
 
@@ -338,6 +341,166 @@ async def api_info_route(request: web.Request):
             "uptime": format_uptime(start_time), "github_repo": Var.GITHUB_REPO_URL,
             "totaluser": user_count,
         }, status=500)
+
+# --- Logs API Route ---
+@routes.get("/api/logs")
+async def logs_route(request: web.Request):
+    """
+    Returns log content with pagination and filtering.
+    Query parameters:
+        lines: Number of lines to return (default: 100, max: 1000)
+        tail: If set to 1, returns the last N lines (default: 0)
+        level: Filter by log level (INFO, ERROR, WARNING, DEBUG, CRITICAL)
+        search: Text search term
+        page: Page number for pagination (starts at 1)
+    """
+    import json
+    import os
+    from collections import deque
+    
+    # Authentication check - only allow access to admins
+    remote_ip = request.remote
+    is_admin = False
+    
+    # Check if user is admin via IP or token
+    if hasattr(Var, 'ADMIN_IPS') and isinstance(Var.ADMIN_IPS, list):
+        is_admin = remote_ip in Var.ADMIN_IPS
+    
+    admin_token = request.query.get('token')
+    if not is_admin and admin_token and hasattr(Var, 'ADMIN_TOKEN'):
+        is_admin = admin_token == Var.ADMIN_TOKEN
+    
+    # Also allow users in ADMINS list
+    if not is_admin and hasattr(request, 'user_id') and hasattr(Var, 'ADMINS'):
+        is_admin = request.user_id in Var.ADMINS
+    
+    if not is_admin:
+        logger.warning(f"Unauthorized log access attempt from {remote_ip}")
+        return web.json_response({
+            "status": "error",
+            "message": "Unauthorized access"
+        }, status=403)
+    
+    # Get query parameters with defaults
+    try:
+        max_lines = min(int(request.query.get('lines', '100')), 1000)  # Limit to 1000 lines max
+        tail_mode = request.query.get('tail', '1') == '1'  # Default to tail mode
+        level_filter = request.query.get('level', '').upper()
+        search_term = request.query.get('search', '')
+        page = max(1, int(request.query.get('page', '1')))
+        
+        # Validate level if provided
+        valid_levels = ['INFO', 'ERROR', 'WARNING', 'DEBUG', 'CRITICAL']
+        if level_filter and level_filter not in valid_levels:
+            level_filter = ''
+    except ValueError:
+        return web.json_response({
+            "status": "error",
+            "message": "Invalid parameters"
+        }, status=400)
+    
+    log_file = request.query.get('file', 'tgdlbot.log')
+    # Basic path sanitization to prevent directory traversal
+    log_file = os.path.basename(log_file)
+    
+    if not os.path.exists(log_file):
+        return web.json_response({
+            "status": "error",
+            "message": f"Log file {log_file} not found"
+        }, status=404)
+    
+    try:
+        if tail_mode:
+            # In tail mode, efficiently get the last N lines
+            result = await get_tail_logs(log_file, max_lines, level_filter, search_term)
+            return web.json_response(result)
+        else:
+            # In page mode, paginate through the file
+            result = await get_paginated_logs(log_file, max_lines, page, level_filter, search_term)
+            return web.json_response(result)
+            
+    except Exception as e:
+        logger.error(f"Error serving logs: {e}", exc_info=True)
+        return web.json_response({
+            "status": "error",
+            "message": f"Failed to retrieve logs: {str(e)}"
+        }, status=500)
+
+async def get_tail_logs(log_file, max_lines, level_filter, search_term):
+    """Get the last N lines of a log file with optional filtering."""
+    # Use a deque with maxlen for efficient tail operation
+    lines = deque(maxlen=max_lines)
+    
+    # Process the log file line by line to avoid loading entire file
+    line_count = 0
+    with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            line_count += 1
+            line = line.strip()
+            
+            # Apply filters if any
+            if level_filter and level_filter not in line:
+                continue
+            if search_term and search_term not in line:
+                continue
+                
+            # Add line to our rotating buffer
+            lines.append(line)
+    
+    # Convert deque to list for JSON serialization
+    log_lines = list(lines)
+    
+    return {
+        "status": "ok",
+        "mode": "tail",
+        "file": log_file,
+        "total_lines_in_file": line_count,
+        "filtered_count": len(log_lines),
+        "lines": log_lines
+    }
+
+async def get_paginated_logs(log_file, max_lines, page, level_filter, search_term):
+    """Get a specific page of log lines with optional filtering."""
+    lines_to_skip = (page - 1) * max_lines
+    matched_lines = []
+    current_line = 0
+    total_matched = 0
+    
+    with open(log_file, 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            line = line.strip()
+            
+            # Apply filters if any
+            if level_filter and level_filter not in line:
+                continue
+            if search_term and search_term not in line:
+                continue
+                
+            total_matched += 1
+            
+            # Skip lines for pagination
+            if total_matched <= lines_to_skip:
+                continue
+                
+            matched_lines.append(line)
+            
+            # Break once we have enough lines for this page
+            if len(matched_lines) >= max_lines:
+                break
+    
+    # Calculate total pages
+    total_pages = (total_matched + max_lines - 1) // max_lines if total_matched > 0 else 1
+    
+    return {
+        "status": "ok",
+        "mode": "page",
+        "file": log_file,
+        "page": page,
+        "total_pages": total_pages,
+        "total_matched": total_matched,
+        "count": len(matched_lines),
+        "lines": matched_lines
+    }
 
 # --- Setup Web App --- (Keep as is)
 async def setup_webapp(bot_instance: Client, start_time: datetime.datetime):

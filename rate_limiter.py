@@ -2,9 +2,11 @@
 import time
 from collections import deque
 from config import Var # To access MAX_LINKS_PER_DAY
-import logging
+from logger import get_logger
+from exceptions import handle_async_exceptions, RateLimitError
 
-logger = logging.getLogger(__name__)
+# Get logger for this module
+logger = get_logger(__name__)
 
 # In-memory store for user link generation timestamps
 # { user_id: deque([timestamp1, timestamp2, ...]), ... }
@@ -14,6 +16,7 @@ user_link_timestamps: dict[int, deque[float]] = {}
 
 TWENTY_FOUR_HOURS_IN_SECONDS = 24 * 60 * 60
 
+@handle_async_exceptions(fallback_return=False)
 async def check_and_record_link_generation(user_id: int) -> bool:
     """
     Checks if a user can generate a new link and records it if allowed.
@@ -53,6 +56,7 @@ async def check_and_record_link_generation(user_id: int) -> bool:
         # For now, just returning False is sufficient.
         return False
 
+@handle_async_exceptions(fallback_return=(0, 0.0))
 async def get_user_link_count_and_wait_time(user_id: int) -> tuple[int, float]:
     """
     Gets the current link count for the user in the last 24 hours and

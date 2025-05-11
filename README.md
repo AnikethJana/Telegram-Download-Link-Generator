@@ -16,6 +16,7 @@ A Telegram bot built with Python (using Pyrogram and aiohttp) that generates tem
 * **Database Integration:** Uses MongoDB to store user IDs for the broadcast feature.
 * **Environment Variable Configuration:** Easy setup using environment variables or a `.env` file.
 * **Status API:** Includes a `/api/info` endpoint to check bot status and configuration.
+* **Logs API:** Provides a `/api/logs` endpoint for admins to view logs remotely without server access.
 
 ## Requirements
 
@@ -70,8 +71,14 @@ LINK_EXPIRY_SECONDS=86400 # Default: 24 hours (in seconds)
 SESSION_NAME=TgDlBot # Pyrogram session file name
 WORKERS=4 # Number of Pyrogram worker threads
 GITHUB_REPO_URL=[https://github.com/yourusername/your-repo](https://github.com/yourusername/your-repo) # Optional: Link to your repo for /api/info
-# Space-separated list of numeric user IDs allowed to use /broadcast
+# Space-separated list of numeric user IDs allowed to use /broadcast and /logs
 ADMINS=123456789 987654321
+
+# --- Admin Access for Logs ---
+# Token for secure access to log endpoints (auto-generated if not provided)
+ADMIN_TOKEN=your_secure_token_here
+# Comma-separated list of IP addresses allowed to access admin endpoints
+ADMIN_IPS=127.0.0.1,192.168.1.100
 
 # --- Database (MongoDB) ---
 # Replace <username>, <password>, <your-cluster-url>, and ensure <database_name> matches DB_NAME below or remove it from URI
@@ -93,9 +100,11 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 * **`SESSION_NAME`**: The name for the Pyrogram session file (default: `TgDlBot`).
 * **`WORKERS`**: Number of concurrent threads Pyrogram uses (default: `4`).
 * **`GITHUB_REPO_URL`**: (Optional) URL of the bot's GitHub repository, displayed in the `/api/info` endpoint.
-* **`ADMINS`**: A space-separated list of numeric Telegram User IDs who have permission to use the `/broadcast` command.
+* **`ADMINS`**: A space-separated list of numeric Telegram User IDs who have permission to use the `/broadcast` and `/logs` commands.
 * **`DATABASE_URL`**: Your MongoDB connection string URI.
 * **`DATABASE_NAME`**: The name of the MongoDB database to use (default: `TgDlBotUsers`).
+* **`ADMIN_TOKEN`**: (Optional) A secure token for accessing the logs API endpoint. If not provided, a random token will be generated on startup.
+* **`ADMIN_IPS`**: (Optional) A comma-separated list of IP addresses that are allowed to access admin endpoints. If not provided, only token-based and admin user ID-based authentication will be available.
 
 **How to get Numeric IDs:**
 
@@ -104,11 +113,45 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 
 ## Running the Bot
 
+### Standard Method
 ```bash
 python main.py
 ```
 
 The bot will start, connect to Telegram, and launch the web server.
+
+### Docker Deployment
+This project includes Docker support for easy deployment.
+
+1. **Using Docker Compose** (recommended):
+   ```bash
+   # Build and start the container in detached mode
+   docker-compose up -d
+   
+   # View logs
+   docker-compose logs -f
+   
+   # Stop the container
+   docker-compose down
+   ```
+
+2. **Using Docker directly**:
+   ```bash
+   # Build the Docker image
+   docker build -t streambot .
+   
+   # Run the container
+   docker run -d --name streambot -p 8080:8080 --env-file .env -v $(pwd)/tgdlbot.log:/app/tgdlbot.log -v $(pwd)/TgDlBot.session:/app/TgDlBot.session streambot
+   
+   # View logs
+   docker logs -f streambot
+   
+   # Stop the container
+   docker stop streambot
+   docker rm streambot
+   ```
+
+**Note**: When using Docker, make sure your `.env` file is properly configured and the `BASE_URL` matches your domain or IP address. The `.env` file should be in the same directory as your `docker-compose.yml` file.
 
 ## Usage
 
@@ -120,10 +163,20 @@ The bot will start, connect to Telegram, and launch the web server.
 **Admin Commands:**
 
 * `/broadcast`: (Admin only) Reply to a message with this command to send that message to all users who have started the bot.
+* `/logs`: (Admin only) Get the URL with authentication token to access the logs API endpoint.
 
-## API Endpoint
+## API Endpoints
 
 * **`GET /api/info`**: Returns a JSON response with bot status, configuration details (like force-sub status, link expiry), uptime, and total registered users.
+* **`GET /api/logs`**: (Admin only) Returns log entries with options for filtering and pagination:
+  * **Parameters:**
+    * `token`: Authentication token (required unless accessing from an admin IP)
+    * `lines`: Number of lines to return (default: 100, max: 1000)
+    * `tail`: Set to `1` to return the most recent lines (default), `0` for standard pagination
+    * `level`: Filter by log level (INFO, ERROR, WARNING, DEBUG, CRITICAL)
+    * `search`: Text search term to filter log entries
+    * `page`: Page number for pagination (starts at 1)
+    * `file`: Log file to read (default: tgdlbot.log)
 
 ## Deployment Notes
 
@@ -134,7 +187,7 @@ The bot will start, connect to Telegram, and launch the web server.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit pull requests or open issues. (Optional: Add more specific contribution guidelines if needed).
+Contributions are welcome! Please feel free to submit pull requests or open issues.
 
 ## Acknowledgements
 
