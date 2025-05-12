@@ -1,7 +1,7 @@
 # StreamBot/rate_limiter.py
 import time
 from collections import deque
-from config import Var # To access MAX_LINKS_PER_DAY
+from ..config import Var 
 import logging
 
 logger = logging.getLogger(__name__)

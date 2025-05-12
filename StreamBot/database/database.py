@@ -1,7 +1,7 @@
 # StreamBot/database.py
 import pymongo
 import logging
-from config import Var # Import Var from your config
+from ..config import Var # Import Var from your config
 logger = logging.getLogger(__name__)
 
 # Establish MongoDB connection

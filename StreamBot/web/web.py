@@ -10,9 +10,9 @@ from pyrogram import Client
 from pyrogram.errors import FloodWait, FileIdInvalid, RPCError, OffsetInvalid as PyrogramOffsetInvalid # Import specific error
 from pyrogram.types import Message, User
 
-from config import Var
+from StreamBot.config import Var
 # Ensure decode_message_id is imported from utils
-from utils import get_file_attr, humanbytes, decode_message_id
+from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id
 
 logger = logging.getLogger(__name__)
 
@@ -296,7 +296,7 @@ async def api_info_route(request: web.Request):
     start_time: datetime.datetime = request.app['start_time']
     user_count = 0
     try:
-        from database import total_users_count # Assuming this exists
+        from StreamBot.database.database import total_users_count # Assuming this exists
         user_count = await total_users_count()
     except Exception as e:
          logger.error(f"Failed to get total user count for API info: {e}")

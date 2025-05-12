@@ -6,10 +6,10 @@ import datetime
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import FloodWait, UserNotParticipant, FloodWait, UserIsBlocked, InputUserDeactivated
-from database import add_user, del_user, full_userbase
-from config import Var
-from utils import get_file_attr, humanbytes, encode_message_id
-from rate_limiter import check_and_record_link_generation, get_user_link_count_and_wait_time
+from .database.database import add_user, del_user, full_userbase
+from .config import Var
+from .utils.utils import get_file_attr, humanbytes, encode_message_id
+from .utils.rate_limiter import check_and_record_link_generation, get_user_link_count_and_wait_time
 logger = logging.getLogger(__name__)
 
 TgDlBot = Client(
