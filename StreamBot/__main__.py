@@ -10,9 +10,9 @@ load_dotenv()
 logger = logging.getLogger(__name__) 
 logger.info(".env file loaded (if found).")
 
-from config import Var 
-from bot import TgDlBot 
-from web import setup_webapp 
+from .config import Var 
+from .bot import TgDlBot 
+from .web.web import setup_webapp 
 
 # --- Logging Setup ---
 # Ensure logging is configured after potential .env load and Var import if needed

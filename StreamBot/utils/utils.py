@@ -1,8 +1,8 @@
 import mimetypes
 from pyrogram.types import Message, Audio, Document, Photo, Video, Animation, Sticker, Voice
 import base64
-import binascii # For catching specific base64 errors
-from config import Var # To access LOG_CHANNEL for the key
+import binascii 
+from ..config import Var 
 import logging
 
 logger = logging.getLogger(__name__)

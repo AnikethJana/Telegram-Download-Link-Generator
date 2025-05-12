@@ -1,7 +1,6 @@
 # StreamBot/config.py
 import os
 from logging import getLogger
-import datetime # Keep datetime import
 
 # Set up basic logging
 logger = getLogger(__name__)
