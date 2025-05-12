@@ -72,6 +72,13 @@ class Var:
     # Expiry time for download links in seconds (24 hours = 86400 seconds)
     LINK_EXPIRY_SECONDS = get_env("LINK_EXPIRY_SECONDS", 86400, is_int=True) # Default to 24 hours
 
+    # --- Logs Access Security ---
+    # Token for accessing logs via API endpoint
+    LOGS_ACCESS_TOKEN = get_env("LOGS_ACCESS_TOKEN", os.urandom(16).hex())
+    # Admin IPs allowed to access logs without token (comma-separated)
+    _admin_ips_str = get_env("ADMIN_IPS", "127.0.0.1")
+    ADMIN_IPS = [ip.strip() for ip in _admin_ips_str.split(",") if ip.strip()]
+
     # --- Optional Settings ---
     # Session name for pyrogram (change if running multiple bots on one machine)
     SESSION_NAME = get_env("SESSION_NAME", "TgDlBot")

@@ -1,6 +1,8 @@
 # StreamBot/bot.py
 import logging
 import asyncio
+import os
+import datetime
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import FloodWait, UserNotParticipant, FloodWait, UserIsBlocked, InputUserDeactivated
@@ -111,6 +113,139 @@ async def start_handler(client: Client, message: Message):
         quote=True,
         disable_web_page_preview=True
     )
+
+@TgDlBot.on_message(filters.command("logs") & filters.private)
+async def logs_handler(client: Client, message: Message):
+    """Handles the /logs command for admins to view logs."""
+    user_id = message.from_user.id
+    
+    # Check if user is an admin
+    if not Var.ADMINS or user_id not in Var.ADMINS:
+        await message.reply_text("❌ You don't have permission to access logs.", quote=True)
+        logger.warning(f"Unauthorized logs access attempt by user {user_id}")
+        return
+    
+    # Parse command arguments
+    command_parts = message.text.split()
+    
+    # Default parameters
+    limit = 50  # Default number of lines
+    level = "ALL"  # Default level
+    filter_text = ""  # Default filter
+    
+    # Parse command arguments if any
+    for i, part in enumerate(command_parts[1:], 1):
+        if part.startswith("limit="):
+            try:
+                limit = min(int(part.split("=")[1]), 200)  # Cap at 200 lines
+            except:
+                pass
+        elif part.startswith("level="):
+            level = part.split("=")[1].upper()
+        elif part.startswith("filter="):
+            filter_text = part.split("=")[1]
+    
+    # Check if log file exists
+    log_file_path = "tgdlbot.log"
+    if not os.path.exists(log_file_path):
+        await message.reply_text("❌ Log file not found.", quote=True)
+        return
+    
+    # Get file size and basic info
+    file_stats = os.stat(log_file_path)
+    file_size = file_stats.st_size
+    last_modified = datetime.datetime.fromtimestamp(file_stats.st_mtime).isoformat()
+    
+    # Define log level mapping for filtering
+    level_priority = {
+        'DEBUG': 0,
+        'INFO': 1,
+        'WARNING': 2,
+        'ERROR': 3,
+        'CRITICAL': 4
+    }
+    
+    # Determine priority level for filtering
+    min_level_priority = level_priority.get(level, -1) if level != 'ALL' else -1
+    
+    # Read log file
+    try:
+        # Inform user that logs are being processed
+        processing_msg = await message.reply_text("⏳ Processing logs...", quote=True)
+        
+        matching_lines = []
+        total_matching_lines = 0
+        
+        with open(log_file_path, 'r', encoding='utf-8', errors='replace') as file:
+            # Read file from the end to get the most recent logs first
+            lines = file.readlines()
+            
+            # Process lines in reverse (newest first)
+            for line in reversed(lines):
+                # Check if line contains log level indicator
+                current_line_level = None
+                for lvl in level_priority.keys():
+                    if f" - {lvl} - " in line:
+                        current_line_level = lvl
+                        break
+                
+                # Apply level filter
+                if min_level_priority >= 0 and (current_line_level is None or 
+                                              level_priority.get(current_line_level, -1) < min_level_priority):
+                    continue
+                
+                # Apply text filter if specified
+                if filter_text and filter_text.lower() not in line.lower():
+                    continue
+                
+                # Count matching lines
+                total_matching_lines += 1
+                
+                # Only add up to the limit
+                if total_matching_lines <= limit:
+                    matching_lines.append(line.strip())
+        
+        # Prepare log content
+        if matching_lines:
+            # Reverse back to chronological order
+            matching_lines.reverse()
+            
+            # Format logs for message
+            logs_text = f"📋 **Log File ({humanbytes(file_size)})** | Last Modified: {last_modified}\n"
+            logs_text += f"🔍 Filter: Level={level}" + (f", Text='{filter_text}'" if filter_text else "") + "\n"
+            logs_text += f"📊 Showing {len(matching_lines)}/{total_matching_lines} matching lines\n\n"
+            
+            # Split logs into chunks of ~4000 chars for Telegram message limit
+            chunk_size = 3800  # Leave room for headers
+            log_chunks = []
+            current_chunk = ""
+            
+            for line in matching_lines:
+                if len(current_chunk) + len(line) + 2 > chunk_size:
+                    log_chunks.append(current_chunk)
+                    current_chunk = line + "\n"
+                else:
+                    current_chunk += line + "\n"
+            
+            if current_chunk:
+                log_chunks.append(current_chunk)
+            
+            # Send first part with the header
+            await processing_msg.edit_text(logs_text + f"```\n{log_chunks[0]}```")
+            
+            # Send additional parts if any
+            for i, chunk in enumerate(log_chunks[1:], 1):
+                await message.reply_text(f"```\n{chunk}```", quote=True)
+                # Small delay to avoid flood limits
+                await asyncio.sleep(0.5)
+            
+            logger.info(f"Logs viewed by admin {user_id} (Level: {level}, Filter: {filter_text})")
+        else:
+            await processing_msg.edit_text(f"❗ No log entries match your criteria (Level: {level}, Filter: {filter_text})")
+    
+    except Exception as e:
+        logger.error(f"Error reading logs for admin {user_id}: {e}", exc_info=True)
+        await message.reply_text(f"❌ Error reading logs: {str(e)}", quote=True)
 
 @TgDlBot.on_message(filters.private & filters.incoming & (
     filters.document | filters.video | filters.audio | filters.photo |

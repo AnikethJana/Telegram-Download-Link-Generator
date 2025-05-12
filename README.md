@@ -14,6 +14,8 @@ A Telegram bot built with Python (using Pyrogram and aiohttp) that generates tem
 * **Force Subscription:** (Optional) Requires users to join a specific channel before using the bot.
 * **Admin Broadcast:** Allows administrators to send messages to all users who have interacted with the bot.
 * **Database Integration:** Uses MongoDB to store user IDs for the broadcast feature.
+* **Logs Access:** View application logs via API endpoint or directly within the bot (admin only).
+* **Rate Limiting:** Configurable daily limit on link generation per user.
 * **Environment Variable Configuration:** Easy setup using environment variables or a `.env` file.
 * **Status API:** Includes a `/api/info` endpoint to check bot status and configuration.
 
@@ -61,7 +63,7 @@ FORCE_SUB_CHANNEL=-100yyyyyyyyyy # Leave empty or remove to disable
 # --- Web Server ---
 # Full URL, including http:// or https://. MUST NOT end with a '/'
 # This is the public URL users will use to download files.
-BASE_URL=[https://yourdomain.com](https://yourdomain.com)
+BASE_URL=https://yourdomain.com
 PORT=8080 # Port the web server will listen on
 BIND_ADDRESS=0.0.0.0 # Address to bind the web server to
 
@@ -69,9 +71,16 @@ BIND_ADDRESS=0.0.0.0 # Address to bind the web server to
 LINK_EXPIRY_SECONDS=86400 # Default: 24 hours (in seconds)
 SESSION_NAME=TgDlBot # Pyrogram session file name
 WORKERS=4 # Number of Pyrogram worker threads
-GITHUB_REPO_URL=[https://github.com/yourusername/your-repo](https://github.com/yourusername/your-repo) # Optional: Link to your repo for /api/info
-# Space-separated list of numeric user IDs allowed to use /broadcast
+GITHUB_REPO_URL=https://github.com/yourusername/your-repo # Optional: Link to your repo for /api/info
+# Space-separated list of numeric user IDs allowed to use /broadcast and /logs
 ADMINS=123456789 987654321
+
+# --- Logs Access ---
+LOGS_ACCESS_TOKEN=your_secure_token_here # Token for accessing logs via API
+ADMIN_IPS=127.0.0.1,your.public.ip # Comma-separated list of IPs allowed to access logs without token
+
+# --- Rate Limiting ---
+MAX_LINKS_PER_DAY=5 # Maximum links a user can generate per day (0 to disable)
 
 # --- Database (MongoDB) ---
 # Replace <username>, <password>, <your-cluster-url>, and ensure <database_name> matches DB_NAME below or remove it from URI
@@ -93,7 +102,10 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 * **`SESSION_NAME`**: The name for the Pyrogram session file (default: `TgDlBot`).
 * **`WORKERS`**: Number of concurrent threads Pyrogram uses (default: `4`).
 * **`GITHUB_REPO_URL`**: (Optional) URL of the bot's GitHub repository, displayed in the `/api/info` endpoint.
-* **`ADMINS`**: A space-separated list of numeric Telegram User IDs who have permission to use the `/broadcast` command.
+* **`ADMINS`**: A space-separated list of numeric Telegram User IDs who have permission to use the `/broadcast` and `/logs` commands.
+* **`LOGS_ACCESS_TOKEN`**: Security token for accessing logs via the API endpoint. If not set, a random token will be generated at startup.
+* **`ADMIN_IPS`**: Comma-separated list of IP addresses allowed to access logs via API without a token (default: `127.0.0.1`).
+* **`MAX_LINKS_PER_DAY`**: Maximum number of links a user can generate in a 24-hour period (default: `5`). Set to `0` to disable this limit.
 * **`DATABASE_URL`**: Your MongoDB connection string URI.
 * **`DATABASE_NAME`**: The name of the MongoDB database to use (default: `TgDlBotUsers`).
 
@@ -120,10 +132,20 @@ The bot will start, connect to Telegram, and launch the web server.
 **Admin Commands:**
 
 * `/broadcast`: (Admin only) Reply to a message with this command to send that message to all users who have started the bot.
+* `/logs`: (Admin only) View application logs directly within the bot. Supports filtering by log level and text search.
+  * Example: `/logs level=ERROR limit=100 filter=download`
 
-## API Endpoint
+## API Endpoints
 
 * **`GET /api/info`**: Returns a JSON response with bot status, configuration details (like force-sub status, link expiry), uptime, and total registered users.
+* **`GET /api/logs`**: Returns application logs in JSON format. Requires authentication via token or admin IP.
+  * Query Parameters:
+    * `token`: Access token for authentication
+    * `level`: Filter by log level (ALL, DEBUG, INFO, WARNING, ERROR, CRITICAL)
+    * `page`: Page number for pagination
+    * `limit`: Number of log lines per page (max 1000)
+    * `filter`: Text to filter logs by
+  * Example: `/api/logs?token=your_token&level=ERROR&limit=100&filter=download`
 
 ## Deployment Notes
 
@@ -131,6 +153,7 @@ The bot will start, connect to Telegram, and launch the web server.
 * If deploying behind a reverse proxy (like Nginx), configure it to forward requests to the bot's `BIND_ADDRESS` and `PORT`.
 * Make sure the necessary ports are open in your firewall settings.
 * Keep your MongoDB database secure.
+* Protect your `LOGS_ACCESS_TOKEN` and ensure only trusted IPs are added to `ADMIN_IPS`.
 
 ## Contributing
 

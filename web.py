@@ -3,6 +3,7 @@ import re
 import logging
 import asyncio
 import datetime
+import os
 from aiohttp import web
 import aiohttp_cors
 from pyrogram import Client
@@ -338,6 +339,133 @@ async def api_info_route(request: web.Request):
             "uptime": format_uptime(start_time), "github_repo": Var.GITHUB_REPO_URL,
             "totaluser": user_count,
         }, status=500)
+
+# --- Logs Endpoint ---
+@routes.get("/api/logs")
+async def logs_route(request: web.Request):
+    """Stream logs from the log file with filtering options."""
+    # Security check: require token or admin IP
+    token = request.query.get('token')
+    client_ip = request.remote
+    
+    is_authorized = False
+    
+    # Check token first (preferred method)
+    if token and token == Var.LOGS_ACCESS_TOKEN:
+        is_authorized = True
+        logger.info(f"Logs accessed with valid token from {client_ip}")
+    
+    # If token check failed, check admin IP
+    if not is_authorized and client_ip in Var.ADMIN_IPS:
+        is_authorized = True
+        logger.info(f"Logs accessed from admin IP {client_ip}")
+    
+    # If neither passed, reject the request
+    if not is_authorized:
+        logger.warning(f"Unauthorized logs access attempt from {client_ip}")
+        return web.json_response({
+            "status": "error",
+            "message": "Unauthorized access"
+        }, status=403)
+    
+    # Get query parameters with defaults
+    limit = min(int(request.query.get('limit', 100)), 1000)  # Default 100, max 1000 lines
+    level = request.query.get('level', 'ALL').upper()  # ALL, DEBUG, INFO, WARNING, ERROR, CRITICAL
+    page = max(int(request.query.get('page', 1)), 1)  # Page number, minimum 1
+    filter_text = request.query.get('filter', '')  # Text to filter logs by
+
+    # Log file path
+    log_file_path = "tgdlbot.log"
+    
+    # Check if file exists
+    if not os.path.exists(log_file_path):
+        return web.json_response({
+            "status": "error",
+            "message": "Log file not found"
+        }, status=404)
+    
+    # Get file size and basic stats
+    file_stats = os.stat(log_file_path)
+    file_size = file_stats.st_size
+    last_modified = datetime.datetime.fromtimestamp(file_stats.st_mtime).isoformat()
+    
+    # Define log level mapping for filtering
+    level_priority = {
+        'DEBUG': 0,
+        'INFO': 1,
+        'WARNING': 2,
+        'ERROR': 3,
+        'CRITICAL': 4
+    }
+    
+    # Initialize response data
+    log_lines = []
+    total_matching_lines = 0
+    
+    # Determine priority level for filtering
+    min_level_priority = level_priority.get(level, -1) if level != 'ALL' else -1
+    
+    try:
+        # Read and process logs in a memory-efficient way
+        with open(log_file_path, 'r', encoding='utf-8', errors='replace') as file:
+            matching_lines = []
+            
+            for line in file:
+                # Check if line contains log level indicator
+                current_line_level = None
+                for lvl in level_priority.keys():
+                    if f" - {lvl} - " in line:
+                        current_line_level = lvl
+                        break
+                
+                # Apply level filter
+                if min_level_priority >= 0 and (current_line_level is None or 
+                                              level_priority.get(current_line_level, -1) < min_level_priority):
+                    continue
+                
+                # Apply text filter if specified
+                if filter_text and filter_text.lower() not in line.lower():
+                    continue
+                
+                # Count total matching lines for pagination info
+                total_matching_lines += 1
+                
+                # Keep only lines for current page
+                if (page - 1) * limit < total_matching_lines <= page * limit:
+                    matching_lines.append(line.strip())
+            
+            log_lines = matching_lines
+    except Exception as e:
+        logger.error(f"Error reading log file: {e}", exc_info=True)
+        return web.json_response({
+            "status": "error",
+            "message": f"Failed to read log file: {str(e)}"
+        }, status=500)
+    
+    # Calculate pagination info
+    total_pages = (total_matching_lines + limit - 1) // limit if total_matching_lines > 0 else 1
+    
+    # Send response
+    return web.json_response({
+        "status": "ok",
+        "file_info": {
+            "path": log_file_path,
+            "size_bytes": file_size,
+            "size_human": humanbytes(file_size),
+            "last_modified": last_modified
+        },
+        "pagination": {
+            "page": page,
+            "limit": limit,
+            "total_pages": total_pages,
+            "total_matching_lines": total_matching_lines
+        },
+        "filter": {
+            "level": level,
+            "text": filter_text
+        },
+        "logs": log_lines
+    })
 
 # --- Setup Web App --- (Keep as is)
 async def setup_webapp(bot_instance: Client, start_time: datetime.datetime):
