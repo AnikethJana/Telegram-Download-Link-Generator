@@ -128,7 +128,36 @@ async def logs_handler(client: Client, message: Message):
     # Parse command arguments
     command_parts = message.text.split()
     
-    # Default parameters
+    # Check if log file exists
+    log_file_path = "tgdlbot.log"
+    if not os.path.exists(log_file_path):
+        await message.reply_text("❌ Log file not found.", quote=True)
+        return
+    
+    # Get file size and basic info
+    file_stats = os.stat(log_file_path)
+    file_size = file_stats.st_size
+    last_modified = datetime.datetime.fromtimestamp(file_stats.st_mtime).isoformat()
+    
+    # Check if there are any arguments provided
+    if len(command_parts) == 1:
+        # No arguments provided, upload the whole log file
+        processing_msg = await message.reply_text("⏳ Uploading log file...", quote=True)
+        try:
+            await client.send_document(
+                chat_id=user_id,
+                document=log_file_path,
+                caption=f"📋 **Log File ({humanbytes(file_size)})** | Last Modified: {last_modified}"
+            )
+            await processing_msg.delete()
+            logger.info(f"Full log file uploaded for admin {user_id}")
+            return
+        except Exception as e:
+            logger.error(f"Error uploading log file for admin {user_id}: {e}", exc_info=True)
+            await processing_msg.edit_text(f"❌ Error uploading log file: {str(e)}")
+            return
+    
+    # Default parameters when arguments are provided
     limit = 50  # Default number of lines
     level = "ALL"  # Default level
     filter_text = ""  # Default filter
@@ -144,17 +173,6 @@ async def logs_handler(client: Client, message: Message):
             level = part.split("=")[1].upper()
         elif part.startswith("filter="):
             filter_text = part.split("=")[1]
-    
-    # Check if log file exists
-    log_file_path = "tgdlbot.log"
-    if not os.path.exists(log_file_path):
-        await message.reply_text("❌ Log file not found.", quote=True)
-        return
-    
-    # Get file size and basic info
-    file_stats = os.stat(log_file_path)
-    file_size = file_stats.st_size
-    last_modified = datetime.datetime.fromtimestamp(file_stats.st_mtime).isoformat()
     
     # Define log level mapping for filtering
     level_priority = {
