@@ -132,8 +132,9 @@ The bot will start, connect to Telegram, and launch the web server.
 **Admin Commands:**
 
 * `/broadcast`: (Admin only) Reply to a message with this command to send that message to all users who have started the bot.
-* `/logs`: (Admin only) View application logs directly within the bot. Supports filtering by log level and text search.
+* `/logs`: (Admin only) View application logs directly within the bot. Supports filtering by log level and text search with arguments.
   * Example: `/logs level=ERROR limit=100 filter=download`
+  * Without arguments: `/logs` uploads the complete log file as a document
 
 ## API Endpoints
 
