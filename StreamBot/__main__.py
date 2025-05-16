@@ -11,12 +11,10 @@ logger = logging.getLogger(__name__)
 logger.info(".env file loaded (if found).")
 
 from .config import Var 
-from .bot import TgDlBot 
+from .bot import attach_handlers 
 from .web.web import setup_webapp 
+from .client_manager import ClientManager 
 
-# --- Logging Setup ---
-# Ensure logging is configured after potential .env load and Var import if needed
-# Basic config might be okay here, or move it after Var if log levels depend on config
 logging.basicConfig(
     level=logging.INFO, 
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -32,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 # --- Global variable for start time ---
 BOT_START_TIME = None
+CLIENT_MANAGER_INSTANCE: ClientManager = None 
 
 # --- Main Application --- 
 async def main():
@@ -39,56 +38,88 @@ async def main():
     global BOT_START_TIME 
     BOT_START_TIME = datetime.datetime.now(datetime.timezone.utc) 
 
+    global CLIENT_MANAGER_INSTANCE # Allow assignment to global
+
     logger.info(f"Using Base URL: {Var.BASE_URL}") 
     logger.info(f"Log Channel ID: {Var.LOG_CHANNEL}")
     logger.info("Starting Telegram Download Link Generator Bot...")
-    runner = None 
+    web_runner = None # Renamed runner to web_runner to avoid conflict
 
-    # --- Start Bot Client ---
+    # --- Initialize and Start ClientManager ---
     try:
-        logger.info("Starting Telegram client...")
-        await TgDlBot.start()
-        me = await TgDlBot.get_me()
-        # Store bot info globally if needed by API endpoint directly from client instance later
-        TgDlBot.me = me 
-        logger.info(f"Bot client started as @{me.username} (ID: {me.id})")
+        additional_tokens = Var.ADDITIONAL_BOT_TOKENS
+        logger.info(f"Primary Bot Token: ...{Var.BOT_TOKEN[-4:]}")
+        logger.info(f"Additional Bot Tokens: {len(additional_tokens)} found.")
+        if additional_tokens:
+             for i, token in enumerate(additional_tokens):
+                  logger.info(f"  Worker {i+1}: ...{token[-4:]}")
+
+        CLIENT_MANAGER_INSTANCE = ClientManager(
+            primary_api_id=Var.API_ID,
+            primary_api_hash=Var.API_HASH,
+            primary_bot_token=Var.BOT_TOKEN,
+            primary_session_name=Var.SESSION_NAME,
+            primary_workers_count=Var.WORKERS,
+            additional_tokens_list=additional_tokens,
+            worker_pyrogram_workers=Var.WORKER_CLIENT_PYROGRAM_WORKERS,
+            worker_sessions_in_memory=Var.WORKER_SESSIONS_IN_MEMORY
+        )
+        await CLIENT_MANAGER_INSTANCE.start_clients()
+        
+        primary_bot_client = CLIENT_MANAGER_INSTANCE.get_primary_client()
+        if not primary_bot_client:
+            logger.critical("CRITICAL: Primary bot client could not be obtained from ClientManager. Exiting.")
+            sys.exit(1)
+
+        # Attach handlers to the primary client
+        attach_handlers(primary_bot_client)
+        
+        # Store bot info on the primary client instance if needed (e.g., for /api/info)
+        me = await primary_bot_client.get_me()
+        primary_bot_client.me = me # type: ignore # pyright: ignore [reportGeneralTypeIssues]
+        logger.info(f"Primary bot client operational as @{me.username} (ID: {me.id})")
+
     except Exception as e:
-        logger.critical(f"CRITICAL: Failed to start Telegram client: {e}", exc_info=True)
+        logger.critical(f"CRITICAL: Failed during ClientManager setup or primary client start: {e}", exc_info=True)
         sys.exit(1) 
 
     # --- Start Web Server ---
     try:
         logger.info("Setting up web server...")
-        web_app = await setup_webapp(bot_instance=TgDlBot, start_time=BOT_START_TIME)
-        runner = web.AppRunner(web_app)
-        await runner.setup()
+        web_app = await setup_webapp(
+            bot_instance=CLIENT_MANAGER_INSTANCE.get_primary_client(), # Pass primary client for general bot info
+            client_manager=CLIENT_MANAGER_INSTANCE, # Pass the whole manager for streaming clients
+            start_time=BOT_START_TIME
+        )
+        web_runner = web.AppRunner(web_app) # Use web_runner
+        await web_runner.setup()
         
-        site = web.TCPSite(runner, Var.BIND_ADDRESS, Var.PORT)
+        site = web.TCPSite(web_runner, Var.BIND_ADDRESS, Var.PORT) # Use web_runner
         await site.start()
         logger.info(f"Web server started successfully on http://{Var.BIND_ADDRESS}:{Var.PORT}")
     except Exception as e:
         logger.critical(f"CRITICAL: Failed to start web server: {e}", exc_info=True)
-        
-        if TgDlBot.is_connected:
-            await TgDlBot.stop()
+        if CLIENT_MANAGER_INSTANCE:
+            await CLIENT_MANAGER_INSTANCE.stop_clients() # Ensure clients are stopped if web fails
         sys.exit(1)
 
     # --- Keep Running ---
     logger.info("Bot and web server are running. Press Ctrl+C to stop.")
-    # Keep the main task running indefinitely
+    # Pass web_runner to the main_task context or make it accessible for shutdown if needed by shutdown func
+    main_task.web_runner_ref = web_runner # type: ignore
     await asyncio.Event().wait() 
 
 # --- Shutdown Logic 
-async def shutdown(runner):
+async def perform_shutdown(web_runner_to_stop, client_manager_to_stop):
      logger.info("Shutdown signal received. Stopping services...")
-     if TgDlBot.is_connected:
-         await TgDlBot.stop()
-         logger.info("Telegram client stopped.")
+     if client_manager_to_stop:
+         await client_manager_to_stop.stop_clients()
+         logger.info("All Telegram clients stopped.")
      else:
-         logger.info("Telegram client was not connected.")
+         logger.info("ClientManager was not initialized.")
 
-     if runner:
-         await runner.cleanup()
+     if web_runner_to_stop:
+         await web_runner_to_stop.cleanup()
          logger.info("Web server stopped.")
      else:
           logger.info("Web server runner was not initialized.")
@@ -96,55 +127,40 @@ async def shutdown(runner):
 
 
 if __name__ == "__main__":
-     runner_ref = None # To hold runner for shutdown
+     loop = asyncio.get_event_loop()
+     main_task = None
      try:
-         # Run the main asynchronous function
-         # asyncio.run(main()) # asyncio.run() handles loop creation/closing
-         # Need to manage runner for shutdown when using asyncio.run, which isn't straightforward
-         # A more manual loop management allows cleaner shutdown access to runner
-
-         loop = asyncio.get_event_loop()
-         main_task = loop.create_task(main()) # main() now implicitly sets up runner
-
-         # Need access to runner created inside main() for shutdown
-         # A better approach might be for main() to return the runner
-
-         # Temporary workaround: Access runner via web_app if needed, but ideally main returns it
-         # Or pass a reference object to main that it can populate
-
-         loop.run_until_complete(main_task) # This will run until main_task completes or is cancelled
-
+         main_task = loop.create_task(main())
+         loop.run_until_complete(main_task)
 
      except KeyboardInterrupt:
-         # Handle Ctrl+C gracefully
          logger.info("Ctrl+C pressed. Initiating shutdown...")
-         # Find the runner - this is a bit hacky, relies on runner being setup in main
-         # A cleaner way is needed if main doesn't return runner
-         # Assuming runner is accessible somehow or shutdown logic is moved inside main's finally block
-         # For now, we call a conceptual shutdown assuming runner is available in scope
-         # This part needs refinement based on how runner is managed.
-         # Let's assume main handles its own shutdown on cancel/exception for now.
-         # The asyncio.Event().wait() inside main will raise CancelledError on Ctrl+C with asyncio.run
-         # If using manual loop, need to cancel the task
-         if 'main_task' in locals() and not main_task.done():
+         if main_task and not main_task.done():
              main_task.cancel()
              try:
                  loop.run_until_complete(main_task)
              except asyncio.CancelledError:
                  logger.info("Main task cancelled.")
-             except Exception as e:
-                 logger.error(f"Error during task cancellation: {e}")
-
-         logger.info("Shutdown process completed from KeyboardInterrupt.")
-         sys.exit(0) 
-
+        
      except Exception as e:
-         
          logger.critical(f"CRITICAL: Unhandled exception in main execution block: {e}", exc_info=True)
-         logger.critical("Exiting due to unhandled runtime error.")
-         sys.exit(1) 
+     
      finally:
-         # Ensure loop is closed if using manual loop management
-         if 'loop' in locals() and loop.is_running():
+         logger.info("Entering finally block for shutdown...")
+         current_web_runner = None
+         if main_task and hasattr(main_task, 'web_runner_ref'):
+             current_web_runner = main_task.web_runner_ref # type: ignore
+         
+         # Perform cleanup of client manager and web server
+         # This ensures that perform_shutdown is called even if main() exits early due to an error
+         # after CLIENT_MANAGER_INSTANCE or web_runner might have been initialized.
+         if loop.is_running():
+             loop.run_until_complete(perform_shutdown(current_web_runner, CLIENT_MANAGER_INSTANCE))
+         else: # If loop already closed or never started properly, try a simplified shutdown
+             asyncio.run(perform_shutdown(current_web_runner, CLIENT_MANAGER_INSTANCE))
+
+         if loop.is_running(): # Close loop if it's still running (it should be if run_until_complete was used)
               loop.close()
               logger.info("Asyncio event loop closed.")
+         logger.info("Shutdown process completed.")
+         sys.exit(0) # Exit cleanly after shutdown

@@ -12,6 +12,7 @@ A Telegram bot built with Python (using Pyrogram and aiohttp) that generates tem
 * **Web Server:** Serves files directly via HTTP using a built-in aiohttp web server.
 * **Link Expiry:** Download links automatically expire after a configurable duration (default: 24 hours).
 * **Force Subscription:** (Optional) Requires users to join a specific channel before using the bot.
+* **Multi-Bot Architecture:** Supports load distribution across multiple worker bots for improved performance.
 * **Admin Broadcast:** Allows administrators to send messages to all users who have interacted with the bot.
 * **Database Integration:** Uses MongoDB to store user IDs for the broadcast feature.
 * **Logs Access:** View application logs via API endpoint or directly within the bot (admin only).
@@ -82,6 +83,14 @@ ADMIN_IPS=127.0.0.1,your.public.ip # Comma-separated list of IPs allowed to acce
 # --- Rate Limiting ---
 MAX_LINKS_PER_DAY=5 # Maximum links a user can generate per day (0 to disable)
 
+# --- Multiple Bot Support ---
+# Space-separated list of additional bot tokens for streaming only
+ADDITIONAL_BOT_TOKENS=token1 token2 token3
+# Number of Pyrogram workers for each additional bot (default: 1)
+WORKER_CLIENT_PYROGRAM_WORKERS=1
+# Whether to store worker bot sessions in memory only (default: true)
+WORKER_SESSIONS_IN_MEMORY=true
+
 # --- Database (MongoDB) ---
 # Replace <username>, <password>, <your-cluster-url>, and ensure <database_name> matches DB_NAME below or remove it from URI
 DATABASE_URL=mongodb+srv://<username>:<password>@<your-cluster-url>/<database_name>?retryWrites=true&w=majority
@@ -106,6 +115,9 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 * **`LOGS_ACCESS_TOKEN`**: Security token for accessing logs via the API endpoint. If not set, a random token will be generated at startup.
 * **`ADMIN_IPS`**: Comma-separated list of IP addresses allowed to access logs via API without a token (default: `127.0.0.1`).
 * **`MAX_LINKS_PER_DAY`**: Maximum number of links a user can generate in a 24-hour period (default: `5`). Set to `0` to disable this limit.
+* **`ADDITIONAL_BOT_TOKENS`**: Space-separated list of additional bot tokens that will be used as worker bots for file streaming. All these bots must be administrators in the LOG_CHANNEL.
+* **`WORKER_CLIENT_PYROGRAM_WORKERS`**: Number of Pyrogram workers for each worker bot (default: `1`).
+* **`WORKER_SESSIONS_IN_MEMORY`**: Whether to store worker bot sessions in memory only, avoiding disk writes (default: `true`).
 * **`DATABASE_URL`**: Your MongoDB connection string URI.
 * **`DATABASE_NAME`**: The name of the MongoDB database to use (default: `TgDlBotUsers`).
 
@@ -113,6 +125,20 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 
 * Forward a message from the target channel/group to [@TGIdsBot](https://t.me/TGIdsBot) .
 * For channels, the ID usually starts with `-100`.
+
+## Multi-Bot Architecture
+
+The bot now supports a multi-bot architecture for improved performance and load distribution:
+
+1. **Primary Bot:** Handles all user interactions, commands, and file uploads. This is the bot users interact with.
+2. **Worker Bots:** Additional bots that only handle file streaming tasks. These are used to distribute the load when users download files.
+
+This architecture provides several benefits:
+- **Higher Throughput:** More concurrent downloads can be handled.
+- **Reduced Rate Limiting:** Telegram API limits are distributed across multiple bots.
+- **Improved Reliability:** If one bot hits rate limits, others can continue serving files.
+
+To use this feature, simply add additional bot tokens to your configuration using the `ADDITIONAL_BOT_TOKENS` environment variable. All bots (primary and workers) must be administrators in the `LOG_CHANNEL`.
 
 ## Running the Bot
 
@@ -123,7 +149,7 @@ python main.py
 The bot will start, connect to Telegram, and launch the web server.
 
 ## Usage
-
+**User Commands:**
 1.  **Start the Bot:** Send `/start` in a private chat with the bot.
 2.  **Send Files:** Send any file (document, video, audio, photo, etc.) to the bot in the private chat.
 3.  **Receive Link:** The bot will reply with a direct download link for the file.
@@ -148,17 +174,9 @@ The bot will start, connect to Telegram, and launch the web server.
     * `filter`: Text to filter logs by
   * Example: `/api/logs?token=your_token&level=ERROR&limit=100&filter=download`
 
-## Deployment Notes
-
-* Ensure the `BASE_URL` is correctly set to the public URL where the bot's web server is accessible.
-* If deploying behind a reverse proxy (like Nginx), configure it to forward requests to the bot's `BIND_ADDRESS` and `PORT`.
-* Make sure the necessary ports are open in your firewall settings.
-* Keep your MongoDB database secure.
-* Protect your `LOGS_ACCESS_TOKEN` and ensure only trusted IPs are added to `ADMIN_IPS`.
-
 ## Contributing
 
-Contributions are welcome! Please feel free to submit pull requests or open issues. (Optional: Add more specific contribution guidelines if needed).
+Contributions are welcome! Please feel free to submit pull requests or open issues.
 
 ## Acknowledgements
 
