@@ -48,6 +48,12 @@ class Var:
     API_ID = get_env("API_ID", required=True, is_int=True)
     API_HASH = get_env("API_HASH", required=True)
     BOT_TOKEN = get_env("BOT_TOKEN", required=True)
+    # --- Multi-Client Configuration ---
+    # Comma-separated list of additional bot tokens for worker clients
+    _additional_bot_tokens_str = get_env("ADDITIONAL_BOT_TOKENS", default="")
+    ADDITIONAL_BOT_TOKENS = [token.strip() for token in _additional_bot_tokens_str.split(",") if token.strip()]
+    WORKER_CLIENT_PYROGRAM_WORKERS = get_env("WORKER_CLIENT_PYROGRAM_WORKERS", 1, is_int=True)
+    WORKER_SESSIONS_IN_MEMORY = get_env("WORKER_SESSIONS_IN_MEMORY", False, is_bool=True)
 
     # --- Log Channel ---
     # ID of a private channel where the bot will forward files. Bot must be an admin.

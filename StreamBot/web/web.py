@@ -13,6 +13,7 @@ from pyrogram.types import Message, User
 from StreamBot.config import Var
 # Ensure decode_message_id is imported from utils
 from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id
+from StreamBot.utils.exceptions import NoClientsAvailableError # Import custom exception
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +98,12 @@ async def get_media_message(bot_client: Client, message_id: int) -> Message:
 # --- Download Route (Refactored with improved logging and error handling) ---
 @routes.get("/dl/{encoded_id_str}")
 async def download_route(request: web.Request):
-    bot_client: Client = request.app['bot_client']
+    # Get the client_manager from the app state
+    client_manager = request.app.get('client_manager')
+    if not client_manager:
+        logger.error("ClientManager not found in web app state.")
+        raise web.HTTPServiceUnavailable(text="Bot service configuration error.")
+
     start_time_request = asyncio.get_event_loop().time() # For overall request timing
 
     encoded_id = request.match_info['encoded_id_str']
@@ -110,10 +116,20 @@ async def download_route(request: web.Request):
     logger.info(f"Download request for decoded message_id: {message_id} (encoded: {encoded_id}) from {request.remote}")
 
     try:
-        media_msg = await get_media_message(bot_client, message_id)
+        # Get a streaming client from the manager
+        streamer_client = await client_manager.get_streaming_client()
+        if not streamer_client or not streamer_client.is_connected: # Ensure client is connected
+            logger.error(f"Failed to obtain a connected streaming client for message_id {message_id}")
+            raise web.HTTPServiceUnavailable(text="Bot service temporarily overloaded. Please try again shortly.")
+
+        logger.debug(f"Using client @{streamer_client.me.username} for streaming message_id {message_id}")
+        media_msg = await get_media_message(streamer_client, message_id)
     except (web.HTTPNotFound, web.HTTPServiceUnavailable, web.HTTPTooManyRequests, web.HTTPGone, web.HTTPInternalServerError) as e:
         logger.warning(f"Error during get_media_message for {message_id}: {type(e).__name__} - {e.text}")
         raise e
+    except NoClientsAvailableError as e:
+        logger.error(f"No clients available for streaming message_id {message_id}: {e}")
+        raise web.HTTPServiceUnavailable(text="All streaming resources are currently busy or unavailable. Please try again later.")
     except Exception as e: # Catch any other unexpected error from get_media_message
         logger.error(f"Unexpected error from get_media_message for {message_id}: {e}", exc_info=True)
         raise web.HTTPInternalServerError(text="Failed to retrieve file information.")
@@ -220,7 +236,7 @@ async def download_route(request: web.Request):
 
     while current_retry_stream <= max_retries_stream:
         try:
-            async for chunk in bot_client.stream_media(
+            async for chunk in streamer_client.stream_media(
                 media_msg,
                 offset=start_offset, # Absolute offset in the file
                 limit=stream_length_to_request # Number of bytes from offset, 0 for "to end"
@@ -467,12 +483,13 @@ async def logs_route(request: web.Request):
         "logs": log_lines
     })
 
-# --- Setup Web App --- (Keep as is)
-async def setup_webapp(bot_instance: Client, start_time: datetime.datetime):
+# --- Setup Web App --- (Keep as is, assuming it's working)
+async def setup_webapp(bot_instance: Client, client_manager, start_time: datetime.datetime): # Added client_manager
     webapp = web.Application()
     webapp.add_routes(routes)
-    webapp['bot_client'] = bot_instance
-    webapp['start_time'] = start_time
+    webapp['bot_client'] = bot_instance # This is the primary client for general info like /api/info
+    webapp['client_manager'] = client_manager # For download routes to get worker clients
+    webapp['start_time'] = start_time # type: ignore
     logger.info("Web application routes configured.")
     cors = aiohttp_cors.setup(webapp, defaults={
         "*": aiohttp_cors.ResourceOptions(
