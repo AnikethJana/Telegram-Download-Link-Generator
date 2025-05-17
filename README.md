@@ -143,11 +143,22 @@ To use this feature, simply add additional bot tokens to your configuration usin
 ## Running the Bot
 
 ```bash
-python main.py
+python -m StreamBot
 ```
 
 The bot will start, connect to Telegram, and launch the web server.
 
+## Docker Deployment
+
+1. **Build Docker image:**
+   ```bash
+   docker build -t streambot .
+   ```
+
+2. **Run container:**
+   ```bash
+   docker run -d --name streambot -p 8080:8080 --env-file .env streambot
+   ```
 ## Usage
 **User Commands:**
 1.  **Start the Bot:** Send `/start` in a private chat with the bot.
@@ -180,7 +191,7 @@ Contributions are welcome! Please feel free to submit pull requests or open issu
 
 ## Acknowledgements
 
-This project was inspired by and references code/logic from the following:
+This project was inspired from :
 
 * [CodeXBotz/File-Sharing-Bot](https://github.com/CodeXBotz/File-Sharing-Bot)
 * [EverythingSuckz/FileStreamBot](https://github.com/EverythingSuckz/TG-FileStreamBot/tree/python)

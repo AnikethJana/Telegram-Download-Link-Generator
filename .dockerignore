@@ -1,0 +1,48 @@
+# .dockerignore
+
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# IDE and editor specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Log files and sessions (if not needed in the image)
+*.log
+*.session
+*.session-journal # Pyrogram session journal files
+
+# Test files and directories
+tests/
+*.test.py
+pytest.ini
+.pytest_cache/
+
+# Docker files themselves
+Dockerfile
+.dockerignore
+
+# Secrets / Local environment files (manage these via Koyeb's secrets)
+.env
+*.env
+
+# Other
+*.md # READMEs, etc., if not needed in the final image for some reason
+.git/
+.gitignore
