@@ -17,6 +17,7 @@ A Telegram bot built with Python (using Pyrogram and aiohttp) that generates tem
 * **Database Integration:** Uses MongoDB to store user IDs for the broadcast feature.
 * **Logs Access:** View application logs via API endpoint or directly within the bot (admin only).
 * **Rate Limiting:** Configurable daily limit on link generation per user.
+* **Bandwidth Limiting:** Optional monthly bandwidth limit with automatic reset - when reached, users are shown a friendly message and new downloads are temporarily blocked.
 * **Environment Variable Configuration:** Easy setup using environment variables or a `.env` file.
 * **Status API:** Includes a `/api/info` endpoint to check bot status and configuration.
 
@@ -83,6 +84,9 @@ ADMIN_IPS=127.0.0.1,your.public.ip # Comma-separated list of IPs allowed to acce
 # --- Rate Limiting ---
 MAX_LINKS_PER_DAY=5 # Maximum links a user can generate per day (0 to disable)
 
+# --- Bandwidth Limiting ---
+BANDWIDTH_LIMIT_GB=100 # Monthly bandwidth limit in GigaBytes (0 to disable)
+
 # --- Multiple Bot Support ---
 # Space-separated list of additional bot tokens for streaming only
 ADDITIONAL_BOT_TOKENS=token1 token2 token3
@@ -115,6 +119,7 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 * **`LOGS_ACCESS_TOKEN`**: Security token for accessing logs via the API endpoint. If not set, a random token will be generated at startup.
 * **`ADMIN_IPS`**: Comma-separated list of IP addresses allowed to access logs via API without a token (default: `127.0.0.1`).
 * **`MAX_LINKS_PER_DAY`**: Maximum number of links a user can generate in a 24-hour period (default: `5`). Set to `0` to disable this limit.
+* **`BANDWIDTH_LIMIT_GB`**: Monthly bandwidth limit in GigaBytes (default: `100`). Set to `0` to disable this limit.
 * **`ADDITIONAL_BOT_TOKENS`**: Space-separated list of additional bot tokens that will be used as worker bots for file streaming. All these bots must be administrators in the LOG_CHANNEL.
 * **`WORKER_CLIENT_PYROGRAM_WORKERS`**: Number of Pyrogram workers for each worker bot (default: `1`).
 * **`WORKER_SESSIONS_IN_MEMORY`**: Whether to store worker bot sessions in memory only, avoiding disk writes (default: `true`).
@@ -126,7 +131,7 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 * Forward a message from the target channel/group to [@TGIdsBot](https://t.me/TGIdsBot) .
 * For channels, the ID usually starts with `-100`.
 
-## Multi-Bot Architecture
+## Multi-Client Architecture
 
 The bot now supports a multi-bot architecture for improved performance and load distribution:
 
@@ -175,7 +180,7 @@ The bot will start, connect to Telegram, and launch the web server.
 
 ## API Endpoints
 
-* **`GET /api/info`**: Returns a JSON response with bot status, configuration details (like force-sub status, link expiry), uptime, and total registered users.
+* **`GET /api/info`**: Returns a JSON response with bot status, configuration details (like force-sub status, link expiry), bandwidth usage information, uptime, and total registered users.
 * **`GET /api/logs`**: Returns application logs in JSON format. Requires authentication via token or admin IP.
   * Query Parameters:
     * `token`: Access token for authentication

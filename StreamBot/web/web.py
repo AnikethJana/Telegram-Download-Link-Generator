@@ -14,6 +14,7 @@ from StreamBot.config import Var
 # Ensure decode_message_id is imported from utils
 from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id
 from StreamBot.utils.exceptions import NoClientsAvailableError # Import custom exception
+from StreamBot.utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
 
 logger = logging.getLogger(__name__)
 
@@ -114,6 +115,11 @@ async def download_route(request: web.Request):
         raise web.HTTPBadRequest(text="Invalid or malformed download link.")
 
     logger.info(f"Download request for decoded message_id: {message_id} (encoded: {encoded_id}) from {request.remote}")
+
+    # Check bandwidth limit before processing
+    if await is_bandwidth_limit_exceeded():
+        logger.warning(f"Download request {message_id} rejected: bandwidth limit exceeded")
+        raise web.HTTPServiceUnavailable(text=Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT)
 
     try:
         # Get a streaming client from the manager
@@ -292,6 +298,8 @@ async def download_route(request: web.Request):
 
     if bytes_streamed == expected_bytes_to_serve:
         logger.info(f"Finished streaming {humanbytes(bytes_streamed)} for {message_id} (ID {encoded_id}) in {stream_duration:.2f}s. Expected: {humanbytes(expected_bytes_to_serve)}.")
+        # Track bandwidth usage for successful downloads
+        await add_bandwidth_usage(bytes_streamed)
     else:
         logger.warning(f"Stream for {message_id} (ID {encoded_id}) ended. Expected to serve {humanbytes(expected_bytes_to_serve)}, actually sent {humanbytes(bytes_streamed)} in {stream_duration:.2f}s.")
         if bytes_streamed == 0 and expected_bytes_to_serve > 0 and status_code != 206: # If it was a full request and nothing sent
@@ -317,12 +325,30 @@ async def api_info_route(request: web.Request):
     except Exception as e:
          logger.error(f"Failed to get total user count for API info: {e}")
 
+    # Get bandwidth usage information
+    bandwidth_info = {}
+    try:
+        from StreamBot.utils.bandwidth import get_current_bandwidth_usage
+        bandwidth_usage = await get_current_bandwidth_usage()
+        bandwidth_info = {
+            "limit_gb": Var.BANDWIDTH_LIMIT_GB,
+            "used_gb": bandwidth_usage["gb_used"],
+            "used_bytes": bandwidth_usage["bytes_used"],
+            "month": bandwidth_usage["month_key"],
+            "limit_enabled": Var.BANDWIDTH_LIMIT_GB > 0,
+            "remaining_gb": max(0, Var.BANDWIDTH_LIMIT_GB - bandwidth_usage["gb_used"]) if Var.BANDWIDTH_LIMIT_GB > 0 else None
+        }
+    except Exception as e:
+        logger.error(f"Failed to get bandwidth info for API: {e}")
+        bandwidth_info = {"limit_enabled": False, "error": "Failed to retrieve bandwidth data"}
+
     if not bot_client or not bot_client.is_connected:
         return web.json_response({
             "status": "error", "bot_status": "disconnected",
             "message": "Bot client is not currently connected to Telegram.",
             "uptime": format_uptime(start_time), "github_repo": Var.GITHUB_REPO_URL,
             "totaluser": user_count,
+            "bandwidth_info": bandwidth_info
         }, status=503)
 
     try:
@@ -344,7 +370,8 @@ async def api_info_route(request: web.Request):
             "features": features, "uptime": format_uptime(start_time),
             "github_repo": Var.GITHUB_REPO_URL,
             "server_time_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "totaluser": user_count
+            "totaluser": user_count,
+            "bandwidth_info": bandwidth_info
         }
         return web.json_response(info_data)
     except Exception as e:
@@ -354,6 +381,7 @@ async def api_info_route(request: web.Request):
             "message": f"An error occurred while fetching bot details: {str(e)}",
             "uptime": format_uptime(start_time), "github_repo": Var.GITHUB_REPO_URL,
             "totaluser": user_count,
+            "bandwidth_info": bandwidth_info
         }, status=500)
 
 # --- Logs Endpoint ---

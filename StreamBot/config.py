@@ -101,6 +101,12 @@ class Var:
     # Maximum number of links a user can generate in a 24-hour period.
     # Set to 0 or a negative number to disable rate limiting.
     MAX_LINKS_PER_DAY = get_env("MAX_LINKS_PER_DAY", default=5, is_int=True)
+    
+    # --- Bandwidth Limiting ---
+    # Maximum bandwidth usage allowed per month in GigaBytes.
+    # Set to 0 or negative number to disable bandwidth limiting.
+    BANDWIDTH_LIMIT_GB = get_env("BANDWIDTH_LIMIT_GB", default=100, is_int=True)
+    
     # --- Text Messages ---
     # Function to calculate human-readable duration
     @staticmethod
@@ -200,4 +206,14 @@ Please try again in approximately **{wait_hours:.1f} hours **.
 
 You have generated the maximum of **{max_links}** links allowed in a 24-hour period.
 Please try again later.
+    """
+    
+    BANDWIDTH_LIMIT_EXCEEDED_TEXT = """
+🚧 **Monthly Bandwidth Limit Reached!** 🚧
+
+We've reached our monthly bandwidth limit and can't process more downloads right now.
+
+💫 Thanks for using our service! We'll be back next month with fresh bandwidth.
+
+🗓️ **~ @SaveContentTempBot ** ✨
     """

@@ -10,6 +10,7 @@ from .database.database import add_user, del_user, full_userbase
 from .config import Var
 from .utils.utils import get_file_attr, humanbytes, encode_message_id
 from .utils.rate_limiter import check_and_record_link_generation, get_user_link_count_and_wait_time
+from .utils.bandwidth import is_bandwidth_limit_exceeded
 logger = logging.getLogger(__name__)
 # TgDlBot instance will be created and managed by ClientManager in __main__.py
 # Handlers will be attached to it there.
@@ -324,6 +325,12 @@ def attach_handlers(app: Client):
 
                 await message.reply_text(reply_text, quote=True)
                 return # Stop processing
+
+        # --- Bandwidth Limit Check ---
+        if await is_bandwidth_limit_exceeded():
+            logger.warning(f"File upload from user {user_id} rejected: bandwidth limit exceeded")
+            await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
+            return # Stop processing
 
         # --- Force Subscription Check ---
         if not await check_force_sub(client, message):
