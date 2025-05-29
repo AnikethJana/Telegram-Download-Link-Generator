@@ -11,43 +11,14 @@ from .config import Var
 from .utils.utils import get_file_attr, humanbytes, encode_message_id
 from .utils.rate_limiter import check_and_record_link_generation, get_user_link_count_and_wait_time
 from .utils.bandwidth import is_bandwidth_limit_exceeded
+from .utils.smart_logger import SmartRateLimitedLogger
+
 logger = logging.getLogger(__name__)
 # TgDlBot instance will be created and managed by ClientManager in __main__.py
 # Handlers will be attached to it there.
-# Add a rate-limited logger utility
-class RateLimitedLogger:
-    def __init__(self, logger, rate_limit_seconds=5):
-        self.logger = logger
-        self.rate_limit_seconds = rate_limit_seconds
-        self.last_logged = {}  # Store last timestamp for each message
 
-    def log(self, level, message):
-        """Log a message with rate limiting based on the message content"""
-        current_time = asyncio.get_event_loop().time()
-        # Use the message as a key for rate limiting
-        if message in self.last_logged:
-            # If we've logged this message recently, check the time difference
-            time_diff = current_time - self.last_logged[message]
-            if time_diff < self.rate_limit_seconds:
-                return  # Skip logging if within rate limit period
-            
-        # Update the last logged time for this message
-        self.last_logged[message] = current_time
-        
-        # Log the message using the appropriate level
-        if level == 'debug':
-            self.logger.debug(message)
-        elif level == 'info':
-            self.logger.info(message)
-        elif level == 'warning':
-            self.logger.warning(message)
-        elif level == 'error':
-            self.logger.error(message)
-        elif level == 'critical':
-            self.logger.critical(message)
-
-# Create a rate-limited logger instance
-rate_limited_logger = RateLimitedLogger(logger)
+# Create a memory-safe rate-limited logger instance
+rate_limited_logger = SmartRateLimitedLogger(logger)
 
 # --- Helper: Check Force Subscription 
 async def check_force_sub(client: Client, message: Message) -> bool:
@@ -296,6 +267,81 @@ def attach_handlers(app: Client):
         except Exception as e:
             logger.error(f"Error reading logs for admin {user_id}: {e}", exc_info=True)
             await message.reply_text(f"❌ Error reading logs: {str(e)}", quote=True)
+
+    @app.on_message(filters.command("memory") & filters.private)
+    async def memory_handler(client: Client, message: Message):
+        """Handles the /memory command for admins to view memory usage and system stats."""
+        user_id = message.from_user.id
+        
+        # Check if user is an admin
+        if not Var.ADMINS or user_id not in Var.ADMINS:
+            await message.reply_text("❌ You don't have permission to access memory stats.", quote=True)
+            logger.warning(f"Unauthorized memory access attempt by user {user_id}")
+            return
+        
+        try:
+            processing_msg = await message.reply_text("⏳ Gathering memory statistics...", quote=True)
+            
+            # Get memory usage
+            from StreamBot.utils.memory_manager import memory_manager
+            from StreamBot.utils.stream_cleanup import stream_tracker
+            from StreamBot.utils.smart_logger import SmartRateLimitedLogger
+            
+            memory_usage = memory_manager.get_memory_usage()
+            active_streams = stream_tracker.get_active_count()
+            
+            # Get uptime
+            from StreamBot.__main__ import BOT_START_TIME
+            import datetime
+            if BOT_START_TIME:
+                uptime_delta = datetime.datetime.now(datetime.timezone.utc) - BOT_START_TIME
+                uptime_days = uptime_delta.days
+                uptime_hours, remainder = divmod(uptime_delta.seconds, 3600)
+                uptime_minutes, uptime_seconds = divmod(remainder, 60)
+                uptime_str = f"{uptime_days}d {uptime_hours}h {uptime_minutes}m {uptime_seconds}s"
+            else:
+                uptime_str = "Unknown"
+            
+            # Get cache stats from the rate limited logger (if accessible)
+            try:
+                cache_stats = rate_limited_logger.get_cache_stats()
+                cache_info = f"📝 **Logger Cache**: {cache_stats['cache_size']}/{cache_stats['max_cache_size']} entries\n"
+            except:
+                cache_info = "📝 **Logger Cache**: Unable to retrieve stats\n"
+            
+            # Get client count
+            try:
+                from StreamBot.__main__ import CLIENT_MANAGER_INSTANCE
+                client_count = len(CLIENT_MANAGER_INSTANCE.all_clients) if CLIENT_MANAGER_INSTANCE else 0
+            except:
+                client_count = "N/A"
+            
+            # Format memory stats message
+            memory_text = f"""
+📊 **System Memory Statistics**
+
+🧠 **Memory Usage**:
+• RSS Memory: {memory_usage.get('rss_mb', 'N/A')} MB
+• VMS Memory: {memory_usage.get('vms_mb', 'N/A')} MB  
+• Memory %: {memory_usage.get('percent', 'N/A')}%
+
+🌐 **Active Resources**:
+• Active Streams: {active_streams}
+• Telegram Clients: {client_count}
+
+{cache_info}
+⏰ **Uptime**: {uptime_str}
+🕐 **Timestamp**: {memory_usage.get('timestamp', 'N/A')}
+
+💡 **Memory cleanup runs automatically every hour**
+"""
+            
+            await processing_msg.edit_text(memory_text)
+            logger.info(f"Memory stats viewed by admin {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error getting memory stats for admin {user_id}: {e}", exc_info=True)
+            await message.reply_text(f"❌ Error retrieving memory stats: {str(e)}", quote=True)
 
     @app.on_message(filters.private & filters.incoming & (
         filters.document | filters.video | filters.audio | filters.photo |

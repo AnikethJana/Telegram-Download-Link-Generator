@@ -15,6 +15,7 @@ from StreamBot.config import Var
 from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id
 from StreamBot.utils.exceptions import NoClientsAvailableError # Import custom exception
 from StreamBot.utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
+from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_response
 
 logger = logging.getLogger(__name__)
 
@@ -240,58 +241,61 @@ async def download_route(request: web.Request):
 
     logger.debug(f"Preparing to stream for {message_id}. Effective range: {start_offset}-{end_offset}. Stream length to request: {stream_length_to_request if stream_length_to_request > 0 else 'to end'}.")
 
-    while current_retry_stream <= max_retries_stream:
-        try:
-            async for chunk in streamer_client.stream_media(
-                media_msg,
-                offset=start_offset, # Absolute offset in the file
-                limit=stream_length_to_request # Number of bytes from offset, 0 for "to end"
-                ):
-                try:
-                    await response.write(chunk)
-                    bytes_streamed += len(chunk)
-                except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError) as client_e:
-                     logger.warning(f"Client connection issue during write for {message_id} (ID {encoded_id}): {type(client_e).__name__}. Streamed {humanbytes(bytes_streamed)}. Aborting stream for this request.")
-                     return response # Abort for this specific request
-                except Exception as write_e:
-                     logger.error(f"Error writing chunk for {message_id} (ID {encoded_id}): {write_e}", exc_info=True)
-                     # This is a server-side write error, might not be recoverable for this request
-                     return response # Abort, don't raise HTTPInternalServerError yet, let it be caught by outer try if needed
+    # Use stream tracking context manager for proper cleanup
+    request_id = f"{message_id}_{encoded_id}"
+    async with tracked_stream_response(response, stream_tracker, request_id):
+        while current_retry_stream <= max_retries_stream:
+            try:
+                async for chunk in streamer_client.stream_media(
+                    media_msg,
+                    offset=start_offset, # Absolute offset in the file
+                    limit=stream_length_to_request # Number of bytes from offset, 0 for "to end"
+                    ):
+                    try:
+                        await response.write(chunk)
+                        bytes_streamed += len(chunk)
+                    except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError) as client_e:
+                         logger.warning(f"Client connection issue during write for {message_id} (ID {encoded_id}): {type(client_e).__name__}. Streamed {humanbytes(bytes_streamed)}. Aborting stream for this request.")
+                         return response # Abort for this specific request
+                    except Exception as write_e:
+                         logger.error(f"Error writing chunk for {message_id} (ID {encoded_id}): {write_e}", exc_info=True)
+                         # This is a server-side write error, might not be recoverable for this request
+                         return response # Abort, don't raise HTTPInternalServerError yet, let it be caught by outer try if needed
 
-            logger.info(f"Successfully finished streaming loop for {message_id} (ID {encoded_id}).")
-            break # Exit retry loop on successful completion of async for
+                logger.info(f"Successfully finished streaming loop for {message_id} (ID {encoded_id}).")
+                break # Exit retry loop on successful completion of async for
 
-        except PyrogramOffsetInvalid as e: # Specific catch for OffsetInvalid
-            logger.error(f"Pyrogram OffsetInvalid error during stream for {message_id} (ID {encoded_id}). Offset: {start_offset}, Limit: {stream_length_to_request}. Error: {e}. Aborting retries for this error.", exc_info=True)
-            # Don't typically retry OffsetInvalid with the same parameters
-            # Let the outer error handling decide the HTTP response, or raise a specific one.
-            # For now, we break the retry loop and let it fall through.
-            # If bytes_streamed is 0, it will be handled by the check after the loop.
-            # If some bytes were streamed, it will be a partial success/failure.
-            # This error often means the file or offset is truly problematic with Telegram.
-            if bytes_streamed == 0: # If OffsetInvalid happened at the very start
-                 raise web.HTTPInternalServerError(text=f"Telegram reported an issue with the file offset (OffsetInvalid). Unable to start download for {file_name}.")
-            break # Break retry loop for OffsetInvalid
+            except PyrogramOffsetInvalid as e: # Specific catch for OffsetInvalid
+                logger.error(f"Pyrogram OffsetInvalid error during stream for {message_id} (ID {encoded_id}). Offset: {start_offset}, Limit: {stream_length_to_request}. Error: {e}. Aborting retries for this error.", exc_info=True)
+                # Don't typically retry OffsetInvalid with the same parameters
+                # Let the outer error handling decide the HTTP response, or raise a specific one.
+                # For now, we break the retry loop and let it fall through.
+                # If bytes_streamed is 0, it will be handled by the check after the loop.
+                # If some bytes were streamed, it will be a partial success/failure.
+                # This error often means the file or offset is truly problematic with Telegram.
+                if bytes_streamed == 0: # If OffsetInvalid happened at the very start
+                     raise web.HTTPInternalServerError(text=f"Telegram reported an issue with the file offset (OffsetInvalid). Unable to start download for {file_name}.")
+                break # Break retry loop for OffsetInvalid
 
-        except FloodWait as e:
-             logger.warning(f"FloodWait during stream for {message_id} (ID {encoded_id}). Waiting {e.value}s. Attempt {current_retry_stream+1}/{max_retries_stream+1}")
-             await asyncio.sleep(e.value + 2)
-             # Continue to the next iteration of the while loop (retry)
-             # No need to increment current_retry_stream here, it's for other errors
+            except FloodWait as e:
+                 logger.warning(f"FloodWait during stream for {message_id} (ID {encoded_id}). Waiting {e.value}s. Attempt {current_retry_stream+1}/{max_retries_stream+1}")
+                 await asyncio.sleep(e.value + 2)
+                 # Continue to the next iteration of the while loop (retry)
+                 # No need to increment current_retry_stream here, it's for other errors
 
-        except (ConnectionError, TimeoutError, RPCError) as e: # Catches other RPC errors
-             current_retry_stream += 1
-             logger.warning(f"Stream interrupted for {message_id} (ID {encoded_id}) (Attempt {current_retry_stream}/{max_retries_stream+1}): {type(e).__name__} - {e}. Retrying...")
-             if current_retry_stream > max_retries_stream:
-                  logger.error(f"Max retries reached for stream error. Aborting stream for {message_id} (ID {encoded_id}) after {humanbytes(bytes_streamed)} bytes.")
-                  # Don't raise here, let the check after loop handle it based on bytes_streamed
-                  break # Exit retry loop
-             await asyncio.sleep(2 * current_retry_stream)
-             logger.info(f"Retrying stream for {message_id} (ID {encoded_id}) from offset {start_offset}.")
-        except Exception as e:
-             logger.error(f"Unexpected error during streaming for {message_id} (ID {encoded_id}): {e}", exc_info=True)
-             # This is an unexpected error, probably best to abort the request
-             return response # Abort this request
+            except (ConnectionError, TimeoutError, RPCError) as e: # Catches other RPC errors
+                 current_retry_stream += 1
+                 logger.warning(f"Stream interrupted for {message_id} (ID {encoded_id}) (Attempt {current_retry_stream}/{max_retries_stream+1}): {type(e).__name__} - {e}. Retrying...")
+                 if current_retry_stream > max_retries_stream:
+                      logger.error(f"Max retries reached for stream error. Aborting stream for {message_id} (ID {encoded_id}) after {humanbytes(bytes_streamed)} bytes.")
+                      # Don't raise here, let the check after loop handle it based on bytes_streamed
+                      break # Exit retry loop
+                 await asyncio.sleep(2 * current_retry_stream)
+                 logger.info(f"Retrying stream for {message_id} (ID {encoded_id}) from offset {start_offset}.")
+            except Exception as e:
+                 logger.error(f"Unexpected error during streaming for {message_id} (ID {encoded_id}): {e}", exc_info=True)
+                 # This is an unexpected error, probably best to abort the request
+                 return response # Abort this request
 
     stream_duration = asyncio.get_event_loop().time() - stream_start_time
     expected_bytes_to_serve = (end_offset - start_offset + 1)
