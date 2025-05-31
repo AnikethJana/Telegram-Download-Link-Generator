@@ -36,7 +36,7 @@ CLIENT_MANAGER_INSTANCE: ClientManager = None
 
 # --- Main Application --- 
 async def main():
-    """Initializes and runs the bot and web server."""
+    """Initialize and run the bot and web server."""
     global BOT_START_TIME 
     BOT_START_TIME = datetime.datetime.now(datetime.timezone.utc) 
 
@@ -133,6 +133,7 @@ async def main():
 
 # --- Shutdown Logic 
 async def perform_shutdown(web_runner_to_stop, client_manager_to_stop, cleanup_scheduler_to_stop=None):
+     """Gracefully shutdown all services."""
      logger.info("Shutdown signal received. Stopping services...")
      
      # Stop cleanup scheduler first

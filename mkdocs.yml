@@ -1,0 +1,135 @@
+site_name: StreamBot Documentation
+site_description: Documentation for StreamBot - A high-performance Telegram file to link generator
+site_url: https://anikethjana.github.io/Telegram-Download-Link-Generator/
+repo_url: https://github.com/anikethjana/Telegram-Download-Link-Generator
+repo_name: anikethjana/Telegram-Download-Link-Generator
+edit_uri: edit/main/docs/
+
+# Theme configuration
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: Roboto
+    code: Roboto Mono
+  logo: assets/images/logo.png
+  favicon: assets/images/favicon.png
+
+# Extensions
+markdown_extensions:
+  - admonition
+  - abbr
+  - attr_list
+  - def_list
+  - footnotes
+  - meta
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: anikethjana
+      repo: Telegram-Download-Link-Generator
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Page tree - Updated to include all files
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Introduction: getting-started/introduction.md
+    - Installation: getting-started/installation.md
+    - Configuration: getting-started/configuration.md
+    - Quick Start: getting-started/quick-start.md
+  - User Guide:
+    - Overview: user-guide/overview.md
+    - Bot Commands: user-guide/bot-commands.md
+  - Developer Guide:
+    - Architecture: developer-guide/architecture.md
+    - Contributing: developer-guide/contributing.md
+  - Deployment:
+    - Overview: deployment/overview.md
+    - Docker Deployment: deployment/docker.md
+    - VPS Setup: deployment/vps-setup.md
+    - Cloud Platforms: deployment/cloud-platforms.md
+    - Security: deployment/security.md
+  - API Reference:
+    - Overview: api/overview.md
+    - Authentication: api/authentication.md
+    - Endpoints: api/endpoints.md
+    - Examples: api/examples.md
+  - About:
+    - Changelog: about/changelog.md
+    - License: about/license.md
+    - Acknowledgements: about/acknowledgements.md
+
+# Plugins - Only essential ones
+plugins:
+  - search
+
+# Extra settings
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/anikethjana/Telegram-Download-Link-Generator
+    - icon: fontawesome/brands/telegram
+      link: https://t.me/ajmods_bot
+
+# Copyright info
+copyright: Copyright &copy; 2023 - Present | Aniket Jana  

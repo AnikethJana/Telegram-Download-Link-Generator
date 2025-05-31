@@ -7,12 +7,11 @@ logger = getLogger(__name__)
 
 # Simple environment variable loader
 def get_env(name: str, default=None, required: bool = False, is_bool: bool = False, is_int: bool = False):
-    """Gets an environment variable, logs status, handles required vars, and types."""
+    """Get environment variable with type conversion and validation."""
     value = os.environ.get(name, default)
 
     if required and value is None:
         logger.critical(f"Missing required environment variable: {name}")
-        # Exit or raise error if a critical variable is missing
         exit(f"Missing required environment variable: {name}")
 
     # Log config value before potential conversion errors, masking sensitive info
@@ -44,73 +43,52 @@ def get_env(name: str, default=None, required: bool = False, is_bool: bool = Fal
 
 
 class Var:
-    # --- Essential Telegram API/Bot Config ---
+    """Application configuration from environment variables."""
+    
+    # Telegram API credentials
     API_ID = get_env("API_ID", required=True, is_int=True)
     API_HASH = get_env("API_HASH", required=True)
     BOT_TOKEN = get_env("BOT_TOKEN", required=True)
-    # --- Multi-Client Configuration ---
-    # Comma-separated list of additional bot tokens for worker clients
+    
+    # Multi-client configuration
     _additional_bot_tokens_str = get_env("ADDITIONAL_BOT_TOKENS", default="")
     ADDITIONAL_BOT_TOKENS = [token.strip() for token in _additional_bot_tokens_str.split(",") if token.strip()]
     WORKER_CLIENT_PYROGRAM_WORKERS = get_env("WORKER_CLIENT_PYROGRAM_WORKERS", 1, is_int=True)
     WORKER_SESSIONS_IN_MEMORY = get_env("WORKER_SESSIONS_IN_MEMORY", False, is_bool=True)
 
-    # --- Log Channel ---
-    # ID of a private channel where the bot will forward files. Bot must be an admin.
-    LOG_CHANNEL = get_env("LOG_CHANNEL", required=True, is_int=True) # Make sure this is an integer ID
+    # Channel configuration
+    LOG_CHANNEL = get_env("LOG_CHANNEL", required=True, is_int=True)
+    FORCE_SUB_CHANNEL = get_env("FORCE_SUB_CHANNEL", default=None, is_int=True)
 
-    # --- Force Subscription ---
-    # Optional: ID of a channel users must join to use the bot. Bot must be admin.
-    # Leave blank or remove the variable to disable force-sub.
-    FORCE_SUB_CHANNEL = get_env("FORCE_SUB_CHANNEL", default=None, is_int=True) # Should be an integer ID if set
-
-    # --- Web Server Config ---
-    # Base URL of your web server (e.g., "https://yourdomain.com" or "http://localhost:8080")
-    # No trailing slash!
-    BASE_URL = str(get_env("BASE_URL", required=True)).rstrip('/') # Ensure no trailing slash and is string
-    # Port for the web server
+    # Web server configuration
+    BASE_URL = str(get_env("BASE_URL", required=True)).rstrip('/')
     PORT = get_env("PORT", 8080, is_int=True)
-    # Bind address for the web server
     BIND_ADDRESS = get_env("BIND_ADDRESS", "0.0.0.0")
 
-    # --- Link Expiry ---
-    # Expiry time for download links in seconds (24 hours = 86400 seconds)
-    LINK_EXPIRY_SECONDS = get_env("LINK_EXPIRY_SECONDS", 86400, is_int=True) # Default to 24 hours
-
-    # --- Logs Access Security ---
-    # Token for accessing logs via API endpoint
+    # Link expiry and security
+    LINK_EXPIRY_SECONDS = get_env("LINK_EXPIRY_SECONDS", 86400, is_int=True)
     LOGS_ACCESS_TOKEN = get_env("LOGS_ACCESS_TOKEN", os.urandom(16).hex())
-    # Admin IPs allowed to access logs without token (comma-separated)
     _admin_ips_str = get_env("ADMIN_IPS", "127.0.0.1")
     ADMIN_IPS = [ip.strip() for ip in _admin_ips_str.split(",") if ip.strip()]
 
-    # --- Optional Settings ---
-    # Session name for pyrogram (change if running multiple bots on one machine)
+    # Bot settings
     SESSION_NAME = get_env("SESSION_NAME", "TgDlBot")
-    # Number of worker threads for pyrogram
     WORKERS = get_env("WORKERS", 4, is_int=True)
-    # URL to the bot's GitHub repository (Optional)
     GITHUB_REPO_URL = get_env("GITHUB_REPO_URL", default=None)
 
-    # --- Database Config (MongoDB) ---
-    # Connection URI string for your MongoDB database
-    DB_URI = get_env("DATABASE_URL", required=True) # Changed from DATABASE_URL in reference to DB_URI
-    # Name of the database to use
-    DB_NAME = get_env("DATABASE_NAME", "TgDlBotUsers") # Changed default name
-    # --- Rate Limiting ---
-    # Maximum number of links a user can generate in a 24-hour period.
-    # Set to 0 or a negative number to disable rate limiting.
-    MAX_LINKS_PER_DAY = get_env("MAX_LINKS_PER_DAY", default=5, is_int=True)
+    # Database configuration
+    DB_URI = get_env("DATABASE_URL", required=True)
+    DB_NAME = get_env("DATABASE_NAME", "TgDlBotUsers")
     
-    # --- Bandwidth Limiting ---
-    # Maximum bandwidth usage allowed per month in GigaBytes.
-    # Set to 0 or negative number to disable bandwidth limiting.
+    # Rate and bandwidth limiting
+    MAX_LINKS_PER_DAY = get_env("MAX_LINKS_PER_DAY", default=5, is_int=True)
     BANDWIDTH_LIMIT_GB = get_env("BANDWIDTH_LIMIT_GB", default=100, is_int=True)
     
     # --- Text Messages ---
     # Function to calculate human-readable duration
     @staticmethod
     def _human_readable_duration(seconds):
+        """Convert seconds to human readable duration string."""
         if seconds is None: return "N/A"
         if seconds < 60: return f"{seconds} second{'s' if seconds != 1 else ''}"
         if seconds < 3600: return f"{seconds // 60} minute{'s' if seconds // 60 != 1 else ''}"
@@ -198,22 +176,28 @@ You must join the channel below to use this bot. After joining, please send the 
     RATE_LIMIT_EXCEEDED_TEXT = """
 **Daily Limit Reached** 🤦‍♂️
 
-You have generated the maximum of **{max_links}** links allowed in a 24-hour period.
-Please try again in approximately **{wait_hours:.1f} hours **.
+You have reached your daily limit of {max_links} download links.
+
+⏰ **Try again in:** {wait_hours:.1f} hours ({wait_minutes:.0f} minutes)
+
+This limit helps keep the service running smoothly for everyone! 🙏
     """
     RATE_LIMIT_EXCEEDED_TEXT_NO_WAIT = """
-❗ **Daily Limit Reached** ❗
+**Daily Limit Reached** 🤦‍♂️
 
-You have generated the maximum of **{max_links}** links allowed in a 24-hour period.
-Please try again later.
+You have reached your daily limit of {max_links} download links.
+
+⏰ **Try again:** Tomorrow
+
+This limit helps keep the service running smoothly for everyone! 🙏
     """
     
-    BANDWIDTH_LIMIT_EXCEEDED_TEXT = """
-🚧 **Monthly Bandwidth Limit Reached!** 🚧
+    BANDWIDTH_LIMIT_EXCEEDED_TEXT = f"""
+**Monthly Bandwidth Limit Exceeded** 📊
 
-We've reached our monthly bandwidth limit and can't process more downloads right now.
+The bot has reached its monthly bandwidth limit of {BANDWIDTH_LIMIT_GB} GB.
 
-💫 Thanks for using our service! We'll be back next month with fresh bandwidth.
+⏰ **Service will resume:** Next month
 
-🗓️ **~ @SaveContentTempBot ** ✨
+Thank you for your understanding! 🙏
     """
