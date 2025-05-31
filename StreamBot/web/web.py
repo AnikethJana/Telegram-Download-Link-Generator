@@ -277,10 +277,24 @@ async def download_route(request: web.Request):
                 break # Break retry loop for OffsetInvalid
 
             except FloodWait as e:
-                 logger.warning(f"FloodWait during stream for {message_id} (ID {encoded_id}). Waiting {e.value}s. Attempt {current_retry_stream+1}/{max_retries_stream+1}")
-                 await asyncio.sleep(e.value + 2)
-                 # Continue to the next iteration of the while loop (retry)
-                 # No need to increment current_retry_stream here, it's for other errors
+                 logger.warning(f"FloodWait during stream for {message_id} (ID {encoded_id}) on client @{streamer_client.me.username}. FloodWait: {e.value}s. Attempting to get alternative client...")
+                 
+                 # Try to get a different client instead of waiting
+                 try:
+                     alternative_client = await client_manager.get_alternative_streaming_client(streamer_client)
+                     if alternative_client:
+                         logger.info(f"Switching from @{streamer_client.me.username} to @{alternative_client.me.username} for {message_id} due to FloodWait")
+                         streamer_client = alternative_client
+                         # Small delay to avoid rapid switching
+                         await asyncio.sleep(1)
+                     else:
+                         logger.warning(f"No alternative clients available for {message_id}. Waiting {e.value}s for FloodWait on @{streamer_client.me.username}")
+                         await asyncio.sleep(e.value + 2)
+                 except Exception as client_e:
+                     logger.warning(f"Error getting alternative client for {message_id}: {client_e}. Falling back to waiting.")
+                     await asyncio.sleep(e.value + 2)
+                 
+                 # Continue to the next iteration of the while loop (retry with potentially different client)
 
             except (ConnectionError, TimeoutError, RPCError) as e: # Catches other RPC errors
                  current_retry_stream += 1

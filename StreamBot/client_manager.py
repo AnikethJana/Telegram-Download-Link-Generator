@@ -168,3 +168,25 @@ class ClientManager:
 
             logger.critical("CRITICAL: No connected Telegram clients available for streaming operation!")
             raise NoClientsAvailableError("All Telegram clients are currently disconnected or no clients were started.")
+
+    async def get_alternative_streaming_client(self, exclude_client: Client) -> Optional[Client]:
+        """Get an alternative streaming client, excluding the specified problematic client."""
+        async with self._lock:
+            active_workers = [client for client in self.worker_clients 
+                            if client.is_connected and client.me.id != exclude_client.me.id]
+
+            if active_workers:
+                # Select the next available worker that's not the excluded one
+                self._round_robin_index = (self._round_robin_index + 1) % len(active_workers)
+                selected_client = active_workers[self._round_robin_index]
+                logger.debug(f"Selected alternative worker client @{selected_client.me.username} excluding @{exclude_client.me.username}")
+                return selected_client
+
+            # If no alternative workers, check if primary is available and different
+            if (self.primary_client and self.primary_client.is_connected and 
+                self.primary_client.me.id != exclude_client.me.id):
+                logger.debug(f"Using primary client @{self.primary_client.me.username} as alternative to @{exclude_client.me.username}")
+                return self.primary_client
+
+            logger.warning(f"No alternative clients available excluding @{exclude_client.me.username}")
+            return None
