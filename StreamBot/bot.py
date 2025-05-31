@@ -364,7 +364,7 @@ def attach_handlers(app: Client):
 
             # Generate download link
             encoded_msg_id = encode_message_id(log_msg.id)
-            download_link = f"{Var.BASE_URL}/download/{encoded_msg_id}/{file_name}"
+            download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
 
             # Send success response
             await processing_msg.edit_text(
