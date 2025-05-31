@@ -21,9 +21,9 @@ logger = logging.getLogger(__name__)
 
 routes = web.RouteTableDef()
 
-# --- Helper: Format Uptime --- (keep as is)
+# --- Helper: Format Uptime 
 def format_uptime(start_time_dt: datetime.datetime) -> str:
-    """Formats the uptime into a human-readable string."""
+    """Format the uptime into a human-readable string."""
     if start_time_dt is None:
         return "N/A"
     now = datetime.datetime.now(datetime.timezone.utc)
@@ -44,7 +44,7 @@ def format_uptime(start_time_dt: datetime.datetime) -> str:
 
 # --- Helper to get message and check expiry ---
 async def get_media_message(bot_client: Client, message_id: int) -> Message:
-    """Fetches the media message object from the LOG_CHANNEL and checks expiry."""
+    """Fetch the media message object from the LOG_CHANNEL and check expiry."""
     if not bot_client or not bot_client.is_connected:
         logger.error("Bot client is not available or connected for get_media_message.")
         raise web.HTTPServiceUnavailable(text="Bot service temporarily unavailable.")
@@ -100,13 +100,13 @@ async def get_media_message(bot_client: Client, message_id: int) -> Message:
 # --- Download Route (Refactored with improved logging and error handling) ---
 @routes.get("/dl/{encoded_id_str}")
 async def download_route(request: web.Request):
-    # Get the client_manager from the app state
+    """Handle file download requests with range support."""
     client_manager = request.app.get('client_manager')
     if not client_manager:
         logger.error("ClientManager not found in web app state.")
         raise web.HTTPServiceUnavailable(text="Bot service configuration error.")
 
-    start_time_request = asyncio.get_event_loop().time() # For overall request timing
+    start_time_request = asyncio.get_event_loop().time()
 
     encoded_id = request.match_info['encoded_id_str']
     message_id = decode_message_id(encoded_id)
@@ -123,9 +123,8 @@ async def download_route(request: web.Request):
         raise web.HTTPServiceUnavailable(text=Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT)
 
     try:
-        # Get a streaming client from the manager
         streamer_client = await client_manager.get_streaming_client()
-        if not streamer_client or not streamer_client.is_connected: # Ensure client is connected
+        if not streamer_client or not streamer_client.is_connected:
             logger.error(f"Failed to obtain a connected streaming client for message_id {message_id}")
             raise web.HTTPServiceUnavailable(text="Bot service temporarily overloaded. Please try again shortly.")
 
@@ -357,7 +356,7 @@ async def api_info_route(request: web.Request):
 
     try:
         bot_me: User = getattr(bot_client, 'me', None)
-        if not bot_me: # Fetch if not cached on client
+        if not bot_me: 
             bot_me = await bot_client.get_me()
             setattr(bot_client, 'me', bot_me)
 

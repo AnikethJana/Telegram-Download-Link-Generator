@@ -58,7 +58,7 @@ async def get_current_bandwidth_usage() -> dict:
         return {"bytes_used": 0, "gb_used": 0.0, "month_key": "", "last_reset": None}
 
 async def add_bandwidth_usage(bytes_count: int) -> bool:
-    """Add bandwidth usage for current month. Returns True if successful."""
+    """Add bandwidth usage for current month."""
     if bytes_count <= 0:
         return True
     

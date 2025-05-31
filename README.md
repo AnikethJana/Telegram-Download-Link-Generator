@@ -18,7 +18,6 @@ A Telegram bot built with Python (using Pyrogram and aiohttp) that generates tem
 * **Logs Access:** View application logs via API endpoint or directly within the bot (admin only).
 * **Rate Limiting:** Configurable daily limit on link generation per user.
 * **Bandwidth Limiting:** Optional monthly bandwidth limit with automatic reset - when reached, users are shown a friendly message and new downloads are temporarily blocked.
-* **Memory Management:** Advanced memory leak prevention with automatic cleanup, stream tracking, and memory monitoring.
 * **Environment Variable Configuration:** Easy setup using environment variables or a `.env` file.
 * **Status API:** Includes a `/api/info` endpoint to check bot status and configuration.
 
@@ -146,16 +145,6 @@ This architecture provides several benefits:
 
 To use this feature, simply add additional bot tokens to your configuration using the `ADDITIONAL_BOT_TOKENS` environment variable. All bots (primary and workers) must be administrators in the `LOG_CHANNEL`.
 
-## Memory Management
-
-The bot includes advanced memory leak prevention features that ensure stable long-term operation:
-
-### **Automatic Cleanup Systems**
-- **Hourly Memory Cleanup:** Garbage collection and memory optimization every hour
-- **Stream Resource Tracking:** Monitors and cleans up HTTP streaming connections
-- **Logger Cache Management:** Rate-limited logger with size limits and periodic cleanup
-- **Daily Database Cleanup:** Removes old bandwidth records to prevent database bloat
-
 ## Running the Bot
 
 ```bash
@@ -184,18 +173,11 @@ The bot will start, connect to Telegram, and launch the web server.
 
 **Admin Commands:**
 
-* `/broadcast`: (Admin only) Reply to a message with this command to send that message to all users who have started the bot.
-* `/logs`: (Admin only) View application logs directly within the bot. Supports filtering by log level and text search with arguments.
+* `/broadcast`: Reply to a message with this command to send that message to all users who have started the bot.
+* `/logs`: View application logs directly within the bot. Supports filtering by log level and text search with arguments.
   * Example: `/logs level=ERROR limit=100 filter=download`
   * Without arguments: `/logs` uploads the complete log file as a document
-* `/memory`: (Admin only) View real-time memory usage statistics including:
-  * RSS & VMS memory usage in MB
-  * Memory percentage usage  
-  * Active streaming connections
-  * Number of Telegram clients
-  * Logger cache status
-  * System uptime
-  * Automatic cleanup schedule info
+* `/stats`: View system statistics including memory usage, active streams, uptime, and other performance metrics.
 
 ## API Endpoints
 
