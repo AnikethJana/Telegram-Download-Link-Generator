@@ -355,7 +355,8 @@ def attach_handlers(app: Client):
                 return
 
             # Get file attributes for response
-            file_name, file_size_str = get_file_attr(log_msg)
+            _file_id, file_name, file_size, _file_mime_type, _file_unique_id = get_file_attr(log_msg)
+            file_size_str = humanbytes(file_size)
             if not file_name:
                 await processing_msg.edit_text(Var.ERROR_TEXT)
                 logger.error(f"Could not get file attributes for message {log_msg.id}")
