@@ -840,6 +840,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#system-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Management
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#force-subscription" class="md-nav__link">
     <span class="md-ellipsis">
       Force Subscription
@@ -1833,6 +1842,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#system-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Management
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#force-subscription" class="md-nav__link">
     <span class="md-ellipsis">
       Force Subscription
@@ -2186,10 +2204,21 @@
 <h3 id="bandwidth-management">Bandwidth Management<a class="headerlink" href="#bandwidth-management" title="Permanent link">&para;</a></h3>
 <p>Monitor and control data usage:</p>
 <ul>
-<li><strong>Monthly bandwidth tracking</strong> per user</li>
-<li><strong>Global bandwidth limits</strong> (if configured)</li>
-<li><strong>Real-time usage statistics</strong></li>
-<li><strong>Automatic cleanup</strong> of old usage data</li>
+<li><strong>Monthly bandwidth tracking</strong> with automatic reset</li>
+<li><strong>Global bandwidth limits</strong> (configurable)</li>
+<li><strong>Real-time usage statistics</strong> via <code>/stats</code> command</li>
+<li><strong>Automatic cleanup</strong> of old usage data (keeps 3 months)</li>
+<li><strong>Protected current month data</strong> - cleanup never affects current month</li>
+<li><strong>Efficient stream tracking</strong> with automatic cleanup of stale connections</li>
+</ul>
+<h3 id="system-management">System Management<a class="headerlink" href="#system-management" title="Permanent link">&para;</a></h3>
+<p>Automated cleanup and monitoring:</p>
+<ul>
+<li><strong>Stream cleanup</strong> runs every 10 minutes to remove stale connections</li>
+<li><strong>Memory cleanup</strong> runs hourly to optimize resource usage  </li>
+<li><strong>Bandwidth cleanup</strong> runs daily to remove old records</li>
+<li><strong>Maximum stream age</strong> of 4 hours for large file downloads</li>
+<li><strong>Accurate stream counting</strong> prevents resource leaks</li>
 </ul>
 <h3 id="force-subscription">Force Subscription<a class="headerlink" href="#force-subscription" title="Permanent link">&para;</a></h3>
 <p>If enabled, users must join specified channels before using the bot:</p>
@@ -2220,7 +2249,7 @@
 <tbody>
 <tr>
 <td><code>/stats</code></td>
-<td>Check system statistics</td>
+<td>System statistics with memory, streams, and bandwidth</td>
 <td><code>/stats</code></td>
 </tr>
 <tr>
@@ -2232,11 +2261,6 @@
 <td><code>/broadcast</code></td>
 <td>Send message to all users</td>
 <td>Reply to message with <code>/broadcast</code></td>
-</tr>
-<tr>
-<td><code>/stats_global</code></td>
-<td>Global bot statistics</td>
-<td><code>/stats_global</code></td>
 </tr>
 </tbody>
 </table>

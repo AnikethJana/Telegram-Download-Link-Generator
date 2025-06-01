@@ -2254,21 +2254,32 @@
 <p>These commands are only available to users configured as administrators.</p>
 <h3 id="system-monitoring">System Monitoring<a class="headerlink" href="#system-monitoring" title="Permanent link">&para;</a></h3>
 <h4 id="stats_1"><code>/stats</code><a class="headerlink" href="#stats_1" title="Permanent link">&para;</a></h4>
-<p><strong>Description</strong>: Check current system memory usage and statistics.</p>
+<p><strong>Description</strong>: Check system statistics including memory usage, active streams, bandwidth usage, and uptime.</p>
 <p><strong>Usage</strong>: <code>/stats</code></p>
 <p><strong>Access</strong>: Admin only</p>
-<p><strong>Response</strong>: Detailed memory usage information.</p>
+<p><strong>Response</strong>: Comprehensive system information including memory, active resources, and bandwidth data.</p>
 <p><strong>Example</strong>:
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>🧠 Memory Usage
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>📊 System Statistics
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Current: 156.3 MB
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>Peak: 203.7 MB
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>Available: 1.8 GB
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>Usage: 8.2%
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>🧠 Memory Usage:
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>• RSS Memory: 156.3 MB
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>• VMS Memory: 203.7 MB  
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>• Memory %: 8.2%
 </span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>Active Connections: 23
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>Garbage Collections: 47
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>Cache Size: 12.4 MB
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>🌐 Active Resources:
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>• Active Streams: 23
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>• Telegram Clients: 3
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>📊 Bandwidth Usage:
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>• Used this month: 45.234 GB
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>• Limit: 100 GB (enabled)
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>• Month: 2024-01
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>📝 Logger Cache: 45/1000 entries
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>⏰ Uptime: 2d 14h 23m 45s
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>🕐 Timestamp: 2024-01-15T14:30:45.123456
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>💡 Memory cleanup runs automatically every hour
 </span></code></pre></div></p>
 <h4 id="logs"><code>/logs</code><a class="headerlink" href="#logs" title="Permanent link">&para;</a></h4>
 <p><strong>Description</strong>: Access application logs with filtering options.</p>
@@ -2415,7 +2426,7 @@
 <td><code>/stats</code></td>
 <td>✅</td>
 <td>✅</td>
-<td>Personal statistics</td>
+<td>Personal/System statistics</td>
 </tr>
 <tr>
 <td><code>/ping</code></td>
@@ -2430,22 +2441,10 @@
 <td>Generate download links</td>
 </tr>
 <tr>
-<td><code>/stats</code></td>
-<td>❌</td>
-<td>✅</td>
-<td>System statistics</td>
-</tr>
-<tr>
 <td><code>/logs</code></td>
 <td>❌</td>
 <td>✅</td>
 <td>Application logs</td>
-</tr>
-<tr>
-<td><code>/stats_global</code></td>
-<td>❌</td>
-<td>✅</td>
-<td>Global statistics</td>
 </tr>
 <tr>
 <td><code>/broadcast</code></td>
