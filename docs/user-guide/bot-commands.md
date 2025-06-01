@@ -144,26 +144,37 @@ These commands are only available to users configured as administrators.
 ### System Monitoring
 
 #### `/stats`
-**Description**: Check current system memory usage and statistics.
+**Description**: Check system statistics including memory usage, active streams, bandwidth usage, and uptime.
 
 **Usage**: `/stats`
 
 **Access**: Admin only
 
-**Response**: Detailed memory usage information.
+**Response**: Comprehensive system information including memory, active resources, and bandwidth data.
 
 **Example**:
 ```
-🧠 Memory Usage
+📊 System Statistics
 
-Current: 156.3 MB
-Peak: 203.7 MB
-Available: 1.8 GB
-Usage: 8.2%
+🧠 Memory Usage:
+• RSS Memory: 156.3 MB
+• VMS Memory: 203.7 MB  
+• Memory %: 8.2%
 
-Active Connections: 23
-Garbage Collections: 47
-Cache Size: 12.4 MB
+🌐 Active Resources:
+• Active Streams: 23
+• Telegram Clients: 3
+
+📊 Bandwidth Usage:
+• Used this month: 45.234 GB
+• Limit: 100 GB (enabled)
+• Month: 2024-01
+
+📝 Logger Cache: 45/1000 entries
+⏰ Uptime: 2d 14h 23m 45s
+🕐 Timestamp: 2024-01-15T14:30:45.123456
+
+💡 Memory cleanup runs automatically every hour
 ```
 
 #### `/logs`
@@ -320,12 +331,10 @@ Use /help to see available commands.
 | `/start` | ✅ | ✅ | Welcome message |
 | `/help` | ✅ | ✅ | Command help |
 | `/info` | ✅ | ✅ | Bot information |
-| `/stats` | ✅ | ✅ | Personal statistics |
+| `/stats` | ✅ | ✅ | Personal/System statistics |
 | `/ping` | ✅ | ✅ | Connection test |
 | File Upload | ✅ | ✅ | Generate download links |
-| `/stats` | ❌ | ✅ | System statistics |
 | `/logs` | ❌ | ✅ | Application logs |
-| `/stats_global` | ❌ | ✅ | Global statistics |
 | `/broadcast` | ❌ | ✅ | Message all users |
 
 ### Becoming an Admin

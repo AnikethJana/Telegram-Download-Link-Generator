@@ -111,13 +111,21 @@ async def cleanup_old_bandwidth_records(keep_months: int = 3) -> int:
         return 0
     
     try:
+        # Get current month for safety
+        current_month = datetime.datetime.now().strftime("%Y-%m")
+        
         # Calculate cutoff date
         now = datetime.datetime.now()
         cutoff_date = (now - datetime.timedelta(days=30 * keep_months))
         cutoff_month = cutoff_date.strftime("%Y-%m")
         
-        # Delete old records
-        result = collection.delete_many({"_id": {"$lt": cutoff_month}})
+        # Delete old records but NEVER delete current month
+        result = collection.delete_many({
+            "_id": {
+                "$lt": cutoff_month,
+                "$ne": current_month
+            }
+        })
         deleted_count = result.deleted_count
         
         if deleted_count > 0:
