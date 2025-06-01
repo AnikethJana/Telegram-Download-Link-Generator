@@ -100,8 +100,8 @@ class CleanupScheduler:
                 await stream_tracker.cleanup_completed_streams()
                 
                 active_count = stream_tracker.get_active_count()
-                if active_count > 0:
-                    logger.debug(f"Active streams: {active_count}")
+                if active_count > 10:  # Only log if many streams active
+                    logger.info(f"Active streams after cleanup: {active_count}")
                 
             except asyncio.CancelledError:
                 break

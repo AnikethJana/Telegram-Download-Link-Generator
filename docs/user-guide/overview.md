@@ -95,10 +95,22 @@ StreamBot implements rate limiting to prevent abuse:
 
 Monitor and control data usage:
 
-- **Monthly bandwidth tracking** per user
-- **Global bandwidth limits** (if configured)
-- **Real-time usage statistics**
-- **Automatic cleanup** of old usage data
+- **Monthly bandwidth tracking** with automatic reset
+- **Global bandwidth limits** (configurable)
+- **Real-time usage statistics** via `/stats` command
+- **Automatic cleanup** of old usage data (keeps 3 months)
+- **Protected current month data** - cleanup never affects current month
+- **Efficient stream tracking** with automatic cleanup of stale connections
+
+### System Management
+
+Automated cleanup and monitoring:
+
+- **Stream cleanup** runs every 10 minutes to remove stale connections
+- **Memory cleanup** runs hourly to optimize resource usage  
+- **Bandwidth cleanup** runs daily to remove old records
+- **Maximum stream age** of 4 hours for large file downloads
+- **Accurate stream counting** prevents resource leaks
 
 ### Force Subscription
 
@@ -124,10 +136,9 @@ Optional link expiration for enhanced security:
 
 | Command | Description | Usage |
 |---------|-------------|-------|
-| `/stats` | Check system statistics | `/stats` |
+| `/stats` | System statistics with memory, streams, and bandwidth | `/stats` |
 | `/logs` | View application logs | `/logs level=ERROR limit=50` |
 | `/broadcast` | Send message to all users | Reply to message with `/broadcast` |
-| `/stats_global` | Global bot statistics | `/stats_global` |
 
 ### Log Access
 

@@ -10,7 +10,7 @@ from .database.database import add_user, del_user, full_userbase
 from .config import Var
 from .utils.utils import get_file_attr, humanbytes, encode_message_id
 from .utils.rate_limiter import check_and_record_link_generation, get_user_link_count_and_wait_time
-from .utils.bandwidth import is_bandwidth_limit_exceeded
+from .utils.bandwidth import is_bandwidth_limit_exceeded, get_current_bandwidth_usage
 from .utils.smart_logger import SmartRateLimitedLogger
 
 logger = logging.getLogger(__name__)
@@ -275,6 +275,19 @@ def attach_handlers(app: Client):
             except:
                 client_count = "N/A"
             
+            # Get bandwidth usage information
+            try:
+                bandwidth_usage = await get_current_bandwidth_usage()
+                bandwidth_info = f"""
+📊 **Bandwidth Usage**:
+• Used this month: {bandwidth_usage['gb_used']:.3f} GB
+• Limit: {Var.BANDWIDTH_LIMIT_GB} GB {'(enabled)' if Var.BANDWIDTH_LIMIT_GB > 0 else '(disabled)'}
+• Month: {bandwidth_usage['month_key']}"""
+            except Exception as e:
+                bandwidth_info = f"""
+📊 **Bandwidth Usage**:
+• Error retrieving data: {str(e)}"""
+            
             memory_text = f"""
 📊 **System Statistics**
 
@@ -286,6 +299,7 @@ def attach_handlers(app: Client):
 🌐 **Active Resources**:
 • Active Streams: {active_streams}
 • Telegram Clients: {client_count}
+{bandwidth_info}
 
 {cache_info}
 ⏰ **Uptime**: {uptime_str}
