@@ -84,74 +84,6 @@ Accept: application/json
 | `totaluser` | integer | Total number of registered users |
 | `github_repo` | string | Repository URL (if configured) |
 
-## Log Access
-
-### GET `/api/logs`
-
-Access application logs with filtering and pagination support.
-
-**Authentication**: Token required (`LOGS_ACCESS_TOKEN`)
-
-**Request**:
-```http
-GET /api/logs?token=your_token&level=ERROR&limit=50&page=1 HTTP/1.1
-Host: yourdomain.com
-Accept: application/json
-```
-
-**Query Parameters**:
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `token` | string | - | Authentication token (required) |
-| `level` | string | `ALL` | Log level filter (`ALL`, `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`) |
-| `limit` | integer | `100` | Lines per page (max 1000) |
-| `page` | integer | `1` | Page number (starts at 1) |
-| `filter` | string | - | Text filter for log content |
-
-**Response (Success - 200)**:
-```json
-{
-  "status": "ok",
-  "file_info": {
-    "path": "tgdlbot.log",
-    "size_bytes": 2048576,
-    "size_human": "2.0 MB",
-    "last_modified": "2024-01-15T14:30:45.123456"
-  },
-  "pagination": {
-    "page": 1,
-    "limit": 50,
-    "total_pages": 25,
-    "total_matching_lines": 1234
-  },
-  "filter": {
-    "level": "ERROR",
-    "text": null
-  },
-  "logs": [
-    "2024-01-15 14:30:45,123 - StreamBot.web.web - ERROR - Download failed for message 12345: Network timeout",
-    "2024-01-15 14:25:30,456 - StreamBot.bot - ERROR - Failed to process file from user 67890: File too large"
-  ]
-}
-```
-
-**Response (Error - 401)**:
-```json
-{
-  "status": "error",
-  "message": "Unauthorized access"
-}
-```
-
-**Response (Error - 400)**:
-```json
-{
-  "status": "error",
-  "message": "Invalid page number"
-}
-```
-
 ## File Downloads
 
 ### GET `/dl/{encoded_id}`
@@ -311,14 +243,6 @@ Retry-After: 60
 # Get bot information
 curl -X GET "https://yourdomain.com/api/info"
 
-# Get error logs with pagination
-curl -X GET "https://yourdomain.com/api/logs" \
-  -G \
-  -d "token=your_access_token" \
-  -d "level=ERROR" \
-  -d "limit=50" \
-  -d "page=1"
-
 # Download a file
 curl -X GET "https://yourdomain.com/dl/encoded_id/filename.pdf" \
   -o "downloaded_file.pdf"
@@ -338,14 +262,6 @@ import requests
 response = requests.get('https://yourdomain.com/api/info')
 data = response.json()
 print(f"Bot status: {data['bot_status']}")
-
-# Get logs (admin only)
-response = requests.get('https://yourdomain.com/api/logs', params={
-    'token': 'your_token',
-    'level': 'ERROR',
-    'limit': 50
-})
-logs = response.json()
 
 # Download file with progress
 def download_file(url, filename):

@@ -15,7 +15,7 @@ A Telegram bot built with Python (using Pyrogram and aiohttp) that generates tem
 * **Multi-Bot Architecture:** Supports load distribution across multiple worker bots for improved performance.
 * **Admin Broadcast:** Allows administrators to send messages to all users who have interacted with the bot.
 * **Database Integration:** Uses MongoDB to store user IDs for the broadcast feature.
-* **Logs Access:** View application logs via API endpoint or directly within the bot (admin only).
+* **Logs Command:** View application logs directly within the bot (admin only).
 * **Rate Limiting:** Configurable daily limit on link generation per user.
 * **Bandwidth Limiting:** Optional monthly bandwidth limit with automatic reset - when reached, users are shown a friendly message and new downloads are temporarily blocked.
 * **Environment Variable Configuration:** Easy setup using environment variables or a `.env` file.
@@ -77,10 +77,6 @@ GITHUB_REPO_URL=https://github.com/yourusername/your-repo # Optional: Link to yo
 # Space-separated list of numeric user IDs allowed to use /broadcast and /logs
 ADMINS=123456789 987654321
 
-# --- Logs Access ---
-LOGS_ACCESS_TOKEN=your_secure_token_here # Token for accessing logs via API
-ADMIN_IPS=127.0.0.1,your.public.ip # Comma-separated list of IPs allowed to access logs without token
-
 # --- Rate Limiting ---
 MAX_LINKS_PER_DAY=5 # Maximum links a user can generate per day (0 to disable)
 
@@ -116,8 +112,6 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 * **`WORKERS`**: Number of concurrent threads Pyrogram uses (default: `4`).
 * **`GITHUB_REPO_URL`**: (Optional) URL of the bot's GitHub repository, displayed in the `/api/info` endpoint.
 * **`ADMINS`**: A space-separated list of numeric Telegram User IDs who have permission to use the `/broadcast` and `/logs` commands.
-* **`LOGS_ACCESS_TOKEN`**: Security token for accessing logs via the API endpoint. If not set, a random token will be generated at startup.
-* **`ADMIN_IPS`**: Comma-separated list of IP addresses allowed to access logs via API without a token (default: `127.0.0.1`).
 * **`MAX_LINKS_PER_DAY`**: Maximum number of links a user can generate in a 24-hour period (default: `5`). Set to `0` to disable this limit.
 * **`BANDWIDTH_LIMIT_GB`**: Monthly bandwidth limit in GigaBytes (default: `100`). Set to `0` to disable this limit.
 * **`ADDITIONAL_BOT_TOKENS`**: Space-separated list of additional bot tokens that will be used as worker bots for file streaming. All these bots must be administrators in the LOG_CHANNEL.
@@ -182,14 +176,6 @@ The bot will start, connect to Telegram, and launch the web server.
 ## API Endpoints
 
 * **`GET /api/info`**: Returns a JSON response with bot status, configuration details (like force-sub status, link expiry), bandwidth usage information, uptime, and total registered users.
-* **`GET /api/logs`**: Returns application logs in JSON format. Requires authentication via token or admin IP.
-  * Query Parameters:
-    * `token`: Access token for authentication
-    * `level`: Filter by log level (ALL, DEBUG, INFO, WARNING, ERROR, CRITICAL)
-    * `page`: Page number for pagination
-    * `limit`: Number of log lines per page (max 1000)
-    * `filter`: Text to filter logs by
-  * Example: `/api/logs?token=your_token&level=ERROR&limit=100&filter=download`
 
 ## Contributing
 

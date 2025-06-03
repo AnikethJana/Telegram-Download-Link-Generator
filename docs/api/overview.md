@@ -13,31 +13,19 @@ StreamBot provides a RESTful API for interacting with the bot's functionality, m
 
 ## Authentication Methods
 
-The API supports several authentication methods depending on the endpoint:
+The API endpoints are generally public and do not require authentication:
 
 <div class="grid" markdown>
 
 <div class="card" markdown>
 
-### Token Authentication
+### Encoded File IDs
 
-Used for administrative endpoints that require privileged access.
+File downloads use encoded message IDs for secure access control.
 
 ```http
-GET /api/logs?token=your_secret_token HTTP/1.1
+GET /dl/encoded_file_id HTTP/1.1
 Host: yourdomain.com
-```
-
-</div>
-
-<div class="card" markdown>
-
-### IP Whitelisting
-
-Restricts access to specific endpoints based on the client's IP address.
-
-```
-ADMIN_IPS=203.0.113.1,198.51.100.2
 ```
 
 </div>
@@ -50,7 +38,6 @@ All API endpoints implement rate limiting to prevent abuse:
 
 - Standard endpoints: 60 requests per minute
 - Download endpoints: 10 requests per minute
-- Admin endpoints: 120 requests per minute
 
 Rate limit headers are included in all responses:
 
@@ -88,7 +75,6 @@ Error responses follow this format:
 | Endpoint | Method | Description | Authentication |
 |----------|--------|-------------|---------------|
 | `/api/info` | GET | Bot status and information | None |
-| `/api/logs` | GET | Access application logs | Token |
 | `/dl/{file_id}` | GET | Download file | None* |
 
 *File downloads use encoded IDs for access control
@@ -136,7 +122,6 @@ Access-Control-Allow-Headers: Content-Type, Authorization
 Use the sections below to explore the available API endpoints in detail:
 
 - [Endpoints Reference](endpoints.md) - Detailed documentation for each endpoint
-- [Authentication](authentication.md) - In-depth guide to authentication methods
 - [Examples & Integration](examples.md) - Code examples for common scenarios
 
 ## Testing the API
