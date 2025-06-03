@@ -942,18 +942,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#admin-endpoints" class="md-nav__link">
+  <a href="#example-api-usage" class="md-nav__link">
     <span class="md-ellipsis">
-      Admin Endpoints
+      Example API Usage
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-api-usage" class="md-nav__link">
+  <a href="#health-check" class="md-nav__link">
     <span class="md-ellipsis">
-      Example API Usage
+      Health Check
     </span>
   </a>
   
@@ -1944,18 +1944,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#admin-endpoints" class="md-nav__link">
+  <a href="#example-api-usage" class="md-nav__link">
     <span class="md-ellipsis">
-      Admin Endpoints
+      Example API Usage
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-api-usage" class="md-nav__link">
+  <a href="#health-check" class="md-nav__link">
     <span class="md-ellipsis">
-      Example API Usage
+      Health Check
     </span>
   </a>
   
@@ -2300,29 +2300,11 @@
 <tbody>
 <tr>
 <td><code>GET /api/info</code></td>
-<td>Bot status and public information</td>
+<td>Retrieve bot status and basic information</td>
 </tr>
 <tr>
 <td><code>GET /dl/{file_id}</code></td>
 <td>Download files via generated links</td>
-</tr>
-</tbody>
-</table>
-<h3 id="admin-endpoints">Admin Endpoints<a class="headerlink" href="#admin-endpoints" title="Permanent link">&para;</a></h3>
-<p>Require authentication:</p>
-<table>
-<thead>
-<tr>
-<th>Endpoint</th>
-<th>Description</th>
-<th>Authentication</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td></td>
-<td></td>
-<td></td>
 </tr>
 </tbody>
 </table>
@@ -2333,6 +2315,8 @@
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Download a file</span>
 </span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://yourdomain.com/dl/encoded_file_id/filename.pdf
 </span></code></pre></div>
+<h3 id="health-check">Health Check<a class="headerlink" href="#health-check" title="Permanent link">&para;</a></h3>
+<p>You can use the <code>/api/info</code> endpoint as a basic health check.</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
 <div class="admonition question">

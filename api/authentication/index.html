@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Simple admin verification for StreamBot API access">
+        <meta name="description" content="How to authenticate with the StreamBot API">
       
       
       
@@ -1118,46 +1118,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#authentication-overview" class="md-nav__link">
+  <a href="#authentication-methods" class="md-nav__link">
     <span class="md-ellipsis">
-      Authentication Overview
+      Authentication Methods
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#admin-access" class="md-nav__link">
-    <span class="md-ellipsis">
-      Admin Access
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Admin Access">
+    <nav class="md-nav" aria-label="Authentication Methods">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#admin-configuration" class="md-nav__link">
+  <a href="#1-admin-token-authentication" class="md-nav__link">
     <span class="md-ellipsis">
-      Admin Configuration
+      1. Admin Token Authentication
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#getting-your-telegram-user-id" class="md-nav__link">
+  <a href="#2-no-authentication-public-endpoints" class="md-nav__link">
     <span class="md-ellipsis">
-      Getting Your Telegram User ID
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#admin-commands-access" class="md-nav__link">
-    <span class="md-ellipsis">
-      Admin Commands Access
+      2. No Authentication (Public Endpoints)
     </span>
   </a>
   
@@ -1169,38 +1151,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#api-endpoints" class="md-nav__link">
+  <a href="#obtaining-admin-tokens" class="md-nav__link">
     <span class="md-ellipsis">
-      API Endpoints
+      Obtaining Admin Tokens
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="API Endpoints">
+    <nav class="md-nav" aria-label="Obtaining Admin Tokens">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#public-endpoints-no-authentication-required" class="md-nav__link">
+  <a href="#method-1-environment-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Public Endpoints (No Authentication Required)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Public Endpoints (No Authentication Required)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#file-downloads" class="md-nav__link">
-    <span class="md-ellipsis">
-      File Downloads
+      Method 1: Environment Configuration
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#bot-information" class="md-nav__link">
+  <a href="#method-2-generate-token-via-bot" class="md-nav__link">
     <span class="md-ellipsis">
-      Bot Information
+      Method 2: Generate Token via Bot
     </span>
   </a>
   
@@ -1210,39 +1182,58 @@
     </nav>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#admin-only-features" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#using-authentication-tokens" class="md-nav__link">
     <span class="md-ellipsis">
-      Admin-Only Features
+      Using Authentication Tokens
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Admin-Only Features">
+    <nav class="md-nav" aria-label="Using Authentication Tokens">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#system-statistics" class="md-nav__link">
+  <a href="#request-headers" class="md-nav__link">
     <span class="md-ellipsis">
-      System Statistics
+      Request Headers
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#log-management" class="md-nav__link">
+  <a href="#example-requests" class="md-nav__link">
     <span class="md-ellipsis">
-      Log Management
+      Example Requests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Requests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#user-broadcast" class="md-nav__link">
+  <a href="#javascript" class="md-nav__link">
     <span class="md-ellipsis">
-      User Broadcast
+      JavaScript
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#curl" class="md-nav__link">
+    <span class="md-ellipsis">
+      cURL
     </span>
   </a>
   
@@ -1259,28 +1250,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-usage" class="md-nav__link">
+  <a href="#token-security" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Usage
+      Token Security
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Example Usage">
+    <nav class="md-nav" aria-label="Token Security">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#public-api-access" class="md-nav__link">
+  <a href="#best-practices" class="md-nav__link">
     <span class="md-ellipsis">
-      Public API Access
+      Best Practices
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#admin-features-access" class="md-nav__link">
+  <a href="#token-storage" class="md-nav__link">
     <span class="md-ellipsis">
-      Admin Features Access
+      Token Storage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-file-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment File Example
     </span>
   </a>
   
@@ -1292,28 +1292,127 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-examples" class="md-nav__link">
+  <a href="#api-endpoints-by-authentication-level" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Examples
+      API Endpoints by Authentication Level
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Examples">
+    <nav class="md-nav" aria-label="API Endpoints by Authentication Level">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#environment-setup" class="md-nav__link">
+  <a href="#public-endpoints-no-authentication" class="md-nav__link">
     <span class="md-ellipsis">
-      Environment Setup
+      Public Endpoints (No Authentication)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#security-considerations" class="md-nav__link">
+  <a href="#admin-endpoints-authentication-required" class="md-nav__link">
     <span class="md-ellipsis">
-      Security Considerations
+      Admin Endpoints (Authentication Required)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication Errors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentication Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#401-unauthorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      401 Unauthorized
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#403-forbidden" class="md-nav__link">
+    <span class="md-ellipsis">
+      403 Forbidden
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handling-authentication-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Handling Authentication Errors
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#token-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Token Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#token-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Information
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verifying-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verifying Token
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#revoking-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      Revoking Tokens
     </span>
   </a>
   
@@ -1331,31 +1430,22 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#error-responses" class="md-nav__link">
-    <span class="md-ellipsis">
-      Error Responses
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Error Responses">
+    <nav class="md-nav" aria-label="Rate Limiting">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#common-http-status-codes" class="md-nav__link">
+  <a href="#rate-limit-headers" class="md-nav__link">
     <span class="md-ellipsis">
-      Common HTTP Status Codes
+      Rate Limit Headers
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-error-response" class="md-nav__link">
+  <a href="#handling-rate-limits" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Error Response
+      Handling Rate Limits
     </span>
   </a>
   
@@ -1367,46 +1457,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#migration-from-token-based-systems" class="md-nav__link">
+  <a href="#security-considerations" class="md-nav__link">
     <span class="md-ellipsis">
-      Migration from Token-Based Systems
+      Security Considerations
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      Best Practices
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Best Practices">
+    <nav class="md-nav" aria-label="Security Considerations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#for-developers" class="md-nav__link">
+  <a href="#token-transmission" class="md-nav__link">
     <span class="md-ellipsis">
-      For Developers
+      Token Transmission
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#for-administrators" class="md-nav__link">
+  <a href="#token-storage_1" class="md-nav__link">
     <span class="md-ellipsis">
-      For Administrators
+      Token Storage
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#security" class="md-nav__link">
+  <a href="#monitoring" class="md-nav__link">
     <span class="md-ellipsis">
-      Security
+      Monitoring
     </span>
   </a>
   
@@ -1637,46 +1718,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#authentication-overview" class="md-nav__link">
+  <a href="#authentication-methods" class="md-nav__link">
     <span class="md-ellipsis">
-      Authentication Overview
+      Authentication Methods
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#admin-access" class="md-nav__link">
-    <span class="md-ellipsis">
-      Admin Access
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Admin Access">
+    <nav class="md-nav" aria-label="Authentication Methods">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#admin-configuration" class="md-nav__link">
+  <a href="#1-admin-token-authentication" class="md-nav__link">
     <span class="md-ellipsis">
-      Admin Configuration
+      1. Admin Token Authentication
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#getting-your-telegram-user-id" class="md-nav__link">
+  <a href="#2-no-authentication-public-endpoints" class="md-nav__link">
     <span class="md-ellipsis">
-      Getting Your Telegram User ID
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#admin-commands-access" class="md-nav__link">
-    <span class="md-ellipsis">
-      Admin Commands Access
+      2. No Authentication (Public Endpoints)
     </span>
   </a>
   
@@ -1688,38 +1751,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#api-endpoints" class="md-nav__link">
+  <a href="#obtaining-admin-tokens" class="md-nav__link">
     <span class="md-ellipsis">
-      API Endpoints
+      Obtaining Admin Tokens
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="API Endpoints">
+    <nav class="md-nav" aria-label="Obtaining Admin Tokens">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#public-endpoints-no-authentication-required" class="md-nav__link">
+  <a href="#method-1-environment-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Public Endpoints (No Authentication Required)
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Public Endpoints (No Authentication Required)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#file-downloads" class="md-nav__link">
-    <span class="md-ellipsis">
-      File Downloads
+      Method 1: Environment Configuration
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#bot-information" class="md-nav__link">
+  <a href="#method-2-generate-token-via-bot" class="md-nav__link">
     <span class="md-ellipsis">
-      Bot Information
+      Method 2: Generate Token via Bot
     </span>
   </a>
   
@@ -1729,39 +1782,58 @@
     </nav>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#admin-only-features" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#using-authentication-tokens" class="md-nav__link">
     <span class="md-ellipsis">
-      Admin-Only Features
+      Using Authentication Tokens
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Admin-Only Features">
+    <nav class="md-nav" aria-label="Using Authentication Tokens">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#system-statistics" class="md-nav__link">
+  <a href="#request-headers" class="md-nav__link">
     <span class="md-ellipsis">
-      System Statistics
+      Request Headers
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#log-management" class="md-nav__link">
+  <a href="#example-requests" class="md-nav__link">
     <span class="md-ellipsis">
-      Log Management
+      Example Requests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Requests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#user-broadcast" class="md-nav__link">
+  <a href="#javascript" class="md-nav__link">
     <span class="md-ellipsis">
-      User Broadcast
+      JavaScript
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#curl" class="md-nav__link">
+    <span class="md-ellipsis">
+      cURL
     </span>
   </a>
   
@@ -1778,28 +1850,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-usage" class="md-nav__link">
+  <a href="#token-security" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Usage
+      Token Security
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Example Usage">
+    <nav class="md-nav" aria-label="Token Security">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#public-api-access" class="md-nav__link">
+  <a href="#best-practices" class="md-nav__link">
     <span class="md-ellipsis">
-      Public API Access
+      Best Practices
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#admin-features-access" class="md-nav__link">
+  <a href="#token-storage" class="md-nav__link">
     <span class="md-ellipsis">
-      Admin Features Access
+      Token Storage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-file-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment File Example
     </span>
   </a>
   
@@ -1811,28 +1892,127 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-examples" class="md-nav__link">
+  <a href="#api-endpoints-by-authentication-level" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Examples
+      API Endpoints by Authentication Level
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Examples">
+    <nav class="md-nav" aria-label="API Endpoints by Authentication Level">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#environment-setup" class="md-nav__link">
+  <a href="#public-endpoints-no-authentication" class="md-nav__link">
     <span class="md-ellipsis">
-      Environment Setup
+      Public Endpoints (No Authentication)
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#security-considerations" class="md-nav__link">
+  <a href="#admin-endpoints-authentication-required" class="md-nav__link">
     <span class="md-ellipsis">
-      Security Considerations
+      Admin Endpoints (Authentication Required)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#authentication-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Authentication Errors
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Authentication Errors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#401-unauthorized" class="md-nav__link">
+    <span class="md-ellipsis">
+      401 Unauthorized
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#403-forbidden" class="md-nav__link">
+    <span class="md-ellipsis">
+      403 Forbidden
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handling-authentication-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      Handling Authentication Errors
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#token-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Token Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#token-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      Token Information
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verifying-token" class="md-nav__link">
+    <span class="md-ellipsis">
+      Verifying Token
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#revoking-tokens" class="md-nav__link">
+    <span class="md-ellipsis">
+      Revoking Tokens
     </span>
   </a>
   
@@ -1850,31 +2030,22 @@
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#error-responses" class="md-nav__link">
-    <span class="md-ellipsis">
-      Error Responses
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Error Responses">
+    <nav class="md-nav" aria-label="Rate Limiting">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#common-http-status-codes" class="md-nav__link">
+  <a href="#rate-limit-headers" class="md-nav__link">
     <span class="md-ellipsis">
-      Common HTTP Status Codes
+      Rate Limit Headers
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#example-error-response" class="md-nav__link">
+  <a href="#handling-rate-limits" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Error Response
+      Handling Rate Limits
     </span>
   </a>
   
@@ -1886,46 +2057,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#migration-from-token-based-systems" class="md-nav__link">
+  <a href="#security-considerations" class="md-nav__link">
     <span class="md-ellipsis">
-      Migration from Token-Based Systems
+      Security Considerations
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      Best Practices
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Best Practices">
+    <nav class="md-nav" aria-label="Security Considerations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#for-developers" class="md-nav__link">
+  <a href="#token-transmission" class="md-nav__link">
     <span class="md-ellipsis">
-      For Developers
+      Token Transmission
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#for-administrators" class="md-nav__link">
+  <a href="#token-storage_1" class="md-nav__link">
     <span class="md-ellipsis">
-      For Administrators
+      Token Storage
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#security" class="md-nav__link">
+  <a href="#monitoring" class="md-nav__link">
     <span class="md-ellipsis">
-      Security
+      Monitoring
     </span>
   </a>
   
@@ -1956,251 +2118,312 @@
 
 
 <h1 id="api-authentication">API Authentication<a class="headerlink" href="#api-authentication" title="Permanent link">&para;</a></h1>
-<p>StreamBot uses a simplified admin verification system for API access. This guide explains the authentication method and how to access API endpoints.</p>
-<h2 id="authentication-overview">Authentication Overview<a class="headerlink" href="#authentication-overview" title="Permanent link">&para;</a></h2>
-<p>StreamBot API uses <strong>admin verification</strong> based on Telegram user IDs for security and simplicity:</p>
+<p>StreamBot uses token-based authentication for accessing administrative API endpoints. This guide explains how to obtain and use authentication tokens.</p>
+<h2 id="authentication-methods">Authentication Methods<a class="headerlink" href="#authentication-methods" title="Permanent link">&para;</a></h2>
+<h3 id="1-admin-token-authentication">1. Admin Token Authentication<a class="headerlink" href="#1-admin-token-authentication" title="Permanent link">&para;</a></h3>
+<p>For administrative endpoints, you need to provide an admin token in the request headers.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer YOUR_ADMIN_TOKEN&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">     </span>https://your-streambot-domain.com/api/info
+</span></code></pre></div>
+<h3 id="2-no-authentication-public-endpoints">2. No Authentication (Public Endpoints)<a class="headerlink" href="#2-no-authentication-public-endpoints" title="Permanent link">&para;</a></h3>
+<p>Some endpoints like file downloads don't require authentication:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>curl<span class="w"> </span>https://your-streambot-domain.com/dl/file_id_here
+</span></code></pre></div>
+<h2 id="obtaining-admin-tokens">Obtaining Admin Tokens<a class="headerlink" href="#obtaining-admin-tokens" title="Permanent link">&para;</a></h2>
+<h3 id="method-1-environment-configuration">Method 1: Environment Configuration<a class="headerlink" href="#method-1-environment-configuration" title="Permanent link">&para;</a></h3>
+<p>The primary admin token is configured in your <code>.env</code> file:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># Admin Configuration
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>ADMIN_IDS=123456789,987654321
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>JWT_SECRET=your_secure_jwt_secret_here
+</span></code></pre></div>
+<h3 id="method-2-generate-token-via-bot">Method 2: Generate Token via Bot<a class="headerlink" href="#method-2-generate-token-via-bot" title="Permanent link">&para;</a></h3>
+<p>If you're configured as an admin user, you can generate an API token through the Telegram bot:</p>
+<ol>
+<li>Send <code>/token</code> command to the bot</li>
+<li>The bot will generate a secure API token for you</li>
+<li>Use this token in your API requests</li>
+</ol>
+<h2 id="using-authentication-tokens">Using Authentication Tokens<a class="headerlink" href="#using-authentication-tokens" title="Permanent link">&para;</a></h2>
+<h3 id="request-headers">Request Headers<a class="headerlink" href="#request-headers" title="Permanent link">&para;</a></h3>
+<p>Include the token in the <code>Authorization</code> header:</p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nf">GET</span> <span class="nn">/api/info</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="na">Host</span><span class="o">:</span> <span class="l">your-streambot-domain.com</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="na">Authorization</span><span class="o">:</span> <span class="l">Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="na">Content-Type</span><span class="o">:</span> <span class="l">application/json</span>
+</span></code></pre></div>
+<h3 id="example-requests">Example Requests<a class="headerlink" href="#example-requests" title="Permanent link">&para;</a></h3>
+<h4 id="python">Python<a class="headerlink" href="#python" title="Permanent link">&para;</a></h4>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="s1">&#39;Bearer YOUR_ADMIN_TOKEN&#39;</span><span class="p">,</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="p">}</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="s1">&#39;https://your-streambot-domain.com/api/info&#39;</span><span class="p">,</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>    <span class="n">headers</span><span class="o">=</span><span class="n">headers</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="p">)</span>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>    <span class="n">data</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Bot status: </span><span class="si">{</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="k">else</span><span class="p">:</span>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
+<h4 id="javascript">JavaScript<a class="headerlink" href="#javascript" title="Permanent link">&para;</a></h4>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kd">const</span><span class="w"> </span><span class="nx">token</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;YOUR_ADMIN_TOKEN&#39;</span><span class="p">;</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="s1">&#39;https://your-streambot-domain.com/api/info&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="nx">method</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;GET&#39;</span><span class="p">,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="nx">headers</span><span class="o">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">        </span><span class="s1">&#39;Authorization&#39;</span><span class="o">:</span><span class="w"> </span><span class="sb">`Bearer </span><span class="si">${</span><span class="nx">token</span><span class="si">}</span><span class="sb">`</span><span class="p">,</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">        </span><span class="s1">&#39;Content-Type&#39;</span><span class="o">:</span><span class="w"> </span><span class="s1">&#39;application/json&#39;</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="p">});</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">response</span><span class="p">.</span><span class="nx">ok</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">json</span><span class="p">();</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Bot status:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">data</span><span class="p">.</span><span class="nx">status</span><span class="p">);</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s1">&#39;Error:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">status</span><span class="p">);</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="p">}</span>
+</span></code></pre></div>
+<h4 id="curl">cURL<a class="headerlink" href="#curl" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>curl<span class="w"> </span>-X<span class="w"> </span>GET<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span>https://your-streambot-domain.com/api/info<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">&#39;Authorization: Bearer YOUR_ADMIN_TOKEN&#39;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s1">&#39;Content-Type: application/json&#39;</span>
+</span></code></pre></div>
+<h2 id="token-security">Token Security<a class="headerlink" href="#token-security" title="Permanent link">&para;</a></h2>
+<h3 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Keep tokens secure</strong>: Never expose tokens in client-side code</li>
+<li><strong>Use environment variables</strong>: Store tokens in environment variables, not in code</li>
+<li><strong>Regular rotation</strong>: Rotate tokens periodically for security</li>
+<li><strong>Limited scope</strong>: Use the minimum required permissions</li>
+</ol>
+<h3 id="token-storage">Token Storage<a class="headerlink" href="#token-storage" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">dotenv</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_dotenv</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">load_dotenv</span><span class="p">()</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="c1"># Store token in environment variable</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="n">ADMIN_TOKEN</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;STREAMBOT_ADMIN_TOKEN&#39;</span><span class="p">)</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="k">def</span><span class="w"> </span><span class="nf">make_authenticated_request</span><span class="p">(</span><span class="n">endpoint</span><span class="p">):</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Bearer </span><span class="si">{</span><span class="n">ADMIN_TOKEN</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">}</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;https://your-domain.com/api/</span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span></code></pre></div>
+<h3 id="environment-file-example">Environment File Example<a class="headerlink" href="#environment-file-example" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a># .env file
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>STREAMBOT_ADMIN_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>STREAMBOT_API_BASE_URL=https://your-streambot-domain.com
+</span></code></pre></div>
+<h2 id="api-endpoints-by-authentication-level">API Endpoints by Authentication Level<a class="headerlink" href="#api-endpoints-by-authentication-level" title="Permanent link">&para;</a></h2>
+<h3 id="public-endpoints-no-authentication">Public Endpoints (No Authentication)<a class="headerlink" href="#public-endpoints-no-authentication" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Method</th>
-<th>Security Level</th>
-<th>Performance</th>
-<th>Use Case</th>
+<th>Endpoint</th>
+<th>Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><strong>Admin Verification</strong></td>
-<td>✅ <strong>High</strong></td>
-<td>⚡ Fast</td>
-<td>Admin access via bot commands</td>
+<td><code>GET /dl/{file_id}</code></td>
+<td>Download file</td>
 </tr>
 <tr>
-<td><strong>Public Endpoints</strong></td>
-<td>🌐 Open</td>
-<td>⚡ Fast</td>
-<td>File downloads, status info</td>
+<td><code>GET /</code></td>
+<td>Health check</td>
 </tr>
 </tbody>
 </table>
-<h2 id="admin-access">Admin Access<a class="headerlink" href="#admin-access" title="Permanent link">&para;</a></h2>
-<h3 id="admin-configuration">Admin Configuration<a class="headerlink" href="#admin-configuration" title="Permanent link">&para;</a></h3>
-<p>API access is controlled through the <code>ADMINS</code> environment variable:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># Space-separated list of Telegram user IDs with admin access
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>ADMINS=123456789 987654321
+<h3 id="admin-endpoints-authentication-required">Admin Endpoints (Authentication Required)<a class="headerlink" href="#admin-endpoints-authentication-required" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Description</th>
+<th>Authentication Required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/api/admin/config</code></td>
+<td>Manage bot configuration</td>
+<td>Yes (Admin Token)</td>
+</tr>
+<tr>
+<td><code>/api/admin/users</code></td>
+<td>Manage user access</td>
+<td>Yes (Admin Token)</td>
+</tr>
+<tr>
+<td><code>GET /api/info</code></td>
+<td>Bot information and statistics</td>
+<td>Yes (Admin Token)</td>
+</tr>
+<tr>
+<td><code>GET /api/users</code></td>
+<td>User statistics</td>
+<td>Yes (Admin Token)</td>
+</tr>
+<tr>
+<td><code>POST /api/broadcast</code></td>
+<td>Send broadcast message</td>
+<td>Yes (Admin Token)</td>
+</tr>
+<tr>
+<td><code>DELETE /api/cleanup</code></td>
+<td>Clean up expired files</td>
+<td>Yes (Admin Token)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="error-handling">Error Handling<a class="headerlink" href="#error-handling" title="Permanent link">&para;</a></h2>
+<h3 id="authentication-errors">Authentication Errors<a class="headerlink" href="#authentication-errors" title="Permanent link">&para;</a></h3>
+<h4 id="401-unauthorized">401 Unauthorized<a class="headerlink" href="#401-unauthorized" title="Permanent link">&para;</a></h4>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="p">{</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">    </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Unauthorized&quot;</span><span class="p">,</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">401</span><span class="p">,</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Valid authentication token required&quot;</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="p">}</span>
 </span></code></pre></div>
-<h3 id="getting-your-telegram-user-id">Getting Your Telegram User ID<a class="headerlink" href="#getting-your-telegram-user-id" title="Permanent link">&para;</a></h3>
-<p>To find your Telegram user ID:</p>
+<p><strong>Causes:</strong>
+- Missing Authorization header
+- Invalid token format
+- Expired token
+- Revoked token</p>
+<h4 id="403-forbidden">403 Forbidden<a class="headerlink" href="#403-forbidden" title="Permanent link">&para;</a></h4>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="p">{</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">    </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Forbidden&quot;</span><span class="p">,</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="nt">&quot;code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">403</span><span class="p">,</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Insufficient permissions&quot;</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><strong>Causes:</strong>
+- Valid token but insufficient permissions
+- User not in admin list
+- IP address restrictions</p>
+<h3 id="handling-authentication-errors">Handling Authentication Errors<a class="headerlink" href="#handling-authentication-errors" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">requests</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">make_api_request</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Bearer </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">}</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>            <span class="sa">f</span><span class="s1">&#39;https://your-domain.com/api/</span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>            <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>            <span class="n">timeout</span><span class="o">=</span><span class="mi">30</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>        <span class="p">)</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">401</span><span class="p">:</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Authentication failed. Please check your token.&quot;</span><span class="p">)</span>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>            <span class="k">return</span> <span class="kc">None</span>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>        <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">403</span><span class="p">:</span>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Access denied. Insufficient permissions.&quot;</span><span class="p">)</span>
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a>            <span class="k">return</span> <span class="kc">None</span>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a>        <span class="k">elif</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-11-22"><a id="__codelineno-11-22" name="__codelineno-11-22" href="#__codelineno-11-22"></a>            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API error: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-11-23"><a id="__codelineno-11-23" name="__codelineno-11-23" href="#__codelineno-11-23"></a>            <span class="k">return</span> <span class="kc">None</span>
+</span><span id="__span-11-24"><a id="__codelineno-11-24" name="__codelineno-11-24" href="#__codelineno-11-24"></a>
+</span><span id="__span-11-25"><a id="__codelineno-11-25" name="__codelineno-11-25" href="#__codelineno-11-25"></a>    <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+</span><span id="__span-11-26"><a id="__codelineno-11-26" name="__codelineno-11-26" href="#__codelineno-11-26"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Request failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-11-27"><a id="__codelineno-11-27" name="__codelineno-11-27" href="#__codelineno-11-27"></a>        <span class="k">return</span> <span class="kc">None</span>
+</span></code></pre></div>
+<h2 id="token-management">Token Management<a class="headerlink" href="#token-management" title="Permanent link">&para;</a></h2>
+<h3 id="token-information">Token Information<a class="headerlink" href="#token-information" title="Permanent link">&para;</a></h3>
+<p>Tokens contain the following information:</p>
+<ul>
+<li><strong>User ID</strong>: Telegram user ID of the token owner</li>
+<li><strong>Permissions</strong>: List of allowed actions</li>
+<li><strong>Expiration</strong>: Token expiry time (if applicable)</li>
+<li><strong>Issue time</strong>: When the token was created</li>
+</ul>
+<h3 id="verifying-token">Verifying Token<a class="headerlink" href="#verifying-token" title="Permanent link">&para;</a></h3>
+<p>You can verify your token by calling the info endpoint:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer YOUR_TOKEN&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">     </span>https://your-streambot-domain.com/api/info
+</span></code></pre></div>
+<p>If the token is valid, you'll receive bot information. If invalid, you'll get a 401 error.</p>
+<h3 id="revoking-tokens">Revoking Tokens<a class="headerlink" href="#revoking-tokens" title="Permanent link">&para;</a></h3>
+<p>To revoke a token:</p>
 <ol>
-<li><strong>Forward any message</strong> from your account to <a href="https://t.me/TGIdsBot">@TGIdsBot</a></li>
-<li><strong>Or send</strong> <code>/start</code> to <a href="https://t.me/userinfobot">@userinfobot</a></li>
-<li><strong>Copy the User ID</strong> (numeric value) to your configuration</li>
+<li><strong>Via Bot</strong>: Send <code>/revoke_token</code> command to the Telegram bot</li>
+<li><strong>Via Environment</strong>: Remove/change the JWT_SECRET in your <code>.env</code> file (invalidates all tokens)</li>
+<li><strong>Via Admin Panel</strong>: Use the admin API to revoke specific tokens</li>
 </ol>
-<h3 id="admin-commands-access">Admin Commands Access<a class="headerlink" href="#admin-commands-access" title="Permanent link">&para;</a></h3>
-<p>Admin users can access enhanced features directly through the Telegram bot:</p>
-<ul>
-<li><strong>System Monitoring</strong>: <code>/stats</code> command with comprehensive system information</li>
-<li><strong>Log Management</strong>: <code>/logs</code> command with filtering and search capabilities</li>
-<li><strong>User Management</strong>: <code>/broadcast</code> command for messaging all users</li>
-</ul>
-<h2 id="api-endpoints">API Endpoints<a class="headerlink" href="#api-endpoints" title="Permanent link">&para;</a></h2>
-<h3 id="public-endpoints-no-authentication-required">Public Endpoints (No Authentication Required)<a class="headerlink" href="#public-endpoints-no-authentication-required" title="Permanent link">&para;</a></h3>
-<h4 id="file-downloads">File Downloads<a class="headerlink" href="#file-downloads" title="Permanent link">&para;</a></h4>
-<p><div class="language-http highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="err">GET /dl/{file_id}/{filename}</span>
-</span></code></pre></div>
-- <strong>Purpose</strong>: Direct file downloads
-- <strong>Rate Limit</strong>: Global rate limiting applied
-- <strong>Access</strong>: Public (no authentication)
-- <strong>Example</strong>: <code>https://yourdomain.com/dl/abc123/document.pdf</code></p>
-<h4 id="bot-information">Bot Information<a class="headerlink" href="#bot-information" title="Permanent link">&para;</a></h4>
-<p><div class="language-http highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="err">GET /api/info</span>
-</span></code></pre></div>
-- <strong>Purpose</strong>: Bot status and configuration
-- <strong>Rate Limit</strong>: Standard rate limiting
-- <strong>Access</strong>: Public (no authentication)
-- <strong>Response</strong>: JSON with bot status, uptime, features</p>
-<p><strong>Example Response</strong>:
-<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;online&quot;</span><span class="p">,</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="nt">&quot;uptime&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;5d 12h 34m 16s&quot;</span><span class="p">,</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="nt">&quot;features&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="nt">&quot;force_subscription&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="nt">&quot;link_expiry&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;24 hours&quot;</span><span class="p">,</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="nt">&quot;rate_limiting&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;5 links/day&quot;</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="w">  </span><span class="nt">&quot;bandwidth&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="w">    </span><span class="nt">&quot;used_gb&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">45.2</span><span class="p">,</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="w">    </span><span class="nt">&quot;limit_gb&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">,</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="nt">&quot;percentage&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">45.2</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">  </span><span class="nt">&quot;users&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="w">    </span><span class="nt">&quot;total&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1247</span><span class="p">,</span>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">    </span><span class="nt">&quot;active_today&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">156</span>
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="p">}</span>
-</span></code></pre></div></p>
-<h3 id="admin-only-features">Admin-Only Features<a class="headerlink" href="#admin-only-features" title="Permanent link">&para;</a></h3>
-<p>Admin features are accessed directly through the Telegram bot interface rather than HTTP API:</p>
-<h4 id="system-statistics">System Statistics<a class="headerlink" href="#system-statistics" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Command</strong>: <code>/stats</code> in Telegram bot</li>
-<li><strong>Access</strong>: Admin users only</li>
-<li><strong>Features</strong>: </li>
-<li>Memory usage monitoring</li>
-<li>Security status dashboard</li>
-<li>Bandwidth tracking</li>
-<li>Active streams count</li>
-</ul>
-<h4 id="log-management">Log Management<a class="headerlink" href="#log-management" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Command</strong>: <code>/logs</code> in Telegram bot</li>
-<li><strong>Access</strong>: Admin users only</li>
-<li><strong>Features</strong>:</li>
-<li>Complete log file download</li>
-<li>Filtered log viewing</li>
-<li>Text search capabilities</li>
-<li>Automatic data sanitization</li>
-</ul>
-<h4 id="user-broadcast">User Broadcast<a class="headerlink" href="#user-broadcast" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Command</strong>: <code>/broadcast</code> in Telegram bot</li>
-<li><strong>Access</strong>: Admin users only</li>
-<li><strong>Features</strong>:</li>
-<li>Message all registered users</li>
-<li>Delivery status reporting</li>
-<li>Error handling for blocked users</li>
-</ul>
-<h2 id="example-usage">Example Usage<a class="headerlink" href="#example-usage" title="Permanent link">&para;</a></h2>
-<h3 id="public-api-access">Public API Access<a class="headerlink" href="#public-api-access" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Get bot information</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>curl<span class="w"> </span><span class="s2">&quot;https://yourdomain.com/api/info&quot;</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Download file (if you have the link)</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>curl<span class="w"> </span><span class="s2">&quot;https://yourdomain.com/dl/abc123/document.pdf&quot;</span><span class="w"> </span>-o<span class="w"> </span>document.pdf
-</span></code></pre></div>
-<h3 id="admin-features-access">Admin Features Access<a class="headerlink" href="#admin-features-access" title="Permanent link">&para;</a></h3>
-<p>Admin features are accessed through the Telegram bot:</p>
-<ol>
-<li><strong>Start a private chat</strong> with your StreamBot</li>
-<li><strong>Use admin commands</strong> like <code>/stats</code>, <code>/logs</code>, <code>/broadcast</code></li>
-<li><strong>Verify you're in the ADMINS list</strong> in your configuration</li>
-</ol>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a># Example admin interaction
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>User: /stats
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Bot: 📊 System Statistics
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>     🧠 Memory Usage: 156.3 MB
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>     🌐 Active Streams: 23
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>     🛡️ Security Status: All systems active ✅
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>     ...
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>User: /logs level=ERROR limit=10
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>Bot: 📋 Filtered Logs (ERROR level, 10 entries)
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>     2024-01-15 14:30:45 - ERROR - Download failed for file xxx
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>     ...
-</span></code></pre></div>
-<h2 id="configuration-examples">Configuration Examples<a class="headerlink" href="#configuration-examples" title="Permanent link">&para;</a></h2>
-<h3 id="environment-setup">Environment Setup<a class="headerlink" href="#environment-setup" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a># Basic Configuration
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>API_ID=12345678
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>API_HASH=your_api_hash_here
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>BOT_TOKEN=your_bot_token_here
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a># Admin Access Control
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>ADMINS=123456789 987654321  # Your Telegram user IDs
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a># Bot Settings
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>LOG_CHANNEL=-100xxxxxxxxxx
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>BASE_URL=https://yourdomain.com
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>PORT=8080
-</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>
-</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a># Optional Features
-</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>FORCE_SUB_CHANNEL=-100yyyyyyyyyy
-</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>MAX_LINKS_PER_DAY=5
-</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a>BANDWIDTH_LIMIT_GB=100
-</span></code></pre></div>
-<h3 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Admin ID Verification</strong>: Only configured Telegram user IDs have admin access</li>
-<li><strong>No Token Management</strong>: No JWT tokens or API keys to manage</li>
-<li><strong>Direct Bot Access</strong>: Admin features accessed through secure Telegram interface</li>
-<li><strong>Rate Limiting</strong>: All endpoints subject to appropriate rate limiting</li>
-<li><strong>Data Sanitization</strong>: Sensitive information automatically removed from logs</li>
-</ul>
 <h2 id="rate-limiting">Rate Limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Endpoint Type</th>
-<th>Limit</th>
-<th>Scope</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Public API</td>
-<td>100/minute</td>
-<td>Per IP</td>
-</tr>
-<tr>
-<td>File Downloads</td>
-<td>500/minute</td>
-<td>Global</td>
-</tr>
-<tr>
-<td>Admin Commands</td>
-<td>Unlimited</td>
-<td>Admin users only</td>
-</tr>
-</tbody>
-</table>
-<h2 id="error-responses">Error Responses<a class="headerlink" href="#error-responses" title="Permanent link">&para;</a></h2>
-<h3 id="common-http-status-codes">Common HTTP Status Codes<a class="headerlink" href="#common-http-status-codes" title="Permanent link">&para;</a></h3>
+<p>Authenticated requests are subject to rate limiting:</p>
 <ul>
-<li><strong>200 OK</strong>: Successful request</li>
-<li><strong>404 Not Found</strong>: Endpoint or file not found</li>
-<li><strong>429 Too Many Requests</strong>: Rate limit exceeded</li>
-<li><strong>500 Internal Server Error</strong>: Server error (generic message)</li>
+<li><strong>Admin users</strong>: 100 requests per minute</li>
+<li><strong>Regular users</strong>: 10 requests per minute</li>
+<li><strong>Global</strong>: 1000 requests per minute across all users</li>
 </ul>
-<h3 id="example-error-response">Example Error Response<a class="headerlink" href="#example-error-response" title="Permanent link">&para;</a></h3>
-<div class="language-json highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Rate limit exceeded&quot;</span><span class="p">,</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">&quot;retry_after&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">60</span><span class="p">,</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Please try again in 60 seconds&quot;</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="p">}</span>
+<h3 id="rate-limit-headers">Rate Limit Headers<a class="headerlink" href="#rate-limit-headers" title="Permanent link">&para;</a></h3>
+<p>Response headers include rate limit information:</p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">200</span> <span class="ne">OK</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="na">X-RateLimit-Limit</span><span class="o">:</span> <span class="l">100</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="na">X-RateLimit-Remaining</span><span class="o">:</span> <span class="l">95</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="na">X-RateLimit-Reset</span><span class="o">:</span> <span class="l">1640995200</span>
 </span></code></pre></div>
-<h2 id="migration-from-token-based-systems">Migration from Token-Based Systems<a class="headerlink" href="#migration-from-token-based-systems" title="Permanent link">&para;</a></h2>
-<p>If you're migrating from a token-based API system:</p>
-<ol>
-<li><strong>Remove token configuration</strong> from environment variables</li>
-<li><strong>Configure admin user IDs</strong> in the <code>ADMINS</code> environment variable</li>
-<li><strong>Use Telegram bot interface</strong> for admin features instead of HTTP API</li>
-<li><strong>Update automation scripts</strong> to use public endpoints only</li>
-<li><strong>Manual admin tasks</strong> can be performed through the bot interface</li>
-</ol>
-<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
-<h3 id="for-developers">For Developers<a class="headerlink" href="#for-developers" title="Permanent link">&para;</a></h3>
+<h3 id="handling-rate-limits">Handling Rate Limits<a class="headerlink" href="#handling-rate-limits" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">api_call_with_rate_limit</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">token</span><span class="p">):</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Bearer </span><span class="si">{</span><span class="n">token</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">}</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>        <span class="sa">f</span><span class="s1">&#39;https://your-domain.com/api/</span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>        <span class="n">headers</span><span class="o">=</span><span class="n">headers</span>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>    <span class="p">)</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>    <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">429</span><span class="p">:</span>  <span class="c1"># Rate limited</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>        <span class="n">reset_time</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;X-RateLimit-Reset&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>        <span class="n">wait_time</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">reset_time</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()))</span>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Rate limited. Waiting </span><span class="si">{</span><span class="n">wait_time</span><span class="si">}</span><span class="s2"> seconds...&quot;</span><span class="p">)</span>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait_time</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>        <span class="c1"># Retry the request</span>
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>        <span class="k">return</span> <span class="n">api_call_with_rate_limit</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">token</span><span class="p">)</span>
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>    <span class="k">return</span> <span class="n">response</span>
+</span></code></pre></div>
+<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="token-transmission">Token Transmission<a class="headerlink" href="#token-transmission" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Use public endpoints</strong> for automated file access</li>
-<li><strong>Access admin features</strong> through the Telegram bot interface</li>
-<li><strong>Implement proper rate limiting</strong> in your applications</li>
-<li><strong>Handle HTTP errors gracefully</strong> with appropriate retry logic</li>
+<li>Always use HTTPS for API requests</li>
+<li>Never include tokens in URLs or logs</li>
+<li>Use secure headers for token transmission</li>
 </ul>
-<h3 id="for-administrators">For Administrators<a class="headerlink" href="#for-administrators" title="Permanent link">&para;</a></h3>
+<h3 id="token-storage_1">Token Storage<a class="headerlink" href="#token-storage_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Keep admin user IDs secure</strong> and limit to trusted users</li>
-<li><strong>Use bot commands</strong> for monitoring and management</li>
-<li><strong>Regular monitoring</strong> through <code>/stats</code> command</li>
-<li><strong>Log review</strong> using <code>/logs</code> command with appropriate filters</li>
+<li>Store tokens securely (encrypted if possible)</li>
+<li>Don't commit tokens to version control</li>
+<li>Use environment variables or secure key stores</li>
 </ul>
-<h3 id="security">Security<a class="headerlink" href="#security" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Verify admin configuration</strong> before deployment</li>
-<li><strong>Monitor access patterns</strong> through system logs</li>
-<li><strong>Keep bot token secure</strong> and never share it</li>
-<li><strong>Use HTTPS</strong> for all production deployments</li>
-</ul>
-<hr />
-<p><em>For security issues or questions, contact: <a href="https://t.me/your_telegram">@your_telegram</a></em> </p>
+<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h3>
+<p>Monitor for:
+- Unusual API access patterns
+- Failed authentication attempts
+- Token usage from unexpected IP addresses</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Example: Logging authentication events</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">log_api_access</span><span class="p">(</span><span class="n">endpoint</span><span class="p">,</span> <span class="n">success</span><span class="p">,</span> <span class="n">user_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    <span class="k">if</span> <span class="n">success</span><span class="p">:</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;API access: </span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2"> by user </span><span class="si">{</span><span class="n">user_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>        <span class="n">logging</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed API access attempt: </span><span class="si">{</span><span class="n">endpoint</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span></code></pre></div>
 
 
 

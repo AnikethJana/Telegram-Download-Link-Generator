@@ -1114,9 +1114,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#token-authentication" class="md-nav__link">
+  <a href="#encoded-file-ids" class="md-nav__link">
     <span class="md-ellipsis">
-      Token Authentication
+      Encoded File IDs
     </span>
   </a>
   
@@ -1485,9 +1485,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#token-authentication" class="md-nav__link">
+  <a href="#encoded-file-ids" class="md-nav__link">
     <span class="md-ellipsis">
-      Token Authentication
+      Encoded File IDs
     </span>
   </a>
   
@@ -1618,12 +1618,12 @@
 <h2 id="api-basics">API Basics<a class="headerlink" href="#api-basics" title="Permanent link">&para;</a></h2>
 <p><strong>Base URL</strong>: <code>https://yourdomain.com</code> (configured via <code>BASE_URL</code> environment variable)</p>
 <h2 id="authentication-methods">Authentication Methods<a class="headerlink" href="#authentication-methods" title="Permanent link">&para;</a></h2>
-<p>The API supports several authentication methods depending on the endpoint:</p>
+<p>The API endpoints are generally public and do not require authentication:</p>
 <div class="grid">
 <div class="card">
-<h3 id="token-authentication">Token Authentication<a class="headerlink" href="#token-authentication" title="Permanent link">&para;</a></h3>
-<p>Used for administrative endpoints that require privileged access.</p>
-<div class="language-http highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">GET</span> <span class="nn">/api/logs?token=your_secret_token</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+<h3 id="encoded-file-ids">Encoded File IDs<a class="headerlink" href="#encoded-file-ids" title="Permanent link">&para;</a></h3>
+<p>File downloads use encoded message IDs for secure access control.</p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">GET</span> <span class="nn">/dl/encoded_file_id</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">Host</span><span class="o">:</span> <span class="l">yourdomain.com</span>
 </span></code></pre></div>
 </div>
@@ -1633,7 +1633,6 @@
 <ul>
 <li>Standard endpoints: 60 requests per minute</li>
 <li>Download endpoints: 10 requests per minute</li>
-<li>Admin endpoints: 120 requests per minute</li>
 </ul>
 <p>Rate limit headers are included in all responses:</p>
 <div class="language-http highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="err">X-RateLimit-Limit: 60</span>
@@ -1672,12 +1671,6 @@
 <td>GET</td>
 <td>Bot status and information</td>
 <td>None</td>
-</tr>
-<tr>
-<td><code>/api/logs</code></td>
-<td>GET</td>
-<td>Access application logs</td>
-<td>Token</td>
 </tr>
 <tr>
 <td><code>/dl/{file_id}</code></td>
@@ -1748,7 +1741,6 @@
 <p>Use the sections below to explore the available API endpoints in detail:</p>
 <ul>
 <li><a href="../endpoints/">Endpoints Reference</a> - Detailed documentation for each endpoint</li>
-<li><a href="../authentication/">Authentication</a> - In-depth guide to authentication methods</li>
 <li><a href="../examples/">Examples &amp; Integration</a> - Code examples for common scenarios</li>
 </ul>
 <h2 id="testing-the-api">Testing the API<a class="headerlink" href="#testing-the-api" title="Permanent link">&para;</a></h2>

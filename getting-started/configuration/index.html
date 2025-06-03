@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Complete configuration reference for StreamBot environment variables">
+        <meta name="description" content="Complete configuration options for StreamBot">
       
       
       
@@ -600,28 +600,46 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#environment-variables-overview" class="md-nav__link">
+  <a href="#environment-file-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      Environment Variables Overview
+      Environment File Setup
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Environment Variables Overview">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#required-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Required Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Required Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#required-variables" class="md-nav__link">
+  <a href="#telegram-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      Required Variables
+      Telegram Settings
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#optional-variables" class="md-nav__link">
+  <a href="#database-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Optional Variables
+      Database Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Server Configuration
     </span>
   </a>
   
@@ -633,342 +651,75 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-sections" class="md-nav__link">
+  <a href="#optional-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Sections
+      Optional Configuration
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Sections">
+    <nav class="md-nav" aria-label="Optional Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-telegram-core-settings" class="md-nav__link">
+  <a href="#admin-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      1. Telegram Core Settings
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. Telegram Core Settings">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#api_id-required" class="md-nav__link">
-    <span class="md-ellipsis">
-      API_ID (Required)
+      Admin Settings
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#api_hash-required" class="md-nav__link">
+  <a href="#multi-client-support" class="md-nav__link">
     <span class="md-ellipsis">
-      API_HASH (Required)
+      Multi-Client Support
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#bot_token-required" class="md-nav__link">
+  <a href="#rate-limiting" class="md-nav__link">
     <span class="md-ellipsis">
-      BOT_TOKEN (Required)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-channel-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Channel Configuration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Channel Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#log_channel-required" class="md-nav__link">
-    <span class="md-ellipsis">
-      LOG_CHANNEL (Required)
+      Rate Limiting
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#force_sub_channel-optional" class="md-nav__link">
+  <a href="#force-subscription" class="md-nav__link">
     <span class="md-ellipsis">
-      FORCE_SUB_CHANNEL (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-web-server-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Web Server Settings
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Web Server Settings">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#base_url-required" class="md-nav__link">
-    <span class="md-ellipsis">
-      BASE_URL (Required)
+      Force Subscription
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#port-optional" class="md-nav__link">
+  <a href="#performance-tuning" class="md-nav__link">
     <span class="md-ellipsis">
-      PORT (Optional)
+      Performance Tuning
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#bind_address-optional" class="md-nav__link">
+  <a href="#link-management" class="md-nav__link">
     <span class="md-ellipsis">
-      BIND_ADDRESS (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-bot-behavior" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Bot Behavior
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Bot Behavior">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#link_expiry_seconds-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      LINK_EXPIRY_SECONDS (Optional)
+      Link Management
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#session_name-optional" class="md-nav__link">
+  <a href="#external-integrations" class="md-nav__link">
     <span class="md-ellipsis">
-      SESSION_NAME (Optional)
+      External Integrations
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#workers-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      WORKERS (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-admin-access-control" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Admin Access Control
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Admin Access Control">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#admins-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      ADMINS (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#6-rate-limiting" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. Rate Limiting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="6. Rate Limiting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#max_links_per_day-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      MAX_LINKS_PER_DAY (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#7-bandwidth-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      7. Bandwidth Management
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="7. Bandwidth Management">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#bandwidth_limit_gb-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      BANDWIDTH_LIMIT_GB (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8-multi-bot-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      8. Multi-Bot Architecture
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="8. Multi-Bot Architecture">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#additional_bot_tokens-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      ADDITIONAL_BOT_TOKENS (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#worker_client_pyrogram_workers-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      WORKER_CLIENT_PYROGRAM_WORKERS (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#worker_sessions_in_memory-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      WORKER_SESSIONS_IN_MEMORY (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9-database-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      9. Database Configuration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="9. Database Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#database_url-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      DATABASE_URL (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#database_name-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      DATABASE_NAME (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#10-optional-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      10. Optional Settings
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="10. Optional Settings">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#github_repo_url-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      GITHUB_REPO_URL (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -978,37 +729,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-examples" class="md-nav__link">
+  <a href="#environment-specific-configurations" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Examples
+      Environment-Specific Configurations
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Examples">
+    <nav class="md-nav" aria-label="Environment-Specific Configurations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#minimal-configuration" class="md-nav__link">
+  <a href="#development-environment" class="md-nav__link">
     <span class="md-ellipsis">
-      Minimal Configuration
+      Development Environment
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#production-configuration" class="md-nav__link">
+  <a href="#production-environment" class="md-nav__link">
     <span class="md-ellipsis">
-      Production Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#development-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Development Configuration
+      Production Environment
     </span>
   </a>
   
@@ -1026,214 +768,40 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Validation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#required-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Required Validation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#security-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Security Validation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#performance-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Performance Validation
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
-  <a href="#environment-file-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      Environment File Setup
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Environment File Setup">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#using-env-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      Using .env File
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#docker-environment" class="md-nav__link">
-    <span class="md-ellipsis">
-      Docker Environment
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#security-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Security Considerations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Security Considerations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sensitive-data-protection" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sensitive Data Protection
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#network-security" class="md-nav__link">
-    <span class="md-ellipsis">
-      Network Security
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#database-security" class="md-nav__link">
-    <span class="md-ellipsis">
-      Database Security
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#common-configuration-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      Common Configuration Issues
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Common Configuration Issues">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#invalid-channel-id" class="md-nav__link">
-    <span class="md-ellipsis">
-      Invalid Channel ID
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#invalid-base-url" class="md-nav__link">
-    <span class="md-ellipsis">
-      Invalid Base URL
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#token-format-error" class="md-nav__link">
-    <span class="md-ellipsis">
-      Token Format Error
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#validation-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      Validation Commands
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      Best Practices
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Best Practices">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#configuration-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration Management
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#security-best-practices" class="md-nav__link">
     <span class="md-ellipsis">
       Security Best Practices
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Security Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables Security
+    </span>
+  </a>
+  
 </li>
         
           <li class="md-nav__item">
-  <a href="#performance-optimization" class="md-nav__link">
+  <a href="#generating-secure-tokens" class="md-nav__link">
     <span class="md-ellipsis">
-      Performance Optimization
+      Generating Secure Tokens
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ip-address-restrictions" class="md-nav__link">
+    <span class="md-ellipsis">
+      IP Address Restrictions
     </span>
   </a>
   
@@ -1241,6 +809,39 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Templates
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#envexample-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      .env.example Template
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting Configuration
+    </span>
+  </a>
   
 </li>
       
@@ -1982,28 +1583,46 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#environment-variables-overview" class="md-nav__link">
+  <a href="#environment-file-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      Environment Variables Overview
+      Environment File Setup
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Environment Variables Overview">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#required-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Required Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Required Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#required-variables" class="md-nav__link">
+  <a href="#telegram-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      Required Variables
+      Telegram Settings
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#optional-variables" class="md-nav__link">
+  <a href="#database-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Optional Variables
+      Database Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#server-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Server Configuration
     </span>
   </a>
   
@@ -2015,342 +1634,75 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-sections" class="md-nav__link">
+  <a href="#optional-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Sections
+      Optional Configuration
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Sections">
+    <nav class="md-nav" aria-label="Optional Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-telegram-core-settings" class="md-nav__link">
+  <a href="#admin-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      1. Telegram Core Settings
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. Telegram Core Settings">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#api_id-required" class="md-nav__link">
-    <span class="md-ellipsis">
-      API_ID (Required)
+      Admin Settings
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#api_hash-required" class="md-nav__link">
+  <a href="#multi-client-support" class="md-nav__link">
     <span class="md-ellipsis">
-      API_HASH (Required)
+      Multi-Client Support
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#bot_token-required" class="md-nav__link">
+  <a href="#rate-limiting" class="md-nav__link">
     <span class="md-ellipsis">
-      BOT_TOKEN (Required)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-channel-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Channel Configuration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Channel Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#log_channel-required" class="md-nav__link">
-    <span class="md-ellipsis">
-      LOG_CHANNEL (Required)
+      Rate Limiting
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#force_sub_channel-optional" class="md-nav__link">
+  <a href="#force-subscription" class="md-nav__link">
     <span class="md-ellipsis">
-      FORCE_SUB_CHANNEL (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-web-server-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Web Server Settings
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Web Server Settings">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#base_url-required" class="md-nav__link">
-    <span class="md-ellipsis">
-      BASE_URL (Required)
+      Force Subscription
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#port-optional" class="md-nav__link">
+  <a href="#performance-tuning" class="md-nav__link">
     <span class="md-ellipsis">
-      PORT (Optional)
+      Performance Tuning
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#bind_address-optional" class="md-nav__link">
+  <a href="#link-management" class="md-nav__link">
     <span class="md-ellipsis">
-      BIND_ADDRESS (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-bot-behavior" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Bot Behavior
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Bot Behavior">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#link_expiry_seconds-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      LINK_EXPIRY_SECONDS (Optional)
+      Link Management
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#session_name-optional" class="md-nav__link">
+  <a href="#external-integrations" class="md-nav__link">
     <span class="md-ellipsis">
-      SESSION_NAME (Optional)
+      External Integrations
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#workers-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      WORKERS (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-admin-access-control" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Admin Access Control
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Admin Access Control">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#admins-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      ADMINS (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#6-rate-limiting" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. Rate Limiting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="6. Rate Limiting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#max_links_per_day-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      MAX_LINKS_PER_DAY (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#7-bandwidth-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      7. Bandwidth Management
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="7. Bandwidth Management">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#bandwidth_limit_gb-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      BANDWIDTH_LIMIT_GB (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#8-multi-bot-architecture" class="md-nav__link">
-    <span class="md-ellipsis">
-      8. Multi-Bot Architecture
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="8. Multi-Bot Architecture">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#additional_bot_tokens-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      ADDITIONAL_BOT_TOKENS (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#worker_client_pyrogram_workers-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      WORKER_CLIENT_PYROGRAM_WORKERS (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#worker_sessions_in_memory-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      WORKER_SESSIONS_IN_MEMORY (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#9-database-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      9. Database Configuration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="9. Database Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#database_url-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      DATABASE_URL (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#database_name-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      DATABASE_NAME (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#10-optional-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      10. Optional Settings
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="10. Optional Settings">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#github_repo_url-optional" class="md-nav__link">
-    <span class="md-ellipsis">
-      GITHUB_REPO_URL (Optional)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -2360,37 +1712,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-examples" class="md-nav__link">
+  <a href="#environment-specific-configurations" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Examples
+      Environment-Specific Configurations
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Examples">
+    <nav class="md-nav" aria-label="Environment-Specific Configurations">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#minimal-configuration" class="md-nav__link">
+  <a href="#development-environment" class="md-nav__link">
     <span class="md-ellipsis">
-      Minimal Configuration
+      Development Environment
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#production-configuration" class="md-nav__link">
+  <a href="#production-environment" class="md-nav__link">
     <span class="md-ellipsis">
-      Production Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#development-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Development Configuration
+      Production Environment
     </span>
   </a>
   
@@ -2408,214 +1751,40 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Validation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#required-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Required Validation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#security-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Security Validation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#performance-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Performance Validation
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
 </li>
       
         <li class="md-nav__item">
-  <a href="#environment-file-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      Environment File Setup
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Environment File Setup">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#using-env-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      Using .env File
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#docker-environment" class="md-nav__link">
-    <span class="md-ellipsis">
-      Docker Environment
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#security-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Security Considerations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Security Considerations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#sensitive-data-protection" class="md-nav__link">
-    <span class="md-ellipsis">
-      Sensitive Data Protection
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#network-security" class="md-nav__link">
-    <span class="md-ellipsis">
-      Network Security
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#database-security" class="md-nav__link">
-    <span class="md-ellipsis">
-      Database Security
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      Troubleshooting
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#common-configuration-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      Common Configuration Issues
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Common Configuration Issues">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#invalid-channel-id" class="md-nav__link">
-    <span class="md-ellipsis">
-      Invalid Channel ID
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#invalid-base-url" class="md-nav__link">
-    <span class="md-ellipsis">
-      Invalid Base URL
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#token-format-error" class="md-nav__link">
-    <span class="md-ellipsis">
-      Token Format Error
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#validation-commands" class="md-nav__link">
-    <span class="md-ellipsis">
-      Validation Commands
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
-    <span class="md-ellipsis">
-      Best Practices
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Best Practices">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#configuration-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration Management
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#security-best-practices" class="md-nav__link">
     <span class="md-ellipsis">
       Security Best Practices
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Security Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables Security
+    </span>
+  </a>
+  
 </li>
         
           <li class="md-nav__item">
-  <a href="#performance-optimization" class="md-nav__link">
+  <a href="#generating-secure-tokens" class="md-nav__link">
     <span class="md-ellipsis">
-      Performance Optimization
+      Generating Secure Tokens
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ip-address-restrictions" class="md-nav__link">
+    <span class="md-ellipsis">
+      IP Address Restrictions
     </span>
   </a>
   
@@ -2623,6 +1792,39 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Templates
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#envexample-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      .env.example Template
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting Configuration
+    </span>
+  </a>
   
 </li>
       
@@ -2646,420 +1848,431 @@
 
 
 <h1 id="configuration-guide">Configuration Guide<a class="headerlink" href="#configuration-guide" title="Permanent link">&para;</a></h1>
-<p>This guide covers all configuration options for StreamBot using environment variables.</p>
-<h2 id="environment-variables-overview">Environment Variables Overview<a class="headerlink" href="#environment-variables-overview" title="Permanent link">&para;</a></h2>
-<p>StreamBot is configured entirely through environment variables, making it easy to deploy across different environments.</p>
-<h3 id="required-variables">Required Variables<a class="headerlink" href="#required-variables" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a># --- Telegram Core (Required) ---
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>API_ID=12345678
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>API_HASH=your_api_hash_here
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>BOT_TOKEN=your_bot_token_here
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a># --- Channels (Required) ---
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>LOG_CHANNEL=-100xxxxxxxxxx
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a># --- Web Server (Required) ---
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>BASE_URL=https://yourdomain.com
+<p>StreamBot uses environment variables for configuration. This guide covers all available options and their purposes.</p>
+<h2 id="environment-file-setup">Environment File Setup<a class="headerlink" href="#environment-file-setup" title="Permanent link">&para;</a></h2>
+<p>Create a <code>.env</code> file in your project root:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
 </span></code></pre></div>
-<h3 id="optional-variables">Optional Variables<a class="headerlink" href="#optional-variables" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a># --- Channel Settings ---
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>FORCE_SUB_CHANNEL=-100yyyyyyyyyy
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a># --- Server Configuration ---
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>PORT=8080
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>BIND_ADDRESS=0.0.0.0
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a># --- Bot Behavior ---
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>LINK_EXPIRY_SECONDS=86400
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>SESSION_NAME=TgDlBot
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>WORKERS=4
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a># --- Admin Access ---
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>ADMINS=123456789 987654321
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a># --- Rate Limiting ---
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>MAX_LINKS_PER_DAY=5
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a># --- Bandwidth Management ---
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>BANDWIDTH_LIMIT_GB=100
-</span><span id="__span-1-21"><a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a>
-</span><span id="__span-1-22"><a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a># --- Multi-Bot Support ---
-</span><span id="__span-1-23"><a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a>ADDITIONAL_BOT_TOKENS=token1 token2 token3
-</span><span id="__span-1-24"><a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a>WORKER_CLIENT_PYROGRAM_WORKERS=1
-</span><span id="__span-1-25"><a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a>WORKER_SESSIONS_IN_MEMORY=true
-</span><span id="__span-1-26"><a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a>
-</span><span id="__span-1-27"><a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a># --- Database ---
-</span><span id="__span-1-28"><a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a>DATABASE_URL=mongodb+srv://username:password@cluster-url/database
-</span><span id="__span-1-29"><a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a>DATABASE_NAME=TgDlBotUsers
-</span><span id="__span-1-30"><a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a>
-</span><span id="__span-1-31"><a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a># --- Optional ---
-</span><span id="__span-1-32"><a id="__codelineno-1-32" name="__codelineno-1-32" href="#__codelineno-1-32"></a>GITHUB_REPO_URL=https://github.com/yourusername/your-repo
+<h2 id="required-configuration">Required Configuration<a class="headerlink" href="#required-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="telegram-settings">Telegram Settings<a class="headerlink" href="#telegram-settings" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a># Telegram API credentials (required)
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>API_ID=12345678
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>API_HASH=your_api_hash_from_my_telegram_org
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>BOT_TOKEN=123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>LOG_CHANNEL=-1001234567890
 </span></code></pre></div>
-<h2 id="configuration-sections">Configuration Sections<a class="headerlink" href="#configuration-sections" title="Permanent link">&para;</a></h2>
-<h3 id="1-telegram-core-settings">1. Telegram Core Settings<a class="headerlink" href="#1-telegram-core-settings" title="Permanent link">&para;</a></h3>
-<h4 id="api_id-required"><code>API_ID</code> (Required)<a class="headerlink" href="#api_id-required" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Integer</li>
-<li><strong>Description</strong>: Your Telegram application's API ID</li>
-<li><strong>How to get</strong>: <a href="https://my.telegram.org/apps">my.telegram.org</a></li>
-<li><strong>Example</strong>: <code>12345678</code></li>
-</ul>
-<h4 id="api_hash-required"><code>API_HASH</code> (Required)<a class="headerlink" href="#api_hash-required" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: String</li>
-<li><strong>Description</strong>: Your Telegram application's API Hash</li>
-<li><strong>How to get</strong>: <a href="https://my.telegram.org/apps">my.telegram.org</a></li>
-<li><strong>Example</strong>: <code>a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6</code></li>
-</ul>
-<h4 id="bot_token-required"><code>BOT_TOKEN</code> (Required)<a class="headerlink" href="#bot_token-required" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: String</li>
-<li><strong>Description</strong>: Your Telegram bot token</li>
-<li><strong>How to get</strong>: <a href="https://t.me/BotFather">@BotFather</a></li>
-<li><strong>Example</strong>: <code>123456789:ABCdefGHIjklMNOpqrSTUvwxyz1234567890</code></li>
-</ul>
-<h3 id="2-channel-configuration">2. Channel Configuration<a class="headerlink" href="#2-channel-configuration" title="Permanent link">&para;</a></h3>
-<h4 id="log_channel-required"><code>LOG_CHANNEL</code> (Required)<a class="headerlink" href="#log_channel-required" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Integer (Channel ID)</li>
-<li><strong>Description</strong>: Private channel where files are stored</li>
-<li><strong>Requirements</strong>: Bot must be admin with post messages permission</li>
-<li><strong>How to get ID</strong>: <a href="https://t.me/TGIdsBot">@TGIdsBot</a></li>
-<li><strong>Example</strong>: <code>-1001234567890</code></li>
-</ul>
-<h4 id="force_sub_channel-optional"><code>FORCE_SUB_CHANNEL</code> (Optional)<a class="headerlink" href="#force_sub_channel-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Integer (Channel ID)</li>
-<li><strong>Description</strong>: Channel users must join before using the bot</li>
-<li><strong>Requirements</strong>: Bot must be admin with invite users permission</li>
-<li><strong>Default</strong>: None (force subscription disabled)</li>
-<li><strong>Example</strong>: <code>-1009876543210</code></li>
-</ul>
-<h3 id="3-web-server-settings">3. Web Server Settings<a class="headerlink" href="#3-web-server-settings" title="Permanent link">&para;</a></h3>
-<h4 id="base_url-required"><code>BASE_URL</code> (Required)<a class="headerlink" href="#base_url-required" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: String (URL)</li>
-<li><strong>Description</strong>: Public-facing URL for download links</li>
-<li><strong>Requirements</strong>: Must NOT end with <code>/</code></li>
-<li><strong>Example</strong>: <code>https://yourdomain.com</code></li>
-</ul>
-<h4 id="port-optional"><code>PORT</code> (Optional)<a class="headerlink" href="#port-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Integer</li>
-<li><strong>Description</strong>: Port for the web server to listen on</li>
-<li><strong>Default</strong>: <code>8080</code></li>
-<li><strong>Example</strong>: <code>8080</code></li>
-</ul>
-<h4 id="bind_address-optional"><code>BIND_ADDRESS</code> (Optional)<a class="headerlink" href="#bind_address-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: String (IP Address)</li>
-<li><strong>Description</strong>: Network address to bind the web server</li>
-<li><strong>Default</strong>: <code>0.0.0.0</code> (all interfaces)</li>
-<li><strong>Example</strong>: <code>127.0.0.1</code> (localhost only)</li>
-</ul>
-<h3 id="4-bot-behavior">4. Bot Behavior<a class="headerlink" href="#4-bot-behavior" title="Permanent link">&para;</a></h3>
-<h4 id="link_expiry_seconds-optional"><code>LINK_EXPIRY_SECONDS</code> (Optional)<a class="headerlink" href="#link_expiry_seconds-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Integer</li>
-<li><strong>Description</strong>: Duration in seconds for link validity</li>
-<li><strong>Default</strong>: <code>86400</code> (24 hours)</li>
-<li><strong>Example</strong>: <code>172800</code> (48 hours)</li>
-</ul>
-<h4 id="session_name-optional"><code>SESSION_NAME</code> (Optional)<a class="headerlink" href="#session_name-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: String</li>
-<li><strong>Description</strong>: Name for Pyrogram session file</li>
-<li><strong>Default</strong>: <code>TgDlBot</code></li>
-<li><strong>Example</strong>: <code>MyStreamBot</code></li>
-</ul>
-<h4 id="workers-optional"><code>WORKERS</code> (Optional)<a class="headerlink" href="#workers-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Integer</li>
-<li><strong>Description</strong>: Number of Pyrogram worker threads</li>
-<li><strong>Default</strong>: <code>4</code></li>
-<li><strong>Range</strong>: <code>1-32</code></li>
-<li><strong>Example</strong>: <code>8</code></li>
-</ul>
-<h3 id="5-admin-access-control">5. Admin Access Control<a class="headerlink" href="#5-admin-access-control" title="Permanent link">&para;</a></h3>
-<h4 id="admins-optional"><code>ADMINS</code> (Optional)<a class="headerlink" href="#admins-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Space-separated integers</li>
-<li><strong>Description</strong>: Telegram user IDs with admin privileges</li>
-<li><strong>Default</strong>: None (no admin features)</li>
-<li><strong>How to get ID</strong>: <a href="https://t.me/TGIdsBot">@TGIdsBot</a></li>
-<li><strong>Example</strong>: <code>123456789 987654321 555666777</code></li>
-</ul>
-<p><strong>Admin Features</strong>:
-- <code>/stats</code> - System monitoring with security status
-- <code>/logs</code> - Log management with filtering
-- <code>/broadcast</code> - Message all users</p>
-<h3 id="6-rate-limiting">6. Rate Limiting<a class="headerlink" href="#6-rate-limiting" title="Permanent link">&para;</a></h3>
-<h4 id="max_links_per_day-optional"><code>MAX_LINKS_PER_DAY</code> (Optional)<a class="headerlink" href="#max_links_per_day-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Integer</li>
-<li><strong>Description</strong>: Maximum links per user per day</li>
-<li><strong>Default</strong>: <code>5</code></li>
-<li><strong>Special</strong>: <code>0</code> disables rate limiting</li>
-<li><strong>Example</strong>: <code>10</code></li>
-</ul>
-<h3 id="7-bandwidth-management">7. Bandwidth Management<a class="headerlink" href="#7-bandwidth-management" title="Permanent link">&para;</a></h3>
-<h4 id="bandwidth_limit_gb-optional"><code>BANDWIDTH_LIMIT_GB</code> (Optional)<a class="headerlink" href="#bandwidth_limit_gb-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Integer</li>
-<li><strong>Description</strong>: Monthly bandwidth limit in GigaBytes</li>
-<li><strong>Default</strong>: <code>100</code></li>
-<li><strong>Special</strong>: <code>0</code> disables bandwidth limiting</li>
-<li><strong>Example</strong>: <code>500</code></li>
-</ul>
-<h3 id="8-multi-bot-architecture">8. Multi-Bot Architecture<a class="headerlink" href="#8-multi-bot-architecture" title="Permanent link">&para;</a></h3>
-<h4 id="additional_bot_tokens-optional"><code>ADDITIONAL_BOT_TOKENS</code> (Optional)<a class="headerlink" href="#additional_bot_tokens-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Space-separated strings</li>
-<li><strong>Description</strong>: Additional bot tokens for load distribution</li>
-<li><strong>Requirements</strong>: All bots must be admins in LOG_CHANNEL</li>
-<li><strong>Default</strong>: None (single bot mode)</li>
-<li><strong>Example</strong>: <code>bot1_token bot2_token bot3_token</code></li>
-</ul>
-<h4 id="worker_client_pyrogram_workers-optional"><code>WORKER_CLIENT_PYROGRAM_WORKERS</code> (Optional)<a class="headerlink" href="#worker_client_pyrogram_workers-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Integer</li>
-<li><strong>Description</strong>: Workers per additional bot</li>
-<li><strong>Default</strong>: <code>1</code></li>
-<li><strong>Example</strong>: <code>2</code></li>
-</ul>
-<h4 id="worker_sessions_in_memory-optional"><code>WORKER_SESSIONS_IN_MEMORY</code> (Optional)<a class="headerlink" href="#worker_sessions_in_memory-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: Boolean</li>
-<li><strong>Description</strong>: Store worker sessions in memory only</li>
-<li><strong>Default</strong>: <code>true</code></li>
-<li><strong>Example</strong>: <code>false</code></li>
-</ul>
-<h3 id="9-database-configuration">9. Database Configuration<a class="headerlink" href="#9-database-configuration" title="Permanent link">&para;</a></h3>
-<h4 id="database_url-optional"><code>DATABASE_URL</code> (Optional)<a class="headerlink" href="#database_url-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: String (MongoDB URI)</li>
-<li><strong>Description</strong>: MongoDB connection string</li>
-<li><strong>Required for</strong>: Broadcast functionality</li>
-<li><strong>Example</strong>: <code>mongodb+srv://user:pass@cluster.mongodb.net/database</code></li>
-</ul>
-<h4 id="database_name-optional"><code>DATABASE_NAME</code> (Optional)<a class="headerlink" href="#database_name-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: String</li>
-<li><strong>Description</strong>: MongoDB database name</li>
-<li><strong>Default</strong>: <code>TgDlBotUsers</code></li>
-<li><strong>Example</strong>: <code>StreamBotUsers</code></li>
-</ul>
-<h3 id="10-optional-settings">10. Optional Settings<a class="headerlink" href="#10-optional-settings" title="Permanent link">&para;</a></h3>
-<h4 id="github_repo_url-optional"><code>GITHUB_REPO_URL</code> (Optional)<a class="headerlink" href="#github_repo_url-optional" title="Permanent link">&para;</a></h4>
-<ul>
-<li><strong>Type</strong>: String (URL)</li>
-<li><strong>Description</strong>: GitHub repository URL for info endpoint</li>
-<li><strong>Default</strong>: None</li>
-<li><strong>Example</strong>: <code>https://github.com/yourusername/StreamBot</code></li>
-</ul>
-<h2 id="configuration-examples">Configuration Examples<a class="headerlink" href="#configuration-examples" title="Permanent link">&para;</a></h2>
-<h3 id="minimal-configuration">Minimal Configuration<a class="headerlink" href="#minimal-configuration" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># Bare minimum for basic operation
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>API_ID=12345678
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>API_HASH=your_api_hash_here
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>BOT_TOKEN=your_bot_token_here
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>LOG_CHANNEL=-1001234567890
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>BASE_URL=https://yourdomain.com
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>How to Get</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>API_ID</code></td>
+<td>Telegram API ID</td>
+<td>Get from <a href="https://my.telegram.org">my.telegram.org</a></td>
+</tr>
+<tr>
+<td><code>API_HASH</code></td>
+<td>Telegram API Hash</td>
+<td>Get from <a href="https://my.telegram.org">my.telegram.org</a></td>
+</tr>
+<tr>
+<td><code>BOT_TOKEN</code></td>
+<td>Bot token from BotFather</td>
+<td>Message <a href="https://t.me/botfather">@BotFather</a></td>
+</tr>
+<tr>
+<td><code>LOG_CHANNEL</code></td>
+<td>Channel ID for file storage</td>
+<td>Create private channel, add bot as admin</td>
+</tr>
+</tbody>
+</table>
+<h3 id="database-configuration">Database Configuration<a class="headerlink" href="#database-configuration" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># MongoDB connection (required)
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>DATABASE_URL=mongodb://localhost:27017
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>DATABASE_NAME=StreamBotDB
 </span></code></pre></div>
-<h3 id="production-configuration">Production Configuration<a class="headerlink" href="#production-configuration" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># --- Core Settings ---
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>API_ID=12345678
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>API_HASH=your_api_hash_here
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>BOT_TOKEN=your_bot_token_here
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a># --- Channels ---
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>LOG_CHANNEL=-1001234567890
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>FORCE_SUB_CHANNEL=-1009876543210
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a># --- Server ---
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>BASE_URL=https://streambot.yourdomain.com
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>PORT=8080
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>BIND_ADDRESS=0.0.0.0
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a># --- Admin Access ---
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>ADMINS=123456789 987654321
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a># --- Limits ---
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>MAX_LINKS_PER_DAY=10
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>BANDWIDTH_LIMIT_GB=500
-</span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>LINK_EXPIRY_SECONDS=172800
-</span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>
-</span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a># --- Performance ---
-</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>WORKERS=8
-</span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>ADDITIONAL_BOT_TOKENS=worker_bot1 worker_bot2 worker_bot3
-</span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>WORKER_CLIENT_PYROGRAM_WORKERS=2
-</span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>
-</span><span id="__span-3-28"><a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a># --- Database ---
-</span><span id="__span-3-29"><a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>DATABASE_URL=mongodb+srv://user:pass@cluster.mongodb.net/streambot
-</span><span id="__span-3-30"><a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>DATABASE_NAME=StreamBotProd
-</span><span id="__span-3-31"><a id="__codelineno-3-31" name="__codelineno-3-31" href="#__codelineno-3-31"></a>
-</span><span id="__span-3-32"><a id="__codelineno-3-32" name="__codelineno-3-32" href="#__codelineno-3-32"></a># --- Optional ---
-</span><span id="__span-3-33"><a id="__codelineno-3-33" name="__codelineno-3-33" href="#__codelineno-3-33"></a>GITHUB_REPO_URL=https://github.com/yourusername/StreamBot
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td>MongoDB connection string</td>
+<td><code>mongodb://localhost:27017</code> (local)<br><code>mongodb+srv://user:pass@cluster.mongodb.net/</code> (Atlas)</td>
+</tr>
+<tr>
+<td><code>DATABASE_NAME</code></td>
+<td>Database name</td>
+<td><code>StreamBotDB</code>, <code>MyStreamBot</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="server-configuration">Server Configuration<a class="headerlink" href="#server-configuration" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># Web server settings (required)
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>BASE_URL=https://yourdomain.com
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>PORT=8080
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>BIND_ADDRESS=127.0.0.1
 </span></code></pre></div>
-<h3 id="development-configuration">Development Configuration<a class="headerlink" href="#development-configuration" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># --- Core Settings ---
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>API_ID=12345678
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>API_HASH=your_api_hash_here
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>BOT_TOKEN=your_dev_bot_token_here
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a># --- Channels ---
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>LOG_CHANNEL=-1001111111111
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a># --- Server ---
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>BASE_URL=http://localhost:8080
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>PORT=8080
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>BIND_ADDRESS=127.0.0.1
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
-</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a># --- Admin Access ---
-</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>ADMINS=123456789
-</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
-</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a># --- Development Settings ---
-</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>MAX_LINKS_PER_DAY=0
-</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>BANDWIDTH_LIMIT_GB=0
-</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>LINK_EXPIRY_SECONDS=3600
-</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>WORKERS=2
-</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>SESSION_NAME=TgDlBotDev
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BASE_URL</code></td>
+<td>Public URL for download links</td>
+<td><code>https://files.yourdomain.com</code>, <code>http://localhost:8080</code></td>
+</tr>
+<tr>
+<td><code>PORT</code></td>
+<td>Port for web server</td>
+<td><code>8080</code>, <code>3000</code>, <code>80</code></td>
+</tr>
+<tr>
+<td><code>BIND_ADDRESS</code></td>
+<td>IP address to bind server</td>
+<td><code>127.0.0.1</code> (local), <code>0.0.0.0</code> (public)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="optional-configuration">Optional Configuration<a class="headerlink" href="#optional-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="admin-settings">Admin Settings<a class="headerlink" href="#admin-settings" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># Admin users and access
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ADMINS=123456789 987654321
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>LOGS_ACCESS_TOKEN=your_secure_random_token_here
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>ADMIN_IPS=127.0.0.1,203.0.113.1
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Format</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ADMINS</code></td>
+<td>Space-separated admin user IDs</td>
+<td><code>123456789 987654321</code></td>
+</tr>
+<tr>
+<td><code>LOGS_ACCESS_TOKEN</code></td>
+<td>Token for API log access</td>
+<td>Generate secure random string</td>
+</tr>
+<tr>
+<td><code>ADMIN_IPS</code></td>
+<td>Comma-separated admin IP addresses</td>
+<td><code>127.0.0.1,203.0.113.1</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="multi-client-support">Multi-Client Support<a class="headerlink" href="#multi-client-support" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a># Additional bot tokens for load balancing
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ADDITIONAL_BOT_TOKENS=token1,token2,token3
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Benefits</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ADDITIONAL_BOT_TOKENS</code></td>
+<td>Comma-separated additional bot tokens</td>
+<td>Increases download throughput, load balancing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rate-limiting">Rate Limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a># User rate limiting
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>MAX_LINKS_PER_DAY=5
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>BANDWIDTH_LIMIT_GB=100
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Default</th>
+<th>Disable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MAX_LINKS_PER_DAY</code></td>
+<td>Daily link generation limit per user</td>
+<td><code>5</code></td>
+<td><code>0</code> (unlimited)</td>
+</tr>
+<tr>
+<td><code>BANDWIDTH_LIMIT_GB</code></td>
+<td>Monthly bandwidth limit in GB</td>
+<td><code>100</code></td>
+<td><code>0</code> (unlimited)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="force-subscription">Force Subscription<a class="headerlink" href="#force-subscription" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a># Require channel subscription
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>FORCE_SUB_CHANNEL=-1009876543210
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FORCE_SUB_CHANNEL</code></td>
+<td>Channel ID for required subscription</td>
+<td>Users must join channel before using bot</td>
+</tr>
+</tbody>
+</table>
+<h3 id="performance-tuning">Performance Tuning<a class="headerlink" href="#performance-tuning" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a># Application performance settings
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>WORKERS=4
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>WORKER_CLIENT_PYROGRAM_WORKERS=1
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>SESSION_NAME=StreamBot
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Default</th>
+<th>Recommendations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>WORKERS</code></td>
+<td>Number of worker threads</td>
+<td><code>4</code></td>
+<td>2-8 depending on server</td>
+</tr>
+<tr>
+<td><code>WORKER_CLIENT_PYROGRAM_WORKERS</code></td>
+<td>Pyrogram workers per client</td>
+<td><code>1</code></td>
+<td>Keep at 1 for stability</td>
+</tr>
+<tr>
+<td><code>SESSION_NAME</code></td>
+<td>Session file prefix</td>
+<td><code>StreamBot</code></td>
+<td>Unique name per instance</td>
+</tr>
+</tbody>
+</table>
+<h3 id="link-management">Link Management<a class="headerlink" href="#link-management" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a># Link expiration settings
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>LINK_EXPIRY_ENABLED=true
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>LINK_EXPIRY_DURATION_SECONDS=86400
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Default</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LINK_EXPIRY_ENABLED</code></td>
+<td>Enable link expiration</td>
+<td><code>true</code></td>
+<td>Set to <code>false</code> to disable</td>
+</tr>
+<tr>
+<td><code>LINK_EXPIRY_DURATION_SECONDS</code></td>
+<td>Link validity duration</td>
+<td><code>86400</code> (24 hours)</td>
+<td>In seconds</td>
+</tr>
+</tbody>
+</table>
+<h3 id="external-integrations">External Integrations<a class="headerlink" href="#external-integrations" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a># Optional external services
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>GITHUB_REPO_URL=https://github.com/yourusername/StreamBot
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>SUPPORT_CHAT_ID=-1001234567890
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GITHUB_REPO_URL</code></td>
+<td>Repository URL for info display</td>
+<td>Shown in <code>/info</code> command</td>
+</tr>
+<tr>
+<td><code>SUPPORT_CHAT_ID</code></td>
+<td>Support chat/group ID</td>
+<td>For user support redirects</td>
+</tr>
+</tbody>
+</table>
+<h2 id="environment-specific-configurations">Environment-Specific Configurations<a class="headerlink" href="#environment-specific-configurations" title="Permanent link">&para;</a></h2>
+<h3 id="development-environment">Development Environment<a class="headerlink" href="#development-environment" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a># Development settings
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>API_ID=12345678
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>API_HASH=your_dev_api_hash
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>BOT_TOKEN=your_dev_bot_token
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>LOG_CHANNEL=-1001234567890
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>DATABASE_URL=mongodb://localhost:27017
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>DATABASE_NAME=StreamBotDev
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>BASE_URL=http://localhost:8080
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>PORT=8080
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>BIND_ADDRESS=127.0.0.1
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>ADMINS=your_telegram_user_id
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>MAX_LINKS_PER_DAY=0
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>BANDWIDTH_LIMIT_GB=0
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>SESSION_NAME=StreamBotDev
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>WORKERS=2
+</span></code></pre></div>
+<h3 id="production-environment">Production Environment<a class="headerlink" href="#production-environment" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a># Production settings
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>API_ID=12345678
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>API_HASH=your_production_api_hash
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>BOT_TOKEN=your_production_bot_token
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>LOG_CHANNEL=-1001234567890
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>DATABASE_URL=mongodb+srv://user:password@cluster.mongodb.net/
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>DATABASE_NAME=StreamBotProd
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>BASE_URL=https://files.yourdomain.com
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>PORT=8080
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>BIND_ADDRESS=0.0.0.0
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>ADMINS=your_telegram_user_id
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>LOGS_ACCESS_TOKEN=your_secure_production_token
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>ADMIN_IPS=your.server.ip,your.home.ip
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>MAX_LINKS_PER_DAY=5
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>BANDWIDTH_LIMIT_GB=100
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>FORCE_SUB_CHANNEL=-1009876543210
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>ADDITIONAL_BOT_TOKENS=token1,token2
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>SESSION_NAME=StreamBotProd
+</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>WORKERS=4
+</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>LINK_EXPIRY_ENABLED=true
+</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>LINK_EXPIRY_DURATION_SECONDS=86400
 </span></code></pre></div>
 <h2 id="configuration-validation">Configuration Validation<a class="headerlink" href="#configuration-validation" title="Permanent link">&para;</a></h2>
-<p>StreamBot automatically validates configuration on startup:</p>
-<h3 id="required-validation">Required Validation<a class="headerlink" href="#required-validation" title="Permanent link">&para;</a></h3>
-<ul>
-<li>✅ All required variables are present</li>
-<li>✅ Telegram credentials are valid</li>
-<li>✅ Channel IDs are properly formatted</li>
-<li>✅ Base URL format is correct</li>
-</ul>
-<h3 id="security-validation">Security Validation<a class="headerlink" href="#security-validation" title="Permanent link">&para;</a></h3>
-<ul>
-<li>✅ Admin user IDs are valid integers</li>
-<li>✅ Rate limiting values are reasonable</li>
-<li>✅ Database connection (if provided)</li>
-</ul>
-<h3 id="performance-validation">Performance Validation<a class="headerlink" href="#performance-validation" title="Permanent link">&para;</a></h3>
-<ul>
-<li>✅ Worker counts are within limits</li>
-<li>✅ Memory usage is reasonable</li>
-<li>✅ Network binding is valid</li>
-</ul>
-<h2 id="environment-file-setup">Environment File Setup<a class="headerlink" href="#environment-file-setup" title="Permanent link">&para;</a></h2>
-<h3 id="using-env-file">Using .env File<a class="headerlink" href="#using-env-file" title="Permanent link">&para;</a></h3>
-<p>Create a <code>.env</code> file in your project root:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a># StreamBot Configuration
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a># Copy this template and fill in your values
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a># --- Telegram Core (Required) ---
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>API_ID=
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>API_HASH=
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>BOT_TOKEN=
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a># --- Channels (Required) ---
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>LOG_CHANNEL=
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a># --- Web Server (Required) ---
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>BASE_URL=
-</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>
-</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a># --- Optional Settings ---
-</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a># Remove the # to enable these options
-</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>
-</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a># FORCE_SUB_CHANNEL=
-</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a># PORT=8080
-</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a># ADMINS=
-</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a># MAX_LINKS_PER_DAY=5
-</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a># BANDWIDTH_LIMIT_GB=100
+<p>StreamBot validates your configuration on startup. Common validation errors:</p>
+<div class="admonition error">
+<p class="admonition-title">Missing Required Variables</p>
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>ERROR - Missing required environment variable: BOT_TOKEN
 </span></code></pre></div>
-<h3 id="docker-environment">Docker Environment<a class="headerlink" href="#docker-environment" title="Permanent link">&para;</a></h3>
-<p>For Docker deployments:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># docker-compose.yml</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;3.8&#39;</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="nt">services</span><span class="p">:</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">  </span><span class="nt">streambot</span><span class="p">:</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="nt">build</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="nt">environment</span><span class="p">:</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">API_ID=${API_ID}</span>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">API_HASH=${API_HASH}</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BOT_TOKEN=${BOT_TOKEN}</span>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LOG_CHANNEL=${LOG_CHANNEL}</span>
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BASE_URL=${BASE_URL}</span>
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ADMINS=${ADMINS}</span>
-</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">    </span><span class="nt">ports</span><span class="p">:</span>
-</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;8080:8080&quot;</span>
-</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="nt">env_file</span><span class="p">:</span>
-</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.env</span>
+<strong>Solution</strong>: Ensure all required variables are set in your <code>.env</code> file.</p>
+</div>
+<div class="admonition error">
+<p class="admonition-title">Invalid Bot Token</p>
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>ERROR - Bot token format is invalid
 </span></code></pre></div>
-<h2 id="security-considerations">Security Considerations<a class="headerlink" href="#security-considerations" title="Permanent link">&para;</a></h2>
-<h3 id="sensitive-data-protection">Sensitive Data Protection<a class="headerlink" href="#sensitive-data-protection" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Never commit</strong> tokens or API credentials to version control</li>
-<li><strong>Use environment files</strong> that are gitignored</li>
-<li><strong>Rotate tokens</strong> periodically for security</li>
-<li><strong>Limit admin access</strong> to trusted users only</li>
-</ul>
-<h3 id="network-security">Network Security<a class="headerlink" href="#network-security" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Use HTTPS</strong> in production (never HTTP)</li>
-<li><strong>Bind to specific interfaces</strong> when possible</li>
-<li><strong>Configure firewalls</strong> appropriately</li>
-<li><strong>Monitor access logs</strong> for suspicious activity</li>
-</ul>
-<h3 id="database-security">Database Security<a class="headerlink" href="#database-security" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Use strong passwords</strong> for database connections</li>
-<li><strong>Enable SSL/TLS</strong> for database connections</li>
-<li><strong>Limit database permissions</strong> to required operations only</li>
-<li><strong>Regular backups</strong> of user data</li>
-</ul>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
-<h3 id="common-configuration-issues">Common Configuration Issues<a class="headerlink" href="#common-configuration-issues" title="Permanent link">&para;</a></h3>
-<h4 id="invalid-channel-id">Invalid Channel ID<a class="headerlink" href="#invalid-channel-id" title="Permanent link">&para;</a></h4>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>Error: Could not access LOG_CHANNEL
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>Solution: Ensure bot is admin with post messages permission
+<strong>Solution</strong>: Check your bot token format. It should look like <code>123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi</code></p>
+</div>
+<div class="admonition error">
+<p class="admonition-title">Database Connection Failed</p>
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>ERROR - Failed to connect to MongoDB
 </span></code></pre></div>
-<h4 id="invalid-base-url">Invalid Base URL<a class="headerlink" href="#invalid-base-url" title="Permanent link">&para;</a></h4>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>Error: BASE_URL must not end with &#39;/&#39;
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>Solution: Remove trailing slash from BASE_URL
+<strong>Solution</strong>: Verify your <code>DATABASE_URL</code> and ensure MongoDB is running.</p>
+</div>
+<div class="admonition error">
+<p class="admonition-title">Invalid Channel ID</p>
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>ERROR - LOG_CHANNEL must be a negative integer
 </span></code></pre></div>
-<h4 id="token-format-error">Token Format Error<a class="headerlink" href="#token-format-error" title="Permanent link">&para;</a></h4>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Error: Invalid BOT_TOKEN format
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>Solution: Get new token from @BotFather
-</span></code></pre></div>
-<h3 id="validation-commands">Validation Commands<a class="headerlink" href="#validation-commands" title="Permanent link">&para;</a></h3>
-<p>Test your configuration:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Test bot connectivity</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from StreamBot.config import Config; print(&#39;Config valid!&#39;)&quot;</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Test channel access</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from StreamBot.utils.helpers import test_channel_access; test_channel_access()&quot;</span>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="c1"># Test admin configuration</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;from StreamBot.security.auth import verify_admin; print(&#39;Admin config valid!&#39;)&quot;</span>
-</span></code></pre></div>
-<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
-<h3 id="configuration-management">Configuration Management<a class="headerlink" href="#configuration-management" title="Permanent link">&para;</a></h3>
+<strong>Solution</strong>: Channel IDs should be negative numbers like <code>-1001234567890</code></p>
+</div>
+<h2 id="security-best-practices">Security Best Practices<a class="headerlink" href="#security-best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="environment-variables-security">Environment Variables Security<a class="headerlink" href="#environment-variables-security" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>Use environment files</strong> for local development</li>
-<li><strong>Use container environment</strong> for production</li>
-<li><strong>Document all custom values</strong> for team members</li>
-<li><strong>Test configuration changes</strong> in development first</li>
+<li><strong>Never commit <code>.env</code> files</strong> to version control</li>
+<li><strong>Use strong tokens</strong> for <code>LOGS_ACCESS_TOKEN</code></li>
+<li><strong>Restrict admin IPs</strong> with <code>ADMIN_IPS</code></li>
+<li><strong>Use HTTPS</strong> in production for <code>BASE_URL</code></li>
 </ol>
-<h3 id="security-best-practices">Security Best Practices<a class="headerlink" href="#security-best-practices" title="Permanent link">&para;</a></h3>
+<h3 id="generating-secure-tokens">Generating Secure Tokens<a class="headerlink" href="#generating-secure-tokens" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Generate secure random token (Linux/macOS)</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># Generate secure random token (Python)</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import secrets; print(secrets.token_hex(32))&quot;</span>
+</span></code></pre></div>
+<h3 id="ip-address-restrictions">IP Address Restrictions<a class="headerlink" href="#ip-address-restrictions" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a># Restrict admin access to specific IPs
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>ADMIN_IPS=203.0.113.1,198.51.100.2,127.0.0.1
+</span></code></pre></div>
+<h2 id="configuration-templates">Configuration Templates<a class="headerlink" href="#configuration-templates" title="Permanent link">&para;</a></h2>
+<h3 id="envexample-template"><code>.env.example</code> Template<a class="headerlink" href="#envexample-template" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a># Telegram Configuration (Required)
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>API_ID=your_api_id
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>API_HASH=your_api_hash
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>BOT_TOKEN=your_bot_token
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>LOG_CHANNEL=your_log_channel_id
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a># Database Configuration (Required)
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>DATABASE_URL=mongodb://localhost:27017
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>DATABASE_NAME=StreamBotDB
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a># Server Configuration (Required)
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>BASE_URL=https://yourdomain.com
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>PORT=8080
+</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>BIND_ADDRESS=127.0.0.1
+</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>
+</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a># Admin Configuration
+</span><span id="__span-19-17"><a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>ADMINS=your_telegram_user_id
+</span><span id="__span-19-18"><a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a>LOGS_ACCESS_TOKEN=generate_secure_token
+</span><span id="__span-19-19"><a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a>ADMIN_IPS=127.0.0.1
+</span><span id="__span-19-20"><a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>
+</span><span id="__span-19-21"><a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a># Optional Features
+</span><span id="__span-19-22"><a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a>MAX_LINKS_PER_DAY=5
+</span><span id="__span-19-23"><a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a>BANDWIDTH_LIMIT_GB=100
+</span><span id="__span-19-24"><a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a>FORCE_SUB_CHANNEL=
+</span><span id="__span-19-25"><a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a>ADDITIONAL_BOT_TOKENS=
+</span><span id="__span-19-26"><a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a>
+</span><span id="__span-19-27"><a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a># Performance Settings
+</span><span id="__span-19-28"><a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a>WORKERS=4
+</span><span id="__span-19-29"><a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a>SESSION_NAME=StreamBot
+</span><span id="__span-19-30"><a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a>LINK_EXPIRY_ENABLED=true
+</span><span id="__span-19-31"><a id="__codelineno-19-31" name="__codelineno-19-31" href="#__codelineno-19-31"></a>LINK_EXPIRY_DURATION_SECONDS=86400
+</span></code></pre></div>
+<h2 id="troubleshooting-configuration">Troubleshooting Configuration<a class="headerlink" href="#troubleshooting-configuration" title="Permanent link">&para;</a></h2>
+<p>If StreamBot fails to start, check:</p>
 <ol>
-<li><strong>Rotate tokens regularly</strong> (quarterly recommended)</li>
-<li><strong>Monitor admin activity</strong> through logs</li>
-<li><strong>Use strong database passwords</strong> with special characters</li>
-<li><strong>Enable all security features</strong> in production</li>
+<li><strong>Environment file exists</strong>: Ensure <code>.env</code> file is in the project root</li>
+<li><strong>Required variables set</strong>: All required variables have values</li>
+<li><strong>Format correctness</strong>: Variables follow the correct format</li>
+<li><strong>File permissions</strong>: <code>.env</code> file is readable by the application</li>
+<li><strong>No trailing spaces</strong>: Remove any trailing spaces from variable values</li>
 </ol>
-<h3 id="performance-optimization">Performance Optimization<a class="headerlink" href="#performance-optimization" title="Permanent link">&para;</a></h3>
-<ol>
-<li><strong>Adjust worker counts</strong> based on server capacity</li>
-<li><strong>Monitor memory usage</strong> and adjust limits</li>
-<li><strong>Use multiple worker bots</strong> for high traffic</li>
-<li><strong>Configure reasonable rate limits</strong> based on usage patterns </li>
-</ol>
+<p>For additional help, see the <a href="../installation/">Installation Guide</a> or <a href="../../user-guide/overview/">User Guide</a>. </p>
 
 
 
