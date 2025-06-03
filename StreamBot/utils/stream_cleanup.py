@@ -12,7 +12,7 @@ class StreamTracker:
     def __init__(self):
         self.active_streams: Dict[str, float] = {}  # request_id -> start_time
         self.cleanup_lock = asyncio.Lock()
-        self.max_stream_age = 14400  # 4 hours max stream age for big files
+        self.max_stream_age = 8400  # 2.3 hours max stream age (allowing some buffer beyond 2-hour timeout)
     
     def add_stream(self, request_id: str):
         """Add a streaming request to tracking."""
@@ -35,8 +35,9 @@ class StreamTracker:
             ]
             
             for request_id in stale_streams:
+                start_time = self.active_streams.get(request_id, current_time)
                 del self.active_streams[request_id]
-                logger.warning(f"Cleaned up stale stream {request_id} (age: {current_time - self.active_streams.get(request_id, current_time):.1f}s)")
+                logger.warning(f"Cleaned up stale stream {request_id} (age: {(current_time - start_time)/3600:.1f} hours)")
             
             if stale_streams:
                 logger.info(f"Cleaned up {len(stale_streams)} stale streams, {len(self.active_streams)} remaining")

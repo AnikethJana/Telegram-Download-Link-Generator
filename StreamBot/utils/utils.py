@@ -21,6 +21,10 @@ def humanbytes(size: int) -> str:
 
 def get_file_attr(message: Message):
     """Extract essential file attributes from a Pyrogram Message object."""
+    if not message or not isinstance(message, Message):
+        logger.warning("Invalid message object provided to get_file_attr")
+        return None, "unknown_file", 0, "application/octet-stream", None
+        
     media = (
         message.audio or message.document or message.photo or message.video or
         message.animation or message.sticker or message.voice
@@ -100,6 +104,11 @@ def get_id_encoder_key():
 def encode_message_id(message_id: int) -> str:
     """Encode a message ID for use in URLs."""
     try:
+        # Input validation
+        if not isinstance(message_id, int) or message_id <= 0:
+            logger.warning(f"Invalid message_id for encoding: {message_id}")
+            return str(message_id)
+            
         key = get_id_encoder_key()
         transformed_id = message_id * key
         encoded_bytes = base64.urlsafe_b64encode(str(transformed_id).encode('utf-8'))
@@ -111,6 +120,23 @@ def encode_message_id(message_id: int) -> str:
 def decode_message_id(encoded_id_str: str) -> int | None:
     """Decode an encoded ID string back to a message ID."""
     try:
+        # Input validation
+        if not encoded_id_str or not isinstance(encoded_id_str, str):
+            logger.warning("Empty or invalid encoded_id_str provided")
+            return None
+            
+        # Length validation to prevent DoS
+        if len(encoded_id_str) > 200:  # Reasonable limit
+            logger.warning(f"Encoded ID too long: {len(encoded_id_str)} chars")
+            return None
+        
+        # Basic character validation for base64url
+        import string
+        valid_chars = string.ascii_letters + string.digits + '-_'
+        if not all(c in valid_chars for c in encoded_id_str):
+            logger.warning(f"Invalid characters in encoded ID: {encoded_id_str[:50]}...")
+            return None
+        
         key = get_id_encoder_key()
         padding = "=" * (-len(encoded_id_str) % 4)
         decoded_bytes = base64.urlsafe_b64decode((encoded_id_str + padding).encode('utf-8'))
@@ -119,20 +145,25 @@ def decode_message_id(encoded_id_str: str) -> int | None:
         transformed_id = int(transformed_id_str)
 
         if transformed_id % key != 0:
-            logger.warning(f"Invalid encoded ID (key mismatch): {encoded_id_str}")
+            logger.warning(f"Invalid encoded ID (key mismatch): {encoded_id_str[:50]}...")
             return None
 
         original_message_id = transformed_id // key
 
-        # Verify the decoded ID
+        # Verify the decoded ID is reasonable
+        if original_message_id <= 0 or original_message_id > 2**63:  # Reasonable bounds
+            logger.warning(f"Decoded message ID out of reasonable bounds: {original_message_id}")
+            return None
+
+        # Verify the encoded ID
         if (original_message_id * key) != transformed_id:
-            logger.warning(f"Encoded ID verification failed for {encoded_id_str}. Potential tampering or wrong key.")
+            logger.warning(f"Encoded ID verification failed for {encoded_id_str[:50]}...")
             return None
 
         return original_message_id
     except (binascii.Error, ValueError, UnicodeDecodeError) as e:
-        logger.warning(f"Error decoding ID '{encoded_id_str}': {e}")
+        logger.warning(f"Error decoding ID '{encoded_id_str[:50]}...': {e}")
         return None
     except Exception as e:
-        logger.error(f"Unexpected error decoding ID '{encoded_id_str}': {e}", exc_info=True)
+        logger.error(f"Unexpected error decoding ID '{encoded_id_str[:50]}...': {e}", exc_info=True)
         return None

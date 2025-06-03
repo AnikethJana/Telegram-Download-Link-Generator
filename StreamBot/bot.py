@@ -9,7 +9,7 @@ from pyrogram.errors import FloodWait, UserNotParticipant, FloodWait, UserIsBloc
 from .database.database import add_user, del_user, full_userbase
 from .config import Var
 from .utils.utils import get_file_attr, humanbytes, encode_message_id
-from .utils.rate_limiter import check_and_record_link_generation, get_user_link_count_and_wait_time
+from .security.rate_limiter import bot_rate_limiter
 from .utils.bandwidth import is_bandwidth_limit_exceeded, get_current_bandwidth_usage
 from .utils.smart_logger import SmartRateLimitedLogger
 
@@ -323,25 +323,29 @@ def attach_handlers(app: Client):
         """Handle incoming media messages to generate download links."""
         user_id = message.from_user.id
 
-        # Rate limiting check
-        if Var.MAX_LINKS_PER_DAY > 0 and user_id not in Var.ADMINS:
-            can_generate = await check_and_record_link_generation(user_id)
-            if not can_generate:
-                _, wait_time_seconds = await get_user_link_count_and_wait_time(user_id)
-                wait_hours = wait_time_seconds / 3600
-                wait_minutes = (wait_time_seconds % 3600) / 60
+        # Rate limiting check - ensure proper enforcement
+        if user_id not in Var.ADMINS:  # Always check for non-admins
+            if Var.MAX_LINKS_PER_DAY > 0:  # Only if limit is positive
+                can_generate = await bot_rate_limiter.check_and_record_link_generation(user_id)
+                if not can_generate:
+                    _, wait_time_seconds = await bot_rate_limiter.get_user_link_count_and_wait_time(user_id)
+                    wait_hours = wait_time_seconds / 3600
+                    wait_minutes = (wait_time_seconds % 3600) / 60
 
-                if wait_time_seconds > 0:
-                    reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT.format(
-                        max_links=Var.MAX_LINKS_PER_DAY,
-                        wait_hours=wait_hours,
-                        wait_minutes=wait_minutes
-                    )
-                else:
-                    reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT_NO_WAIT.format(max_links=Var.MAX_LINKS_PER_DAY)
+                    if wait_time_seconds > 0:
+                        reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT.format(
+                            max_links=Var.MAX_LINKS_PER_DAY,
+                            wait_hours=wait_hours,
+                            wait_minutes=wait_minutes
+                        )
+                    else:
+                        reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT_NO_WAIT.format(max_links=Var.MAX_LINKS_PER_DAY)
 
-                await message.reply_text(reply_text, quote=True)
-                return
+                    await message.reply_text(reply_text, quote=True)
+                    return
+            else:
+                # If MAX_LINKS_PER_DAY is 0 or negative, still record for stats but don't limit
+                await bot_rate_limiter.check_and_record_link_generation(user_id)
 
         # Bandwidth limit check
         if await is_bandwidth_limit_exceeded():

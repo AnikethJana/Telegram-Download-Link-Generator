@@ -178,16 +178,8 @@ Anyone can access these endpoints:
 
 | Endpoint | Description |
 |----------|-------------|
-| `GET /api/info` | Bot status and public information |
+| `GET /api/info` | Retrieve bot status and basic information |
 | `GET /dl/{file_id}` | Download files via generated links |
-
-### Admin Endpoints
-
-Require authentication:
-
-| Endpoint | Description | Authentication |
-|----------|-------------|---------------|
-| `GET /api/logs` | Access application logs | Token + IP whitelist |
 
 ### Example API Usage
 
@@ -197,10 +189,11 @@ curl https://yourdomain.com/api/info
 
 # Download a file
 curl -O https://yourdomain.com/dl/encoded_file_id/filename.pdf
-
-# Access logs (admin only)
-curl "https://yourdomain.com/api/logs?token=your_token&level=ERROR&limit=50"
 ```
+
+### Health Check
+
+You can use the `/api/info` endpoint as a basic health check.
 
 ## Troubleshooting
 

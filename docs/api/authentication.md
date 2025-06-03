@@ -158,13 +158,14 @@ STREAMBOT_API_BASE_URL=https://your-streambot-domain.com
 
 ### Admin Endpoints (Authentication Required)
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/info` | Bot information and statistics |
-| `GET /api/logs` | Access logs |
-| `GET /api/users` | User statistics |
-| `POST /api/broadcast` | Send broadcast message |
-| `DELETE /api/cleanup` | Clean up expired files |
+| Endpoint          | Description             | Authentication Required |
+|-------------------|-------------------------|-------------------------|
+| `/api/admin/config` | Manage bot configuration | Yes (Admin Token)       |
+| `/api/admin/users`  | Manage user access      | Yes (Admin Token)       |
+| `GET /api/info` | Bot information and statistics | Yes (Admin Token) |
+| `GET /api/users` | User statistics | Yes (Admin Token) |
+| `POST /api/broadcast` | Send broadcast message | Yes (Admin Token) |
+| `DELETE /api/cleanup` | Clean up expired files | Yes (Admin Token) |
 
 ## Error Handling
 

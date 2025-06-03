@@ -120,37 +120,6 @@ print(f"Total users: {info['users_count']}")
 }
 ```
 
-## Access Logs
-
-### Get recent logs (Admin only)
-
-```bash
-curl -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
-     https://your-streambot-domain.com/api/logs?limit=100
-```
-
-### Python Example
-
-```python
-import requests
-
-def get_logs(admin_token, limit=50):
-    """Get recent bot logs"""
-    headers = {'Authorization': f'Bearer {admin_token}'}
-    params = {'limit': limit}
-    url = "https://your-streambot-domain.com/api/logs"
-    
-    response = requests.get(url, headers=headers, params=params)
-    response.raise_for_status()
-    
-    return response.json()
-
-# Usage
-logs = get_logs("your_admin_token", limit=100)
-for log in logs['logs']:
-    print(f"{log['timestamp']}: {log['message']}")
-```
-
 ## Error Handling
 
 ### Common Error Responses
@@ -310,4 +279,6 @@ def api_call_with_retry(url, headers=None, max_retries=3):
             time.sleep(2 ** attempt)
     
     return None
-``` 
+```
+
+print(response.json()) 
