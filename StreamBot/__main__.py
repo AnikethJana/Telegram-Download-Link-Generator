@@ -14,6 +14,7 @@ from .config import Var
 from .bot import attach_handlers 
 from .web.web import setup_webapp 
 from .client_manager import ClientManager 
+from .allocation import IntelligentClientAllocator
 from .utils.cleanup_scheduler import cleanup_scheduler
 from .utils.memory_manager import memory_manager
 from .security.rate_limiter import initialize_rate_limiters
@@ -34,6 +35,7 @@ logger = logging.getLogger(__name__)
 # --- Global variable for start time ---
 BOT_START_TIME = None
 CLIENT_MANAGER_INSTANCE: ClientManager = None 
+INTELLIGENT_ALLOCATOR_INSTANCE: IntelligentClientAllocator = None
 
 # --- Main Application --- 
 async def main():
@@ -42,6 +44,7 @@ async def main():
     BOT_START_TIME = datetime.datetime.now(datetime.timezone.utc) 
 
     global CLIENT_MANAGER_INSTANCE # Allow assignment to global
+    global INTELLIGENT_ALLOCATOR_INSTANCE
 
     logger.info(f"Using Base URL: {Var.BASE_URL}") 
     logger.info(f"Log Channel ID: {Var.LOG_CHANNEL}")
@@ -76,6 +79,13 @@ async def main():
         )
         await CLIENT_MANAGER_INSTANCE.start_clients()
         
+        # Initialize Intelligent Client Allocator
+        INTELLIGENT_ALLOCATOR_INSTANCE = IntelligentClientAllocator(
+            client_manager=CLIENT_MANAGER_INSTANCE,
+            small_file_threshold_mb=Var.INTELLIGENT_ALLOCATION_THRESHOLD_MB
+        )
+        logger.info(f"Intelligent Client Allocator initialized with {Var.INTELLIGENT_ALLOCATION_THRESHOLD_MB}MB threshold")
+        
         primary_bot_client = CLIENT_MANAGER_INSTANCE.get_primary_client()
         if not primary_bot_client:
             logger.critical("CRITICAL: Primary bot client could not be obtained from ClientManager. Exiting.")
@@ -102,6 +112,7 @@ async def main():
         web_app = await setup_webapp(
             bot_instance=CLIENT_MANAGER_INSTANCE.get_primary_client(), # Pass primary client for general bot info
             client_manager=CLIENT_MANAGER_INSTANCE, # Pass the whole manager for streaming clients
+            intelligent_allocator=INTELLIGENT_ALLOCATOR_INSTANCE, # Pass the allocator
             start_time=BOT_START_TIME
         )
         web_runner = web.AppRunner(web_app) # Use web_runner

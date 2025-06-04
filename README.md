@@ -13,6 +13,7 @@ A Telegram bot built with Python (using Pyrogram and aiohttp) that generates tem
 * **Link Expiry:** Download links automatically expire after a configurable duration (default: 24 hours).
 * **Force Subscription:** (Optional) Requires users to join a specific channel before using the bot.
 * **Multi-Bot Architecture:** Supports load distribution across multiple worker bots for improved performance.
+* **Intelligent Client Allocation:** Smart segregation of download tasks by file size for optimal performance.
 * **Admin Broadcast:** Allows administrators to send messages to all users who have interacted with the bot.
 * **Database Integration:** Uses MongoDB to store user IDs for the broadcast feature.
 * **Logs Command:** View application logs directly within the bot (admin only).
@@ -83,6 +84,9 @@ MAX_LINKS_PER_DAY=5 # Maximum links a user can generate per day (0 to disable)
 # --- Bandwidth Limiting ---
 BANDWIDTH_LIMIT_GB=100 # Monthly bandwidth limit in GigaBytes (0 to disable)
 
+# --- Intelligent Allocation ---
+INTELLIGENT_ALLOCATION_THRESHOLD_MB=300 # File size threshold for smart allocation (default: 300MB)
+
 # --- Multiple Bot Support ---
 # Space-separated list of additional bot tokens for streaming only
 ADDITIONAL_BOT_TOKENS=token1 token2 token3
@@ -114,6 +118,7 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 * **`ADMINS`**: A space-separated list of numeric Telegram User IDs who have permission to use the `/broadcast` and `/logs` commands.
 * **`MAX_LINKS_PER_DAY`**: Maximum number of links a user can generate in a 24-hour period (default: `5`). Set to `0` to disable this limit.
 * **`BANDWIDTH_LIMIT_GB`**: Monthly bandwidth limit in GigaBytes (default: `100`). Set to `0` to disable this limit.
+* **`INTELLIGENT_ALLOCATION_THRESHOLD_MB`**: File size threshold in MB for intelligent client allocation (default: `300`). Files below this size are considered "small", files at or above are "large".
 * **`ADDITIONAL_BOT_TOKENS`**: Space-separated list of additional bot tokens that will be used as worker bots for file streaming. All these bots must be administrators in the LOG_CHANNEL.
 * **`WORKER_CLIENT_PYROGRAM_WORKERS`**: Number of Pyrogram workers for each worker bot (default: `1`).
 * **`WORKER_SESSIONS_IN_MEMORY`**: Whether to store worker bot sessions in memory only, avoiding disk writes (default: `true`).
@@ -138,6 +143,14 @@ This architecture provides several benefits:
 - **Improved Reliability:** If one bot hits rate limits, others can continue serving files.
 
 To use this feature, simply add additional bot tokens to your configuration using the `ADDITIONAL_BOT_TOKENS` environment variable. All bots (primary and workers) must be administrators in the `LOG_CHANNEL`.
+
+## Intelligent Client Allocation
+
+The bot includes an intelligent allocation system that optimizes download performance by segregating requests based on file size:
+
+- **Small Files** (< 300MB): Allocated to a dedicated subset of clients, with overflow to large-file clients when needed
+- **Large Files** (≥ 300MB): Allocated directly to large-file-preferred clients
+- **Client Groups**: Automatically calculated using the formula: `floor(((N - 2) + (N % 2)) / 2)` for small-preferred clients
 
 ## Running the Bot
 
@@ -171,7 +184,7 @@ The bot will start, connect to Telegram, and launch the web server.
 * `/logs`: View application logs directly within the bot. Supports filtering by log level and text search with arguments.
   * Example: `/logs level=ERROR limit=100 filter=download`
   * Without arguments: `/logs` uploads the complete log file as a document
-* `/stats`: View system statistics including memory usage, active streams, uptime, and other performance metrics.
+* `/stats`: View system statistics including memory usage, active streams, intelligent allocation stats, uptime, and other performance metrics.
 
 ## API Endpoints
 

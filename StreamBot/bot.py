@@ -252,7 +252,7 @@ def attach_handlers(app: Client):
             memory_usage = memory_manager.get_memory_usage()
             active_streams = stream_tracker.get_active_count()
             
-            from StreamBot.__main__ import BOT_START_TIME
+            from StreamBot.__main__ import BOT_START_TIME, INTELLIGENT_ALLOCATOR_INSTANCE
             import datetime
             if BOT_START_TIME:
                 uptime_delta = datetime.datetime.now(datetime.timezone.utc) - BOT_START_TIME
@@ -275,6 +275,26 @@ def attach_handlers(app: Client):
             except:
                 client_count = "N/A"
             
+            # Get intelligent allocation statistics
+            allocation_info = ""
+            if INTELLIGENT_ALLOCATOR_INSTANCE:
+                try:
+                    alloc_stats = await INTELLIGENT_ALLOCATOR_INSTANCE.get_allocation_stats()
+                    allocation_info = f"""
+🧠 **Intelligent Allocation**:
+• Total Clients: {alloc_stats['total_clients']} (Connected: {alloc_stats['connected_clients']})
+• Small-Preferred: {alloc_stats['small_preferred_count']} clients
+• Large-Preferred: {alloc_stats['large_preferred_count']} clients
+• Client States: Idle({alloc_stats['client_states']['idle']}) Busy({alloc_stats['client_states']['busy']}) FloodWait({alloc_stats['client_states']['flood_wait']})
+• Active Tasks: {alloc_stats['active_tasks']}
+• Threshold: {alloc_stats['small_file_threshold_mb']} MB"""
+                except Exception as e:
+                    allocation_info = f"""
+🧠 **Intelligent Allocation**: Error retrieving stats - {str(e)}"""
+            else:
+                allocation_info = """
+🧠 **Intelligent Allocation**: Not initialized"""
+
             # Get bandwidth usage information
             try:
                 bandwidth_usage = await get_current_bandwidth_usage()
@@ -299,6 +319,7 @@ def attach_handlers(app: Client):
 🌐 **Active Resources**:
 • Active Streams: {active_streams}
 • Telegram Clients: {client_count}
+{allocation_info}
 {bandwidth_info}
 
 {cache_info}
