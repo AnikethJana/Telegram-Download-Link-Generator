@@ -7,7 +7,7 @@ import os
 from aiohttp import web
 import aiohttp_cors
 from pyrogram import Client
-from pyrogram.errors import FloodWait, FileIdInvalid, RPCError, OffsetInvalid as PyrogramOffsetInvalid # Import specific error
+from pyrogram.errors import FloodWait, FileIdInvalid, RPCError, OffsetInvalid as PyrogramOffsetInvalid, FileReferenceExpired # Import FileReferenceExpired error
 from pyrogram.types import Message, User
 
 from StreamBot.config import Var
@@ -25,6 +25,13 @@ routes = web.RouteTableDef()
 
 # Request timeout for streaming operations (2 hours max)
 STREAM_TIMEOUT = 7200  # 2 hours
+
+# Try to import FileReferenceInvalid if available (some pyrogram versions might have it)
+try:
+    from pyrogram.errors import FileReferenceInvalid
+    FILE_REFERENCE_ERRORS = (FileReferenceExpired, FileReferenceInvalid)
+except ImportError:
+    FILE_REFERENCE_ERRORS = (FileReferenceExpired,)
 
 # --- Helper: Format Uptime 
 def format_uptime(start_time_dt: datetime.datetime) -> str:
@@ -171,6 +178,20 @@ async def download_route(request: web.Request):
             # Fallback to legacy method
             streamer_client = await client_manager.get_streaming_client()
         
+        # CRITICAL FIX: Prevent FILE_REFERENCE_EXPIRED by using the same client for message and streaming
+        # If we got a different client for streaming, re-fetch the message with that client
+        if streamer_client.me.id != primary_client.me.id:
+            logger.debug(f"Re-fetching message {message_id} with streaming client @{streamer_client.me.username} to prevent FILE_REFERENCE_EXPIRED")
+            media_msg = await get_media_message(streamer_client, message_id)
+            # Verify file attributes are consistent (they should be, but safety check)
+            _check_file_id, check_file_name, check_file_size, check_file_mime_type, _ = get_file_attr(media_msg)
+            if check_file_size != file_size:
+                logger.warning(f"File size mismatch after re-fetch for {message_id}: {file_size} vs {check_file_size}. Using re-fetched values.")
+                file_name, file_size, file_mime_type = check_file_name, check_file_size, check_file_mime_type
+        else:
+            # Same client, can safely reuse the message
+            logger.debug(f"Using same client for message fetch and streaming - no re-fetch needed")
+        
     except (web.HTTPNotFound, web.HTTPServiceUnavailable, web.HTTPTooManyRequests, web.HTTPGone, web.HTTPInternalServerError) as e:
         logger.warning(f"Error during initial file check for {message_id}: {type(e).__name__}")
         raise e
@@ -232,6 +253,7 @@ async def download_route(request: web.Request):
     stream_start_time = asyncio.get_event_loop().time()
     max_retries_stream = 2
     current_retry_stream = 0
+    streaming_completed_successfully = False
 
     # stream_media's 'limit' is number of bytes *from the offset*
     # If it's a full request (is_range_request is False), start_offset is 0, end_offset is file_size-1.
@@ -241,9 +263,13 @@ async def download_route(request: web.Request):
     # Handle 0-byte file case: if length is 0, don't try to stream.
     if (end_offset - start_offset + 1) == 0 and file_size == 0 and status_code in [200, 206]:
         logger.info(f"Serving 0-byte file {message_id}. No data to stream.")
+        streaming_completed_successfully = True
         # Release client and return response
         if intelligent_allocator:
             await intelligent_allocator.release_client(streamer_client, task_id)
+        # Record completion without bandwidth usage since it's 0 bytes
+        total_request_duration = asyncio.get_event_loop().time() - start_time_request
+        logger.info(f"Download request for {message_id} completed (0-byte file). Total duration: {total_request_duration:.2f}s")
         return response
 
     logger.debug(f"Preparing to stream for {message_id}. Effective range: {start_offset}-{end_offset}. Stream length to request: {stream_length_to_request if stream_length_to_request > 0 else 'to end'}.")
@@ -284,8 +310,32 @@ async def download_route(request: web.Request):
                             raise web.HTTPGatewayTimeout(text="Request timeout. Please try again.")
                         break
 
-                    logger.info(f"Successfully finished streaming loop for {message_id}.")
+                    # Only log successful completion if we actually streamed data or completed successfully
+                    streaming_completed_successfully = True
+                    logger.debug(f"Successfully finished streaming loop for {message_id}.")
                     break # Exit retry loop on successful completion of async for
+
+                except FILE_REFERENCE_ERRORS as e:
+                    logger.warning(f"FILE_REFERENCE_EXPIRED or FILE_REFERENCE_INVALID for {message_id} on client @{streamer_client.me.username}. Attempting to refresh file reference.")
+                    
+                    try:
+                        # Re-fetch the message using the streaming client to maintain consistency
+                        media_msg = await get_media_message(streamer_client, message_id)
+                        logger.info(f"Successfully refreshed file reference for {message_id} using streaming client. Retrying stream.")
+                        current_retry_stream += 1
+                        if current_retry_stream <= max_retries_stream:
+                            await asyncio.sleep(1)  # Small delay before retry
+                            continue
+                        else:
+                            logger.error(f"Max retries reached for FILE_REFERENCE_EXPIRED or FILE_REFERENCE_INVALID on {message_id}")
+                            if bytes_streamed == 0:
+                                raise web.HTTPInternalServerError(text="File reference expired and could not be refreshed. Please try generating a new link.")
+                            break
+                    except Exception as refresh_e:
+                        logger.error(f"Error refreshing file reference for {message_id}: {refresh_e}", exc_info=True)
+                        if bytes_streamed == 0:
+                            raise web.HTTPInternalServerError(text="File reference expired and could not be refreshed. Please try generating a new link.")
+                        break
 
                 except PyrogramOffsetInvalid as e: # Specific catch for OffsetInvalid
                     logger.error(f"Pyrogram OffsetInvalid error during stream for {message_id}. Offset: {start_offset}, Limit: {stream_length_to_request}. Error: {e}")
@@ -344,15 +394,18 @@ async def download_route(request: web.Request):
     stream_duration = asyncio.get_event_loop().time() - stream_start_time
     expected_bytes_to_serve = (end_offset - start_offset + 1)
 
-    # Always record bandwidth for bytes actually streamed, if any
+    # Only record bandwidth for bytes actually streamed, if any
     if bytes_streamed > 0:
         await add_bandwidth_usage(bytes_streamed)
         logger.info(f"Recorded {humanbytes(bytes_streamed)} for bandwidth usage for {message_id}.")
 
-    if bytes_streamed == expected_bytes_to_serve:
+    # Improved completion reporting
+    if streaming_completed_successfully and bytes_streamed == expected_bytes_to_serve:
         logger.info(f"Finished streaming {humanbytes(bytes_streamed)} for {message_id} in {stream_duration:.2f}s. Expected: {humanbytes(expected_bytes_to_serve)}.")
+    elif streaming_completed_successfully and bytes_streamed > 0:
+        logger.info(f"Partial stream completed for {message_id}. Streamed {humanbytes(bytes_streamed)} of {humanbytes(expected_bytes_to_serve)} in {stream_duration:.2f}s.")
     else:
-        logger.warning(f"Stream for {message_id} ended. Expected to serve {humanbytes(expected_bytes_to_serve)}, actually sent {humanbytes(bytes_streamed)} in {stream_duration:.2f}s.")
+        logger.warning(f"Stream for {message_id} ended unsuccessfully. Expected to serve {humanbytes(expected_bytes_to_serve)}, actually sent {humanbytes(bytes_streamed)} in {stream_duration:.2f}s.")
 
     total_request_duration = asyncio.get_event_loop().time() - start_time_request
     logger.info(f"Download request for {message_id} completed. Total duration: {total_request_duration:.2f}s")
