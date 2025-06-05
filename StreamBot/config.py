@@ -29,7 +29,12 @@ def get_env(name: str, default=None, required: bool = False, is_bool: bool = Fal
         try:
             int_value = int(value)
             # Basic security check for reasonable integer bounds
-            if name in ['API_ID', 'LOG_CHANNEL', 'FORCE_SUB_CHANNEL'] and int_value != 0:
+            # Ensure LOG_CHANNEL is not 0, as it's used for encoding keys
+            if name in ['API_ID', 'LOG_CHANNEL', 'FORCE_SUB_CHANNEL']:
+                if name == "LOG_CHANNEL" and int_value == 0:
+                    logger.critical(f"CRITICAL: {name} cannot be 0. Please provide a valid non-zero integer. Value received: '{value}'")
+                    exit(f"CRITICAL: {name} cannot be 0.")
+                # Original check for other integer bounds (excluding the explicit 0 check for LOG_CHANNEL here)
                 if abs(int_value) > 2**63:  # Prevent overflow
                     logger.error(f"Integer value for {name} exceeds reasonable bounds: {int_value}")
                     if required:

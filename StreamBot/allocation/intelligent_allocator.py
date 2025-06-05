@@ -239,26 +239,35 @@ class IntelligentClientAllocator:
     async def release_client(self, client: Client, task_id: str):
         """
         Release a client back to the available pool after task completion.
-        
-        Args:
-            client: Client to release
-            task_id: Task identifier for verification
+        More robust to multiple calls or cleared tasks.
         """
         async with self._lock:
             client_id = client.me.id
             
-            # Verify task assignment
-            assigned_task = self.client_tasks.get(client_id)
-            if assigned_task != task_id:
-                logger.warning(f"Task ID mismatch when releasing client @{client.me.username}. "
-                             f"Expected: {task_id}, Found: {assigned_task}")
-            
-            # Release client
-            self.client_states[client_id] = ClientStatus.IDLE
-            if client_id in self.client_tasks:
+            current_task_for_client = self.client_tasks.get(client_id)
+
+            if current_task_for_client == task_id:
+                # Task matches, remove it successfully
                 del self.client_tasks[client_id]
-            
-            logger.debug(f"Released client @{client.me.username} from task {task_id}")
+                logger.debug(f"Client @{client.me.username} correctly released from task {task_id}.")
+                self.client_states[client_id] = ClientStatus.IDLE
+            elif current_task_for_client is None:
+                # Client was not assigned this task_id in client_tasks, or it was already cleared.
+                # This can happen if release_client is called multiple times for the same event,
+                # or if the client failed before being fully marked busy with this task_id.
+                logger.info(f"Client @{client.me.username} release attempt for task {task_id}, "
+                             f"but task was not found in active tracking (possibly already cleared or failed before full assignment). "
+                             f"Ensuring client state is IDLE.")
+                self.client_states[client_id] = ClientStatus.IDLE # Ensure it's marked IDLE
+            else: # current_task_for_client is not None and not equal to task_id
+                logger.warning(f"Task ID mismatch on release for client @{client.me.username}. "
+                             f"Tried to release from: {task_id}, but client is busy with: {current_task_for_client}. "
+                             f"Client's current task and state remain unchanged.")
+                # In this specific case (mismatch with another known task), we do NOT change its state to IDLE,
+                # as it's genuinely busy with something else.
+                return # Exit without changing state
+
+            logger.debug(f"Client @{client.me.username} (ID: {client_id}) state is now {self.client_states.get(client_id)} after release attempt for task {task_id}.")
     
     async def get_allocation_stats(self) -> Dict:
         """Get current allocation statistics for monitoring."""
