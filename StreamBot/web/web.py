@@ -26,6 +26,11 @@ routes = web.RouteTableDef()
 # Request timeout for streaming operations (2 hours max)
 STREAM_TIMEOUT = 7200  # 2 hours
 
+# --- Lightweight Retry Configuration (Hardcoded) ---
+MAX_RETRIES = 2  # Total retries per request
+RETRY_DELAYS = [0.5, 1.0]  # Fast retries for user experience
+CLIENT_SWITCH_DELAY = 0.8  # Delay when switching clients
+
 # Try to import FileReferenceInvalid if available (some pyrogram versions might have it)
 try:
     from pyrogram.errors import FileReferenceInvalid
@@ -33,7 +38,45 @@ try:
 except ImportError:
     FILE_REFERENCE_ERRORS = (FileReferenceExpired,)
 
-# --- Helper: Format Uptime 
+# --- Retry Helper Functions ---
+def is_retryable_error(error) -> bool:
+    """Check if an error is worth retrying."""
+    retryable_types = (
+        PyrogramOffsetInvalid,
+        ConnectionError, 
+        TimeoutError,
+        RPCError,
+        NoClientsAvailableError,
+        asyncio.TimeoutError
+    ) + FILE_REFERENCE_ERRORS
+    
+    # Don't retry certain HTTP errors
+    if isinstance(error, (web.HTTPNotFound, web.HTTPGone, web.HTTPBadRequest)):
+        return False
+        
+    return isinstance(error, retryable_types)
+
+async def get_retry_delay(attempt: int) -> float:
+    """Get delay for retry attempt with jitter."""
+    import random
+    
+    if attempt >= len(RETRY_DELAYS):
+        delay = RETRY_DELAYS[-1] * (attempt - len(RETRY_DELAYS) + 2)
+    else:
+        delay = RETRY_DELAYS[attempt]
+    
+    # Add small jitter to prevent thundering herd
+    return delay + random.uniform(0.1, 0.3)
+
+async def release_client_safely(intelligent_allocator, client, task_id):
+    """Helper to safely release a client."""
+    if intelligent_allocator and client:
+        try:
+            await intelligent_allocator.release_client(client, task_id)
+        except Exception as e:
+            logger.warning(f"Error releasing client during cleanup: {e}")
+
+# --- Format Uptime 
 def format_uptime(start_time_dt: datetime.datetime) -> str:
     """Format the uptime into a human-readable string."""
     if start_time_dt is None:
@@ -111,10 +154,10 @@ async def get_media_message(bot_client: Client, message_id: int) -> Message:
 
     return media_msg
 
-# --- Download Route (Enhanced with intelligent allocation) ---
+# --- Download Route (Enhanced with intelligent allocation and retry system) ---
 @routes.get("/dl/{encoded_id_str}")
 async def download_route(request: web.Request):
-    """Handle file download requests with intelligent client allocation."""
+    """Handle file download requests with intelligent client allocation and retry system."""
     client_manager = request.app.get('client_manager')
     intelligent_allocator = request.app.get('intelligent_allocator')
     
@@ -122,17 +165,7 @@ async def download_route(request: web.Request):
         logger.error("ClientManager not found in web app state.")
         raise web.HTTPServiceUnavailable(text="Service configuration error.")
     
-    if not intelligent_allocator:
-        logger.warning("IntelligentClientAllocator not found, falling back to legacy method.")
-        # Fallback to existing method if allocator not available
-        try:
-            streamer_client = await client_manager.get_streaming_client()
-        except NoClientsAvailableError as e:
-            logger.error(f"No clients available for download: {e}")
-            raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again later.")
-    
     start_time_request = asyncio.get_event_loop().time()
-
     encoded_id = request.match_info['encoded_id_str']
     
     # Enhanced input validation
@@ -141,7 +174,6 @@ async def download_route(request: web.Request):
         raise web.HTTPBadRequest(text="Invalid download link format.")
     
     message_id = decode_message_id(encoded_id)
-
     if message_id is None:
         logger.warning(f"Download request with invalid or undecodable ID: {encoded_id[:50]} from {get_client_ip(request)}")
         raise web.HTTPBadRequest(text="Invalid or malformed download link.")
@@ -155,10 +187,39 @@ async def download_route(request: web.Request):
 
     # Generate unique task ID for this download
     task_id = f"{message_id}_{encoded_id[:10]}_{int(start_time_request)}"
+    
+    # --- Retry Wrapper for Download Logic ---
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            # Core download logic with retry-aware error handling
+            return await _execute_download_logic(
+                request, client_manager, intelligent_allocator, 
+                message_id, encoded_id, task_id, start_time_request
+            )
+            
+        except Exception as e:
+            is_last_attempt = attempt >= MAX_RETRIES
+            
+            if not is_retryable_error(e) or is_last_attempt:
+                # Non-retryable error or max retries reached
+                if is_last_attempt and is_retryable_error(e):
+                    logger.error(f"Max retries ({MAX_RETRIES}) reached for {message_id}. Final error: {e}")
+                raise e
+            
+            # Calculate retry delay
+            delay = await get_retry_delay(attempt)
+            logger.warning(f"Download attempt {attempt + 1} failed for {message_id}: {type(e).__name__}. Retrying in {delay:.1f}s")
+            await asyncio.sleep(delay)
+    
+    # Should never reach here, but safety fallback
+    raise web.HTTPInternalServerError(text="Maximum retry attempts exceeded.")
 
-    # First, get file info to determine size for intelligent allocation
+async def _execute_download_logic(request, client_manager, intelligent_allocator, message_id, encoded_id, task_id, start_time_request):
+    """Execute the core download logic."""
+    streamer_client = None
+    
     try:
-        # Use primary client to get message info initially
+        # Step 1: Get file info and allocate client
         primary_client = client_manager.get_primary_client()
         if not primary_client:
             raise web.HTTPServiceUnavailable(text="Service temporarily unavailable.")
@@ -166,49 +227,48 @@ async def download_route(request: web.Request):
         media_msg = await get_media_message(primary_client, message_id)
         _file_id, file_name, file_size, file_mime_type, _ = get_file_attr(media_msg)
         
-        # Now use intelligent allocator to get the best client for this file size
+        # Step 2: Client allocation with fallback strategy
         if intelligent_allocator:
             try:
                 streamer_client = await intelligent_allocator.acquire_client_for_download(file_size, task_id)
                 logger.debug(f"Intelligent allocation: Using client @{streamer_client.me.username} for {file_size/1024/1024:.1f}MB file")
-            except NoClientsAvailableError as e:
-                logger.error(f"No clients available for intelligent allocation: {e}")
-                raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again later.")
+            except NoClientsAvailableError:
+                # Fallback to round-robin
+                logger.info(f"Intelligent allocation unavailable for {message_id}, falling back to round-robin")
+                await asyncio.sleep(1.2)  # Brief delay for fallback
+                streamer_client = await client_manager.get_streaming_client()
         else:
-            # Fallback to legacy method
+            # Legacy method
             streamer_client = await client_manager.get_streaming_client()
         
-        # CRITICAL FIX: Prevent FILE_REFERENCE_EXPIRED by using the same client for message and streaming
-        # If we got a different client for streaming, re-fetch the message with that client
+        # Step 3: Ensure message consistency across clients
         if streamer_client.me.id != primary_client.me.id:
-            logger.debug(f"Re-fetching message {message_id} with streaming client @{streamer_client.me.username} to prevent FILE_REFERENCE_EXPIRED")
+            logger.debug(f"Re-fetching message {message_id} with streaming client @{streamer_client.me.username}")
             media_msg = await get_media_message(streamer_client, message_id)
-            # Verify file attributes are consistent (they should be, but safety check)
             _check_file_id, check_file_name, check_file_size, check_file_mime_type, _ = get_file_attr(media_msg)
             if check_file_size != file_size:
-                logger.warning(f"File size mismatch after re-fetch for {message_id}: {file_size} vs {check_file_size}. Using re-fetched values.")
+                logger.warning(f"File size mismatch after re-fetch for {message_id}: {file_size} vs {check_file_size}")
                 file_name, file_size, file_mime_type = check_file_name, check_file_size, check_file_mime_type
-        else:
-            # Same client, can safely reuse the message
-            logger.debug(f"Using same client for message fetch and streaming - no re-fetch needed")
         
-    except (web.HTTPNotFound, web.HTTPServiceUnavailable, web.HTTPTooManyRequests, web.HTTPGone, web.HTTPInternalServerError) as e:
-        logger.warning(f"Error during initial file check for {message_id}: {type(e).__name__}")
-        raise e
+        # Step 4: Execute streaming
+        return await _stream_file_to_response(
+            request, streamer_client, intelligent_allocator, media_msg, 
+            message_id, encoded_id, task_id, file_name, file_size, file_mime_type, start_time_request
+        )
+        
     except Exception as e:
-        logger.error(f"Unexpected error during file check for {message_id}: {e}", exc_info=True)
-        raise web.HTTPInternalServerError(text="Internal server error occurred.")
+        # Clean up allocated client on error
+        await release_client_safely(intelligent_allocator, streamer_client, task_id)
+        raise e
 
+async def _stream_file_to_response(request, streamer_client, intelligent_allocator, media_msg, message_id, encoded_id, task_id, file_name, file_size, file_mime_type, start_time_request):
+    """Execute the core streaming logic."""
     # Sanitize filename for security
     safe_filename = sanitize_filename(file_name)
 
-    # file_size from get_file_attr is now guaranteed to be an int (0 if unknown)
-    # file_name is guaranteed to be a string (e.g., "unknown_file" if unknown)
     if file_name == "unknown_file" and file_size == 0:
-        # Release client before error
-        if intelligent_allocator:
-            await intelligent_allocator.release_client(streamer_client, task_id)
-        logger.error(f"Could not extract valid file attributes from message {message_id} in log channel. Name: {file_name}, Size: {file_size}")
+        await release_client_safely(intelligent_allocator, streamer_client, task_id)
+        logger.error(f"Could not extract valid file attributes from message {message_id}")
         raise web.HTTPInternalServerError(text="Failed to get file details.")
 
     headers = {
@@ -220,18 +280,15 @@ async def download_route(request: web.Request):
     range_header = request.headers.get('Range')
     status_code = 200
     start_offset = 0
-    end_offset = file_size - 1 if file_size > 0 else 0 # Handle 0-byte files for end_offset
+    end_offset = file_size - 1 if file_size > 0 else 0
     is_range_request = False
 
     if range_header:
         logger.info(f"Range header for {message_id}: '{range_header}', File size: {humanbytes(file_size)}")
         
-        # Use secure range validation
         range_result = validate_range_header(range_header, file_size)
         if range_result is None:
-            # Release client before error
-            if intelligent_allocator:
-                await intelligent_allocator.release_client(streamer_client, task_id)
+            await release_client_safely(intelligent_allocator, streamer_client, task_id)
             logger.error(f"Invalid Range header '{range_header}' for file size {file_size}")
             raise web.HTTPRequestRangeNotSatisfiable(headers={'Content-Range': f'bytes */{file_size}'})
         
@@ -240,177 +297,131 @@ async def download_route(request: web.Request):
         headers['Content-Length'] = str(end_offset - start_offset + 1)
         status_code = 206
         is_range_request = True
-        logger.info(f"Serving range request for {message_id}: bytes {start_offset}-{end_offset}/{file_size}. Content-Length: {headers['Content-Length']}")
-
+        logger.info(f"Serving range request for {message_id}: bytes {start_offset}-{end_offset}/{file_size}")
     else:
         headers['Content-Length'] = str(file_size)
-        logger.info(f"Serving full download for {message_id}. File size: {humanbytes(file_size)}. Content-Length: {headers['Content-Length']}")
+        logger.info(f"Serving full download for {message_id}. File size: {humanbytes(file_size)}")
 
     response = web.StreamResponse(status=status_code, headers=headers)
     await response.prepare(request)
 
     bytes_streamed = 0
     stream_start_time = asyncio.get_event_loop().time()
-    max_retries_stream = 2
-    current_retry_stream = 0
     streaming_completed_successfully = False
 
-    # stream_media's 'limit' is number of bytes *from the offset*
-    # If it's a full request (is_range_request is False), start_offset is 0, end_offset is file_size-1.
-    # stream_limit should be 0 for full file, or (end_offset - start_offset + 1) for range.
-    stream_length_to_request = (end_offset - start_offset + 1) if is_range_request else 0 # 0 means stream to end from offset
+    stream_length_to_request = (end_offset - start_offset + 1) if is_range_request else 0
 
-    # Handle 0-byte file case: if length is 0, don't try to stream.
-    if (end_offset - start_offset + 1) == 0 and file_size == 0 and status_code in [200, 206]:
+    # Handle 0-byte file case
+    if (end_offset - start_offset + 1) == 0 and file_size == 0:
         logger.info(f"Serving 0-byte file {message_id}. No data to stream.")
-        streaming_completed_successfully = True
-        # Release client and return response
-        if intelligent_allocator:
-            await intelligent_allocator.release_client(streamer_client, task_id)
-        # Record completion without bandwidth usage since it's 0 bytes
+        await release_client_safely(intelligent_allocator, streamer_client, task_id)
         total_request_duration = asyncio.get_event_loop().time() - start_time_request
         logger.info(f"Download request for {message_id} completed (0-byte file). Total duration: {total_request_duration:.2f}s")
         return response
-
-    logger.debug(f"Preparing to stream for {message_id}. Effective range: {start_offset}-{end_offset}. Stream length to request: {stream_length_to_request if stream_length_to_request > 0 else 'to end'}.")
 
     # Use stream tracking context manager for proper cleanup
     request_id = f"{message_id}_{encoded_id[:10]}"
     
     try:
         async with tracked_stream_response(response, stream_tracker, request_id):
-            while current_retry_stream <= max_retries_stream:
+            # Streaming with retry logic for temporary errors
+            max_stream_retries = 2
+            for stream_attempt in range(max_stream_retries + 1):
                 try:
-                    # Fixed: Use asyncio.wait_for for timeout handling with better compatibility
-                    try:
-                        # Create the streaming coroutine
-                        async def stream_data():
-                            async for chunk in streamer_client.stream_media(
-                                media_msg,
-                                offset=start_offset,
-                                limit=stream_length_to_request
-                            ):
-                                try:
-                                    await response.write(chunk)
-                                    nonlocal bytes_streamed
-                                    bytes_streamed += len(chunk)
-                                except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError) as client_e:
-                                    logger.warning(f"Client connection issue during write for {message_id}: {type(client_e).__name__}. Streamed {humanbytes(bytes_streamed)}.")
-                                    return
-                                except Exception as write_e:
-                                    logger.error(f"Error writing chunk for {message_id}: {write_e}", exc_info=True)
-                                    return
-                        
-                        # Apply timeout to the entire streaming operation
-                        await asyncio.wait_for(stream_data(), timeout=STREAM_TIMEOUT)
-                        
-                    except asyncio.TimeoutError:
-                        logger.error(f"Stream timeout for {message_id} after {STREAM_TIMEOUT}s")
-                        if bytes_streamed == 0:
-                            raise web.HTTPGatewayTimeout(text="Request timeout. Please try again.")
-                        break
-
-                    # Only log successful completion if we actually streamed data or completed successfully
-                    streaming_completed_successfully = True
-                    logger.debug(f"Successfully finished streaming loop for {message_id}.")
-                    break # Exit retry loop on successful completion of async for
-
-                except FILE_REFERENCE_ERRORS as e:
-                    logger.warning(f"FILE_REFERENCE_EXPIRED or FILE_REFERENCE_INVALID for {message_id} on client @{streamer_client.me.username}. Attempting to refresh file reference.")
+                    async def stream_data():
+                        async for chunk in streamer_client.stream_media(
+                            media_msg,
+                            offset=start_offset,
+                            limit=stream_length_to_request
+                        ):
+                            try:
+                                await response.write(chunk)
+                                nonlocal bytes_streamed
+                                bytes_streamed += len(chunk)
+                            except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):
+                                logger.warning(f"Client disconnected during write for {message_id}. Streamed {humanbytes(bytes_streamed)}")
+                                return
+                            except Exception as write_e:
+                                logger.error(f"Error writing chunk for {message_id}: {write_e}")
+                                return
                     
+                    # Apply timeout to streaming
+                    await asyncio.wait_for(stream_data(), timeout=STREAM_TIMEOUT)
+                    streaming_completed_successfully = True
+                    break
+
+                except FILE_REFERENCE_ERRORS:
+                    logger.warning(f"FILE_REFERENCE error for {message_id}. Refreshing...")
                     try:
-                        # Re-fetch the message using the streaming client to maintain consistency
                         media_msg = await get_media_message(streamer_client, message_id)
-                        logger.info(f"Successfully refreshed file reference for {message_id} using streaming client. Retrying stream.")
-                        current_retry_stream += 1
-                        if current_retry_stream <= max_retries_stream:
-                            await asyncio.sleep(1)  # Small delay before retry
+                        logger.info(f"File reference refreshed for {message_id}")
+                        if stream_attempt < max_stream_retries:
+                            await asyncio.sleep(1)
                             continue
-                        else:
-                            logger.error(f"Max retries reached for FILE_REFERENCE_EXPIRED or FILE_REFERENCE_INVALID on {message_id}")
-                            if bytes_streamed == 0:
-                                raise web.HTTPInternalServerError(text="File reference expired and could not be refreshed. Please try generating a new link.")
-                            break
-                    except Exception as refresh_e:
-                        logger.error(f"Error refreshing file reference for {message_id}: {refresh_e}", exc_info=True)
-                        if bytes_streamed == 0:
-                            raise web.HTTPInternalServerError(text="File reference expired and could not be refreshed. Please try generating a new link.")
+                    except Exception:
+                        logger.error(f"Failed to refresh file reference for {message_id}")
                         break
 
-                except PyrogramOffsetInvalid as e: # Specific catch for OffsetInvalid
-                    logger.error(f"Pyrogram OffsetInvalid error during stream for {message_id}. Offset: {start_offset}, Limit: {stream_length_to_request}. Error: {e}")
+                except PyrogramOffsetInvalid:
+                    logger.error(f"OffsetInvalid error for {message_id}. Offset: {start_offset}")
                     if bytes_streamed == 0:
-                         raise web.HTTPInternalServerError(text="File access error. Please try again later.")
+                        raise web.HTTPInternalServerError(text="File access error. Please try again later.")
                     break
 
                 except FloodWait as e:
-                     logger.warning(f"FloodWait during stream for {message_id} on client @{streamer_client.me.username}. FloodWait: {e.value}s.")
-                     
-                     # Use intelligent allocator for FloodWait retry if available
-                     if intelligent_allocator:
-                         alternative_client = await intelligent_allocator.handle_flood_wait_retry(
-                             streamer_client, e.value, file_size, task_id
-                         )
-                         if alternative_client:
-                             logger.info(f"Intelligent retry: Switching from @{streamer_client.me.username} to @{alternative_client.me.username} for {message_id}")
-                             streamer_client = alternative_client
-                             await asyncio.sleep(1)  # Small delay to avoid rapid switching
-                             continue  # Retry with new client
-                         else:
-                             logger.warning(f"No alternative clients available for {message_id}. Waiting {e.value}s for FloodWait")
-                             await asyncio.sleep(e.value + 2)
-                     else:
-                         # Fallback to legacy method
-                         try:
-                             alternative_client = await client_manager.get_alternative_streaming_client(streamer_client)
-                             if alternative_client:
-                                 logger.info(f"Legacy retry: Switching from @{streamer_client.me.username} to @{alternative_client.me.username} for {message_id}")
-                                 streamer_client = alternative_client
-                                 await asyncio.sleep(1)
-                             else:
-                                 logger.warning(f"No alternative clients available for {message_id}. Waiting {e.value}s for FloodWait")
-                                 await asyncio.sleep(e.value + 2)
-                         except Exception as client_e:
-                             logger.warning(f"Error getting alternative client for {message_id}: {client_e}. Falling back to waiting.")
-                             await asyncio.sleep(e.value + 2)
+                    logger.warning(f"FloodWait during stream for {message_id} on @{streamer_client.me.username}")
+                    
+                    # Try intelligent allocator for alternative client
+                    if intelligent_allocator:
+                        alternative_client = await intelligent_allocator.handle_flood_wait_retry(
+                            streamer_client, e.value, file_size, task_id
+                        )
+                        if alternative_client:
+                            logger.info(f"Switched to alternative client @{alternative_client.me.username} for {message_id}")
+                            streamer_client = alternative_client
+                            await asyncio.sleep(CLIENT_SWITCH_DELAY)
+                            continue
+                    
+                    # Fallback: wait for flood wait
+                    logger.warning(f"No alternative client available. Waiting {e.value}s for FloodWait")
+                    await asyncio.sleep(e.value + 2)
 
-                except (ConnectionError, TimeoutError, RPCError) as e: # Catches other RPC errors
-                     current_retry_stream += 1
-                     logger.warning(f"Stream interrupted for {message_id} (Attempt {current_retry_stream}/{max_retries_stream+1}): {type(e).__name__}")
-                     if current_retry_stream > max_retries_stream:
-                          logger.error(f"Max retries reached for stream error. Aborting stream for {message_id} after {humanbytes(bytes_streamed)} bytes.")
-                          break
-                     await asyncio.sleep(2 * current_retry_stream)
-                     logger.info(f"Retrying stream for {message_id} from offset {start_offset}.")
+                except (ConnectionError, TimeoutError, RPCError):
+                    if stream_attempt >= max_stream_retries:
+                        logger.error(f"Max stream retries reached for {message_id}")
+                        break
+                    logger.warning(f"Stream error for {message_id}. Retrying... ({stream_attempt + 1}/{max_stream_retries})")
+                    await asyncio.sleep(2)
+
+                except asyncio.TimeoutError:
+                    logger.error(f"Stream timeout for {message_id} after {STREAM_TIMEOUT}s")
+                    if bytes_streamed == 0:
+                        raise web.HTTPGatewayTimeout(text="Request timeout. Please try again.")
+                    break
+
                 except Exception as e:
-                     logger.error(f"Unexpected error during streaming for {message_id}: {e}", exc_info=True)
-                     break
+                    logger.error(f"Unexpected streaming error for {message_id}: {e}")
+                    break
     
     finally:
-        # Always release the client when done
-        if intelligent_allocator:
-            await intelligent_allocator.release_client(streamer_client, task_id)
+        # Always release the client
+        await release_client_safely(intelligent_allocator, streamer_client, task_id)
 
-    stream_duration = asyncio.get_event_loop().time() - stream_start_time
-    expected_bytes_to_serve = (end_offset - start_offset + 1)
-
-    # Only record bandwidth for bytes actually streamed, if any
+    # Record bandwidth and log completion
     if bytes_streamed > 0:
         await add_bandwidth_usage(bytes_streamed)
-        logger.info(f"Recorded {humanbytes(bytes_streamed)} for bandwidth usage for {message_id}.")
 
-    # Improved completion reporting
-    if streaming_completed_successfully and bytes_streamed == expected_bytes_to_serve:
-        logger.info(f"Finished streaming {humanbytes(bytes_streamed)} for {message_id} in {stream_duration:.2f}s. Expected: {humanbytes(expected_bytes_to_serve)}.")
-    elif streaming_completed_successfully and bytes_streamed > 0:
-        logger.info(f"Partial stream completed for {message_id}. Streamed {humanbytes(bytes_streamed)} of {humanbytes(expected_bytes_to_serve)} in {stream_duration:.2f}s.")
+    stream_duration = asyncio.get_event_loop().time() - stream_start_time
+    expected_bytes = end_offset - start_offset + 1
+
+    if streaming_completed_successfully and bytes_streamed == expected_bytes:
+        logger.info(f"Successfully streamed {humanbytes(bytes_streamed)} for {message_id} in {stream_duration:.2f}s")
     else:
-        logger.warning(f"Stream for {message_id} ended unsuccessfully. Expected to serve {humanbytes(expected_bytes_to_serve)}, actually sent {humanbytes(bytes_streamed)} in {stream_duration:.2f}s.")
+        logger.warning(f"Partial/incomplete stream for {message_id}: {humanbytes(bytes_streamed)}/{humanbytes(expected_bytes)}")
 
     total_request_duration = asyncio.get_event_loop().time() - start_time_request
     logger.info(f"Download request for {message_id} completed. Total duration: {total_request_duration:.2f}s")
     return response
-
 
 # --- API Info Route --- (Keep as is, assuming it's working)
 @routes.get("/api/info")

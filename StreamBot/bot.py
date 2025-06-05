@@ -129,19 +129,40 @@ def attach_handlers(app: Client):
         
         if len(command_parts) == 1:
             processing_msg = await message.reply_text("⏳ Uploading log file...", quote=True)
+            temp_log_path = None
             try:
+                import shutil
+                import tempfile
+                
+                # Create temporary copy to prevent MD5 checksum errors during upload
+                temp_dir = tempfile.gettempdir()
+                temp_log_path = os.path.join(temp_dir, f"tgdlbot_log_copy_{user_id}_{int(datetime.datetime.now().timestamp())}.log")
+                
+                # Copy the log file (atomically captures current state)
+                shutil.copy2(log_file_path, temp_log_path)
+                logger.debug(f"Created temporary log copy: {temp_log_path}")
+                
+                # Upload the copy (which won't change during upload)
                 await client.send_document(
                     chat_id=user_id,
-                    document=log_file_path,
+                    document=temp_log_path,
                     caption=f"📋 **Log File ({humanbytes(file_size)})** | Last Modified: {last_modified}"
                 )
                 await processing_msg.delete()
                 logger.info(f"Full log file uploaded for admin {user_id}")
-                return
+                
             except Exception as e:
                 logger.error(f"Error uploading log file for admin {user_id}: {e}", exc_info=True)
                 await processing_msg.edit_text(f"❌ Error uploading log file: {str(e)}")
-                return
+            finally:
+                # Clean up temporary file
+                if temp_log_path and os.path.exists(temp_log_path):
+                    try:
+                        os.remove(temp_log_path)
+                        logger.debug(f"Cleaned up temporary log copy: {temp_log_path}")
+                    except Exception as cleanup_e:
+                        logger.warning(f"Failed to cleanup temporary log file {temp_log_path}: {cleanup_e}")
+            return
         
         # Parse command arguments
         limit = 50
@@ -247,54 +268,47 @@ def attach_handlers(app: Client):
             
             from StreamBot.utils.memory_manager import memory_manager
             from StreamBot.utils.stream_cleanup import stream_tracker
-            from StreamBot.utils.smart_logger import SmartRateLimitedLogger
             
             memory_usage = memory_manager.get_memory_usage()
             active_streams = stream_tracker.get_active_count()
             
-            from StreamBot.__main__ import BOT_START_TIME, INTELLIGENT_ALLOCATOR_INSTANCE
+            from StreamBot.__main__ import BOT_START_TIME, CLIENT_MANAGER_INSTANCE
             import datetime
+            
+            # Fix uptime calculation and display
             if BOT_START_TIME:
                 uptime_delta = datetime.datetime.now(datetime.timezone.utc) - BOT_START_TIME
                 uptime_days = uptime_delta.days
                 uptime_hours, remainder = divmod(uptime_delta.seconds, 3600)
                 uptime_minutes, uptime_seconds = divmod(remainder, 60)
-                uptime_str = f"{uptime_days}d {uptime_hours}h {uptime_minutes}m {uptime_seconds}s"
+                
+                # Format uptime nicely
+                uptime_parts = []
+                if uptime_days > 0:
+                    uptime_parts.append(f"{uptime_days}d")
+                if uptime_hours > 0:
+                    uptime_parts.append(f"{uptime_hours}h")
+                if uptime_minutes > 0:
+                    uptime_parts.append(f"{uptime_minutes}m")
+                uptime_parts.append(f"{uptime_seconds}s")
+                uptime_str = " ".join(uptime_parts)
+                
+                # Add start date
+                start_date = BOT_START_TIME.strftime("%Y-%m-%d %H:%M")
+                uptime_display = f"{uptime_str} (since {start_date} UTC)"
             else:
-                uptime_str = "Unknown"
+                uptime_display = "Unknown"
             
+            # Fix client count - get actual connected clients
             try:
-                cache_stats = rate_limited_logger.get_cache_stats()
-                cache_info = f"📝 **Logger Cache**: {cache_stats['cache_size']}/{cache_stats['max_cache_size']} entries\n"
-            except:
-                cache_info = "📝 **Logger Cache**: Unable to retrieve stats\n"
-            
-            try:
-                from StreamBot.__main__ import CLIENT_MANAGER_INSTANCE
-                client_count = len(CLIENT_MANAGER_INSTANCE.all_clients) if CLIENT_MANAGER_INSTANCE else 0
+                if CLIENT_MANAGER_INSTANCE and CLIENT_MANAGER_INSTANCE.all_clients:
+                    connected_clients = [c for c in CLIENT_MANAGER_INSTANCE.all_clients if c and c.is_connected]
+                    client_count = len(connected_clients)
+                else:
+                    client_count = 0
             except:
                 client_count = "N/A"
             
-            # Get intelligent allocation statistics
-            allocation_info = ""
-            if INTELLIGENT_ALLOCATOR_INSTANCE:
-                try:
-                    alloc_stats = await INTELLIGENT_ALLOCATOR_INSTANCE.get_allocation_stats()
-                    allocation_info = f"""
-🧠 **Intelligent Allocation**:
-• Total Clients: {alloc_stats['total_clients']} (Connected: {alloc_stats['connected_clients']})
-• Small-Preferred: {alloc_stats['small_preferred_count']} clients
-• Large-Preferred: {alloc_stats['large_preferred_count']} clients
-• Client States: Idle({alloc_stats['client_states']['idle']}) Busy({alloc_stats['client_states']['busy']}) FloodWait({alloc_stats['client_states']['flood_wait']})
-• Active Tasks: {alloc_stats['active_tasks']}
-• Threshold: {alloc_stats['small_file_threshold_mb']} MB"""
-                except Exception as e:
-                    allocation_info = f"""
-🧠 **Intelligent Allocation**: Error retrieving stats - {str(e)}"""
-            else:
-                allocation_info = """
-🧠 **Intelligent Allocation**: Not initialized"""
-
             # Get bandwidth usage information
             try:
                 bandwidth_usage = await get_current_bandwidth_usage()
@@ -308,6 +322,16 @@ def attach_handlers(app: Client):
 📊 **Bandwidth Usage**:
 • Error retrieving data: {str(e)}"""
             
+            # Fix timestamp precision to 2 decimal places
+            timestamp = memory_usage.get('timestamp', 'N/A')
+            if timestamp != 'N/A' and '.' in str(timestamp):
+                try:
+                    # Parse and reformat timestamp to 2 decimal places
+                    dt = datetime.datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                    timestamp = dt.strftime("%Y-%m-%d %H:%M:%S")
+                except:
+                    pass  # Keep original if parsing fails
+            
             memory_text = f"""
 📊 **System Statistics**
 
@@ -319,12 +343,10 @@ def attach_handlers(app: Client):
 🌐 **Active Resources**:
 • Active Streams: {active_streams}
 • Telegram Clients: {client_count}
-{allocation_info}
 {bandwidth_info}
 
-{cache_info}
-⏰ **Uptime**: {uptime_str}
-🕐 **Timestamp**: {memory_usage.get('timestamp', 'N/A')}
+⏰ **Uptime**: {uptime_display}
+🕐 **Timestamp**: {timestamp}
 
 💡 **Memory cleanup runs automatically every hour**
 """
