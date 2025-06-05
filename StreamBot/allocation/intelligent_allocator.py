@@ -42,9 +42,10 @@ class IntelligentClientAllocator:
         self.client_tasks: Dict[int, str] = {}  # client_id -> task_id for tracking
         self.flood_wait_until: Dict[int, float] = {}  # client_id -> timestamp when flood wait ends
         
-        # Round-robin indices for each group
+        # Round-robin indices for each group - these will be reset when client lists change
         self.small_preferred_index = 0
         self.large_preferred_index = 0
+        self._last_client_count = 0  # Track when to reset indices
         
         # Lock for thread-safe operations
         self._lock = asyncio.Lock()
@@ -58,6 +59,13 @@ class IntelligentClientAllocator:
         """
         all_clients = [c for c in self.client_manager.all_clients if c and c.is_connected]
         total_clients = len(all_clients)
+        
+        # Reset indices if client count changed (prevents stale indices)
+        if total_clients != self._last_client_count:
+            self.small_preferred_index = 0
+            self.large_preferred_index = 0
+            self._last_client_count = total_clients
+            logger.debug(f"Reset round-robin indices due to client count change: {total_clients}")
         
         if total_clients <= 2:
             # With 2 or fewer clients, assign based on simple rules
@@ -78,6 +86,9 @@ class IntelligentClientAllocator:
     
     def _is_client_available(self, client: Client) -> bool:
         """Check if a client is available for new tasks."""
+        if not client or not client.is_connected:
+            return False
+            
         client_id = client.me.id
         
         # Check if client is in flood wait
@@ -91,23 +102,31 @@ class IntelligentClientAllocator:
         
         # Check current status
         status = self.client_states.get(client_id, ClientStatus.IDLE)
-        return status == ClientStatus.IDLE and client.is_connected
+        return status == ClientStatus.IDLE
     
     def _get_available_clients_from_group(self, client_group: List[Client]) -> List[Client]:
         """Get available clients from a specific group."""
         return [client for client in client_group if self._is_client_available(client)]
     
     def _select_client_round_robin(self, available_clients: List[Client], is_small_group: bool) -> Optional[Client]:
-        """Select a client using round-robin from available clients."""
+        """
+        Select a client using round-robin from available clients.
+        Fixed to prevent index out-of-bounds errors.
+        """
         if not available_clients:
             return None
         
+        # Ensure indices are within bounds (critical fix)
         if is_small_group:
-            self.small_preferred_index = (self.small_preferred_index + 1) % len(available_clients)
+            if self.small_preferred_index >= len(available_clients):
+                self.small_preferred_index = 0
             selected = available_clients[self.small_preferred_index]
+            self.small_preferred_index = (self.small_preferred_index + 1) % len(available_clients)
         else:
-            self.large_preferred_index = (self.large_preferred_index + 1) % len(available_clients)
+            if self.large_preferred_index >= len(available_clients):
+                self.large_preferred_index = 0
             selected = available_clients[self.large_preferred_index]
+            self.large_preferred_index = (self.large_preferred_index + 1) % len(available_clients)
         
         return selected
     
@@ -162,11 +181,12 @@ class IntelligentClientAllocator:
             
             # No clients available
             total_clients = len(self.client_manager.all_clients)
+            connected_clients = len([c for c in self.client_manager.all_clients if c and c.is_connected])
             busy_count = sum(1 for status in self.client_states.values() if status == ClientStatus.BUSY)
             flood_wait_count = len(self.flood_wait_until)
             
             logger.warning(f"No clients available for {file_category.value} file task {task_id}. "
-                         f"Total: {total_clients}, Busy: {busy_count}, FloodWait: {flood_wait_count}")
+                         f"Total: {total_clients}, Connected: {connected_clients}, Busy: {busy_count}, FloodWait: {flood_wait_count}")
             
             raise NoClientsAvailableError(f"No clients available for {file_category.value} file download")
     
@@ -212,16 +232,17 @@ class IntelligentClientAllocator:
                 # Try small-preferred first, then large-preferred
                 available_small = self._get_available_clients_from_group(small_preferred)
                 if available_small:
-                    alternative_client = self._select_client_round_robin(available_small, is_small_group=True)
+                    # Don't use round-robin for retry, just pick first available
+                    alternative_client = available_small[0]
                 else:
                     available_large = self._get_available_clients_from_group(large_preferred)
                     if available_large:
-                        alternative_client = self._select_client_round_robin(available_large, is_small_group=False)
+                        alternative_client = available_large[0]
             else:
                 # Large files use large-preferred group
                 available_large = self._get_available_clients_from_group(large_preferred)
                 if available_large:
-                    alternative_client = self._select_client_round_robin(available_large, is_small_group=False)
+                    alternative_client = available_large[0]
             
             if alternative_client:
                 # Mark new client as busy
@@ -241,6 +262,10 @@ class IntelligentClientAllocator:
         Release a client back to the available pool after task completion.
         More robust to multiple calls or cleared tasks.
         """
+        if not client:
+            logger.warning(f"Attempted to release None client for task {task_id}")
+            return
+            
         async with self._lock:
             client_id = client.me.id
             
@@ -269,6 +294,35 @@ class IntelligentClientAllocator:
 
             logger.debug(f"Client @{client.me.username} (ID: {client_id}) state is now {self.client_states.get(client_id)} after release attempt for task {task_id}.")
     
+    async def cleanup_stale_states(self):
+        """
+        Clean up stale client states for disconnected clients.
+        Should be called periodically.
+        """
+        async with self._lock:
+            current_time = time.time()
+            
+            # Get current connected client IDs
+            connected_client_ids = {c.me.id for c in self.client_manager.all_clients if c and c.is_connected}
+            
+            # Clean up states for disconnected clients
+            stale_client_ids = set(self.client_states.keys()) - connected_client_ids
+            for client_id in stale_client_ids:
+                logger.debug(f"Cleaning up stale state for disconnected client {client_id}")
+                self.client_states.pop(client_id, None)
+                self.client_tasks.pop(client_id, None)
+                self.flood_wait_until.pop(client_id, None)
+            
+            # Clean up expired flood waits
+            expired_flood_waits = [
+                client_id for client_id, until_time in self.flood_wait_until.items()
+                if current_time >= until_time
+            ]
+            for client_id in expired_flood_waits:
+                logger.debug(f"Clearing expired flood wait for client {client_id}")
+                del self.flood_wait_until[client_id]
+                self.client_states[client_id] = ClientStatus.IDLE
+    
     async def get_allocation_stats(self) -> Dict:
         """Get current allocation statistics for monitoring."""
         async with self._lock:
@@ -292,5 +346,9 @@ class IntelligentClientAllocator:
                     "flood_wait": flood_wait_count
                 },
                 "small_file_threshold_mb": self.small_file_threshold_bytes / 1024 / 1024,
-                "active_tasks": len(self.client_tasks)
+                "active_tasks": len(self.client_tasks),
+                "round_robin_indices": {
+                    "small_preferred": self.small_preferred_index,
+                    "large_preferred": self.large_preferred_index
+                }
             } 

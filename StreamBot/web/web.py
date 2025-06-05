@@ -4,6 +4,7 @@ import logging
 import asyncio
 import datetime
 import os
+import math
 from aiohttp import web
 import aiohttp_cors
 from pyrogram import Client
@@ -12,7 +13,7 @@ from pyrogram.types import Message, User
 
 from StreamBot.config import Var
 # Ensure decode_message_id is imported from utils
-from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id
+from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id, validate_streaming_parameters, calculate_chunk_parameters
 from StreamBot.utils.exceptions import NoClientsAvailableError # Import custom exception
 from StreamBot.utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
 from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_response
@@ -25,6 +26,9 @@ routes = web.RouteTableDef()
 
 # Request timeout for streaming operations (2 hours max)
 STREAM_TIMEOUT = 7200  # 2 hours
+
+# Chunk size for downloads - this is critical for proper offset calculation
+CHUNK_SIZE = 1024 * 1024  # 1MB chunks - same as FileStreamBot reference
 
 # --- Lightweight Retry Configuration (Hardcoded) ---
 MAX_RETRIES = 2  # Total retries per request
@@ -154,6 +158,108 @@ async def get_media_message(bot_client: Client, message_id: int) -> Message:
 
     return media_msg
 
+# --- Proper Range Header Validation (Enhanced from FileStreamBot) ---
+def parse_range_header(range_header: str, file_size: int) -> tuple:
+    """Parse range header with proper validation - based on FileStreamBot reference."""
+    if not range_header:
+        return None
+    
+    try:
+        # Handle both 'bytes=start-end' and 'bytes=start-' formats
+        if range_header.startswith('bytes='):
+            range_spec = range_header[6:]  # Remove 'bytes='
+            if '-' in range_spec:
+                parts = range_spec.split('-', 1)
+                start_str, end_str = parts[0], parts[1]
+                
+                from_bytes = int(start_str) if start_str else 0
+                until_bytes = int(end_str) if end_str else file_size - 1
+            else:
+                return None
+        else:
+            return None
+        
+        # Validation based on FileStreamBot
+        if (until_bytes > file_size) or (from_bytes < 0) or (until_bytes < from_bytes):
+            return None
+        
+        # Ensure until_bytes doesn't exceed file size
+        until_bytes = min(until_bytes, file_size - 1)
+        
+        return (from_bytes, until_bytes)
+        
+    except (ValueError, TypeError, IndexError):
+        logger.warning(f"Error parsing range header: {range_header}")
+        return None
+
+# --- Chunk-aligned File Streaming (Fixed Offset Calculation) ---
+async def stream_file_chunks(client: Client, media_msg: Message, from_bytes: int, until_bytes: int, response: web.StreamResponse) -> int:
+    """
+    Stream file chunks with proper offset calculation to prevent OFFSET_INVALID errors.
+    Based on FileStreamBot reference implementation.
+    """
+    bytes_streamed = 0
+    
+    # Validate streaming parameters first
+    file_size = until_bytes + 1  # Approximate file size for validation
+    if not validate_streaming_parameters(from_bytes, until_bytes, file_size, CHUNK_SIZE):
+        logger.error(f"Invalid streaming parameters: from_bytes={from_bytes}, until_bytes={until_bytes}, file_size={file_size}")
+        raise ValueError("Invalid streaming parameters")
+    
+    # Calculate chunk-aligned parameters using utility function
+    offset, first_part_cut, last_part_cut, part_count = calculate_chunk_parameters(from_bytes, until_bytes, CHUNK_SIZE)
+    
+    current_part = 1
+    current_offset = offset
+    
+    try:
+        # Stream file in properly calculated chunks
+        async for chunk in client.stream_media(media_msg, offset=current_offset, limit=CHUNK_SIZE):
+            if not chunk:
+                break
+                
+            try:
+                # Apply cuts based on FileStreamBot logic
+                if part_count == 1:
+                    # Single chunk - apply both cuts
+                    chunk_to_send = chunk[first_part_cut:last_part_cut]
+                elif current_part == 1:
+                    # First chunk - apply first cut only
+                    chunk_to_send = chunk[first_part_cut:]
+                elif current_part == part_count:
+                    # Last chunk - apply last cut only
+                    chunk_to_send = chunk[:last_part_cut]
+                else:
+                    # Middle chunks - no cuts
+                    chunk_to_send = chunk
+                
+                if chunk_to_send:
+                    await response.write(chunk_to_send)
+                    bytes_streamed += len(chunk_to_send)
+                
+                current_part += 1
+                current_offset += CHUNK_SIZE
+                
+                if current_part > part_count:
+                    break
+                    
+            except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):
+                logger.warning(f"Client disconnected during chunk write. Streamed {humanbytes(bytes_streamed)}")
+                break
+            except Exception as write_e:
+                logger.error(f"Error writing chunk: {write_e}")
+                break
+                
+    except PyrogramOffsetInvalid as e:
+        logger.error(f"OffsetInvalid error: offset={current_offset}, chunk_size={CHUNK_SIZE}, file_size={until_bytes + 1}")
+        # Don't re-raise here, let the calling function handle it
+        raise e
+    except Exception as e:
+        logger.error(f"Unexpected streaming error: {e}")
+        raise e
+    
+    return bytes_streamed
+
 # --- Download Route (Enhanced with intelligent allocation and retry system) ---
 @routes.get("/dl/{encoded_id_str}")
 async def download_route(request: web.Request):
@@ -198,21 +304,18 @@ async def download_route(request: web.Request):
             )
             
         except Exception as e:
-            is_last_attempt = attempt >= MAX_RETRIES
+            if attempt == MAX_RETRIES or not is_retryable_error(e):
+                # Final attempt or non-retryable error
+                logger.error(f"Final failure for download {message_id} after {attempt} attempts: {e}")
+                if isinstance(e, web.HTTPException):
+                    raise e
+                else:
+                    raise web.HTTPInternalServerError(text="Service temporarily unavailable.")
             
-            if not is_retryable_error(e) or is_last_attempt:
-                # Non-retryable error or max retries reached
-                if is_last_attempt and is_retryable_error(e):
-                    logger.error(f"Max retries ({MAX_RETRIES}) reached for {message_id}. Final error: {e}")
-                raise e
-            
-            # Calculate retry delay
+            # Retry with delay
             delay = await get_retry_delay(attempt)
-            logger.warning(f"Download attempt {attempt + 1} failed for {message_id}: {type(e).__name__}. Retrying in {delay:.1f}s")
+            logger.warning(f"Download attempt {attempt + 1} failed for {message_id}: {e}. Retrying in {delay:.2f}s...")
             await asyncio.sleep(delay)
-    
-    # Should never reach here, but safety fallback
-    raise web.HTTPInternalServerError(text="Maximum retry attempts exceeded.")
 
 async def _execute_download_logic(request, client_manager, intelligent_allocator, message_id, encoded_id, task_id, start_time_request):
     """Execute the core download logic."""
@@ -262,7 +365,7 @@ async def _execute_download_logic(request, client_manager, intelligent_allocator
         raise e
 
 async def _stream_file_to_response(request, streamer_client, intelligent_allocator, media_msg, message_id, encoded_id, task_id, file_name, file_size, file_mime_type, start_time_request):
-    """Execute the core streaming logic."""
+    """Execute the core streaming logic with proper offset handling."""
     # Sanitize filename for security
     safe_filename = sanitize_filename(file_name)
 
@@ -279,25 +382,26 @@ async def _stream_file_to_response(request, streamer_client, intelligent_allocat
 
     range_header = request.headers.get('Range')
     status_code = 200
-    start_offset = 0
-    end_offset = file_size - 1 if file_size > 0 else 0
+    from_bytes = 0
+    until_bytes = file_size - 1 if file_size > 0 else 0
     is_range_request = False
 
     if range_header:
         logger.info(f"Range header for {message_id}: '{range_header}', File size: {humanbytes(file_size)}")
         
-        range_result = validate_range_header(range_header, file_size)
+        # Use the enhanced range parser
+        range_result = parse_range_header(range_header, file_size)
         if range_result is None:
             await release_client_safely(intelligent_allocator, streamer_client, task_id)
             logger.error(f"Invalid Range header '{range_header}' for file size {file_size}")
             raise web.HTTPRequestRangeNotSatisfiable(headers={'Content-Range': f'bytes */{file_size}'})
         
-        start_offset, end_offset = range_result
-        headers['Content-Range'] = f'bytes {start_offset}-{end_offset}/{file_size}'
-        headers['Content-Length'] = str(end_offset - start_offset + 1)
+        from_bytes, until_bytes = range_result
+        headers['Content-Range'] = f'bytes {from_bytes}-{until_bytes}/{file_size}'
+        headers['Content-Length'] = str(until_bytes - from_bytes + 1)
         status_code = 206
         is_range_request = True
-        logger.info(f"Serving range request for {message_id}: bytes {start_offset}-{end_offset}/{file_size}")
+        logger.info(f"Serving range request for {message_id}: bytes {from_bytes}-{until_bytes}/{file_size}")
     else:
         headers['Content-Length'] = str(file_size)
         logger.info(f"Serving full download for {message_id}. File size: {humanbytes(file_size)}")
@@ -309,10 +413,8 @@ async def _stream_file_to_response(request, streamer_client, intelligent_allocat
     stream_start_time = asyncio.get_event_loop().time()
     streaming_completed_successfully = False
 
-    stream_length_to_request = (end_offset - start_offset + 1) if is_range_request else 0
-
     # Handle 0-byte file case
-    if (end_offset - start_offset + 1) == 0 and file_size == 0:
+    if (until_bytes - from_bytes + 1) == 0 and file_size == 0:
         logger.info(f"Serving 0-byte file {message_id}. No data to stream.")
         await release_client_safely(intelligent_allocator, streamer_client, task_id)
         total_request_duration = asyncio.get_event_loop().time() - start_time_request
@@ -328,25 +430,10 @@ async def _stream_file_to_response(request, streamer_client, intelligent_allocat
             max_stream_retries = 2
             for stream_attempt in range(max_stream_retries + 1):
                 try:
-                    async def stream_data():
-                        async for chunk in streamer_client.stream_media(
-                            media_msg,
-                            offset=start_offset,
-                            limit=stream_length_to_request
-                        ):
-                            try:
-                                await response.write(chunk)
-                                nonlocal bytes_streamed
-                                bytes_streamed += len(chunk)
-                            except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):
-                                logger.warning(f"Client disconnected during write for {message_id}. Streamed {humanbytes(bytes_streamed)}")
-                                return
-                            except Exception as write_e:
-                                logger.error(f"Error writing chunk for {message_id}: {write_e}")
-                                return
-                    
-                    # Apply timeout to streaming
-                    await asyncio.wait_for(stream_data(), timeout=STREAM_TIMEOUT)
+                    # Use the new chunk-aligned streaming function
+                    bytes_streamed = await stream_file_chunks(
+                        streamer_client, media_msg, from_bytes, until_bytes, response
+                    )
                     streaming_completed_successfully = True
                     break
 
@@ -363,7 +450,8 @@ async def _stream_file_to_response(request, streamer_client, intelligent_allocat
                         break
 
                 except PyrogramOffsetInvalid:
-                    logger.error(f"OffsetInvalid error for {message_id}. Offset: {start_offset}")
+                    logger.error(f"OffsetInvalid error for {message_id}. from_bytes: {from_bytes}, until_bytes: {until_bytes}")
+                    # This should not happen with proper chunk alignment, but handle gracefully
                     if bytes_streamed == 0:
                         raise web.HTTPInternalServerError(text="File access error. Please try again later.")
                     break
@@ -379,6 +467,8 @@ async def _stream_file_to_response(request, streamer_client, intelligent_allocat
                         if alternative_client:
                             logger.info(f"Switched to alternative client @{alternative_client.me.username} for {message_id}")
                             streamer_client = alternative_client
+                            # Re-fetch media message with new client
+                            media_msg = await get_media_message(streamer_client, message_id)
                             await asyncio.sleep(CLIENT_SWITCH_DELAY)
                             continue
                     
@@ -412,15 +502,17 @@ async def _stream_file_to_response(request, streamer_client, intelligent_allocat
         await add_bandwidth_usage(bytes_streamed)
 
     stream_duration = asyncio.get_event_loop().time() - stream_start_time
-    expected_bytes = end_offset - start_offset + 1
+    expected_bytes = until_bytes - from_bytes + 1
 
+    # Log completion status
     if streaming_completed_successfully and bytes_streamed == expected_bytes:
-        logger.info(f"Successfully streamed {humanbytes(bytes_streamed)} for {message_id} in {stream_duration:.2f}s")
+        logger.info(f"Download request for {message_id} completed successfully. Total duration: {stream_duration:.2f}s")
     else:
         logger.warning(f"Partial/incomplete stream for {message_id}: {humanbytes(bytes_streamed)}/{humanbytes(expected_bytes)}")
 
     total_request_duration = asyncio.get_event_loop().time() - start_time_request
     logger.info(f"Download request for {message_id} completed. Total duration: {total_request_duration:.2f}s")
+
     return response
 
 # --- API Info Route --- (Keep as is, assuming it's working)

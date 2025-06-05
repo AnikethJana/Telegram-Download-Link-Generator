@@ -154,11 +154,14 @@ class ClientManager:
     async def get_streaming_client(self) -> Client:
         """Get an available client for streaming operations using round-robin selection."""
         async with self._lock:
-            active_workers = [client for client in self.worker_clients if client.is_connected]
+            active_workers = [client for client in self.worker_clients if client and client.is_connected]
 
             if active_workers:
-                self._round_robin_index = (self._round_robin_index + 1) % len(active_workers)
+                # Ensure index is within bounds (critical fix)
+                if self._round_robin_index >= len(active_workers):
+                    self._round_robin_index = 0
                 selected_client = active_workers[self._round_robin_index]
+                self._round_robin_index = (self._round_robin_index + 1) % len(active_workers)
                 logger.debug(f"Selected worker client @{selected_client.me.username} via round-robin for streaming.")
                 return selected_client
 
@@ -173,12 +176,15 @@ class ClientManager:
         """Get an alternative streaming client, excluding the specified problematic client."""
         async with self._lock:
             active_workers = [client for client in self.worker_clients 
-                            if client.is_connected and client.me.id != exclude_client.me.id]
+                            if client and client.is_connected and client.me.id != exclude_client.me.id]
 
             if active_workers:
                 # Select the next available worker that's not the excluded one
-                self._round_robin_index = (self._round_robin_index + 1) % len(active_workers)
+                # Ensure index is within bounds
+                if self._round_robin_index >= len(active_workers):
+                    self._round_robin_index = 0
                 selected_client = active_workers[self._round_robin_index]
+                self._round_robin_index = (self._round_robin_index + 1) % len(active_workers)
                 logger.debug(f"Selected alternative worker client @{selected_client.me.username} excluding @{exclude_client.me.username}")
                 return selected_client
 
