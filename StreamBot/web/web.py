@@ -200,10 +200,12 @@ async def stream_file_chunks(client: Client, media_msg: Message, from_bytes: int
     """
     bytes_streamed = 0
     
-    # Validate streaming parameters first
-    file_size = until_bytes + 1  # Approximate file size for validation
-    if not validate_streaming_parameters(from_bytes, until_bytes, file_size, CHUNK_SIZE):
-        logger.error(f"Invalid streaming parameters: from_bytes={from_bytes}, until_bytes={until_bytes}, file_size={file_size}")
+    # Get actual file size from media message for proper validation
+    _file_id, _file_name, actual_file_size, _file_mime_type, _ = get_file_attr(media_msg)
+    
+    # Validate streaming parameters with correct file size
+    if not validate_streaming_parameters(from_bytes, until_bytes, actual_file_size, CHUNK_SIZE):
+        logger.error(f"Invalid streaming parameters: from_bytes={from_bytes}, until_bytes={until_bytes}, file_size={actual_file_size}")
         raise ValueError("Invalid streaming parameters")
     
     # Calculate chunk-aligned parameters using utility function
