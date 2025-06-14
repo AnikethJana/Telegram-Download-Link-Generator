@@ -4,6 +4,7 @@ import logging
 import asyncio
 import datetime
 import os
+import math
 from aiohttp import web
 import aiohttp_cors
 from pyrogram import Client
@@ -18,6 +19,7 @@ from StreamBot.utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth
 from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_response
 from StreamBot.security.middleware import SecurityMiddleware
 from StreamBot.security.validator import validate_range_header, sanitize_filename, get_client_ip
+from StreamBot.utils.custom_dl import ByteStreamer
 
 logger = logging.getLogger(__name__)
 
@@ -160,17 +162,38 @@ async def download_route(request: web.Request):
         logger.error(f"Unexpected error from get_media_message for {message_id}: {e}", exc_info=True)
         raise web.HTTPInternalServerError(text="Internal server error occurred.")
 
-    # Use get_file_attr on the fetched media_msg from the log channel
-    _file_id, file_name, file_size, file_mime_type, _ = get_file_attr(media_msg)
+    # Get ByteStreamer instance for the client
+    byte_streamer = client_manager.get_streamer_for_client(streamer_client)
+    if not byte_streamer:
+        logger.error(f"No ByteStreamer found for client @{streamer_client.me.username}")
+        raise web.HTTPInternalServerError(text="Streaming service not available.")
+
+    # Use ByteStreamer to get file properties (similar to WebStreamer approach)
+    try:
+        file_id = await byte_streamer.get_file_properties(message_id)
+    except FileNotFoundError:
+        logger.error(f"File properties not found for message {message_id}")
+        raise web.HTTPNotFound(text="File not found or has been deleted.")
+    except Exception as e:
+        logger.error(f"Error getting file properties for message {message_id}: {e}", exc_info=True)
+        raise web.HTTPInternalServerError(text="Failed to get file details.")
+
+    # Extract file information from FileId object
+    file_size = getattr(file_id, 'file_size', 0)
+    file_name = getattr(file_id, 'file_name', None)
+    file_mime_type = getattr(file_id, 'mime_type', None)
+
+    # Generate fallback filename if needed
+    if not file_name:
+        file_name = f"file_{message_id}"
 
     # Sanitize filename for security
     safe_filename = sanitize_filename(file_name)
 
-    # file_size from get_file_attr is now guaranteed to be an int (0 if unknown)
-    # file_name is guaranteed to be a string (e.g., "unknown_file" if unknown)
-    if file_name == "unknown_file" and file_size == 0:
-        logger.error(f"Could not extract valid file attributes from message {message_id} in log channel. Name: {file_name}, Size: {file_size}")
-        raise web.HTTPInternalServerError(text="Failed to get file details.")
+    # Validate file size
+    if file_size == 0:
+        logger.warning(f"File size is 0 for message {message_id}")
+        # Don't raise error, let it proceed for 0-byte files
 
 
     headers = {
@@ -213,10 +236,7 @@ async def download_route(request: web.Request):
     max_retries_stream = 2
     current_retry_stream = 0
 
-    # stream_media's 'limit' is number of bytes *from the offset*
-    # If it's a full request (is_range_request is False), start_offset is 0, end_offset is file_size-1.
-    # stream_limit should be 0 for full file, or (end_offset - start_offset + 1) for range.
-    stream_length_to_request = (end_offset - start_offset + 1) if is_range_request else 0 # 0 means stream to end from offset
+
 
     # Handle 0-byte file case: if length is 0, don't try to stream.
     if (end_offset - start_offset + 1) == 0 and file_size == 0 and status_code in [200, 206]:
@@ -224,22 +244,32 @@ async def download_route(request: web.Request):
         # Response already prepared with Content-Length: 0. Just return.
         return response
 
+    # Calculate streaming parameters based on WebStreamer approach
+    chunk_size = 1024 * 1024  # 1MB chunks
+    until_bytes = min(end_offset, file_size - 1)
+    offset = start_offset - (start_offset % chunk_size)
+    first_part_cut = start_offset - offset
+    last_part_cut = until_bytes % chunk_size + 1
+    part_count = math.ceil((until_bytes + 1) / chunk_size) - math.floor(offset / chunk_size)
 
-    logger.debug(f"Preparing to stream for {message_id}. Effective range: {start_offset}-{end_offset}. Stream length to request: {stream_length_to_request if stream_length_to_request > 0 else 'to end'}.")
+    logger.debug(f"Preparing WebStreamer-style streaming for {message_id}. Range: {start_offset}-{end_offset}, Offset: {offset}, Parts: {part_count}")
 
     # Use stream tracking context manager for proper cleanup
     request_id = f"{message_id}_{encoded_id[:10]}"
     async with tracked_stream_response(response, stream_tracker, request_id):
         while current_retry_stream <= max_retries_stream:
             try:
-                # Fixed: Use asyncio.wait_for for timeout handling with better compatibility
+                # Use WebStreamer-style streaming with ByteStreamer
                 try:
-                    # Create the streaming coroutine
+                    # Create the streaming coroutine using ByteStreamer
                     async def stream_data():
-                        async for chunk in streamer_client.stream_media(
-                            media_msg,
-                            offset=start_offset,
-                            limit=stream_length_to_request
+                        async for chunk in byte_streamer.yield_file(
+                            file_id,
+                            offset,
+                            first_part_cut,
+                            last_part_cut,
+                            part_count,
+                            chunk_size
                         ):
                             try:
                                 await response.write(chunk)
@@ -261,14 +291,8 @@ async def download_route(request: web.Request):
                         raise web.HTTPGatewayTimeout(text="Request timeout. Please try again.")
                     break
 
-                logger.info(f"Successfully finished streaming loop for {message_id}.")
-                break # Exit retry loop on successful completion of async for
-
-            except PyrogramOffsetInvalid as e: # Specific catch for OffsetInvalid
-                logger.error(f"Pyrogram OffsetInvalid error during stream for {message_id}. Offset: {start_offset}, Limit: {stream_length_to_request}. Error: {e}")
-                if bytes_streamed == 0:
-                     raise web.HTTPInternalServerError(text="File access error. Please try again later.")
-                break
+                logger.info(f"Successfully finished WebStreamer-style streaming for {message_id}.")
+                break # Exit retry loop on successful completion
 
             except FloodWait as e:
                  logger.warning(f"FloodWait during stream for {message_id} on client @{streamer_client.me.username}. FloodWait: {e.value}s. Attempting to get alternative client...")
@@ -279,6 +303,11 @@ async def download_route(request: web.Request):
                      if alternative_client:
                          logger.info(f"Switching from @{streamer_client.me.username} to @{alternative_client.me.username} for {message_id} due to FloodWait")
                          streamer_client = alternative_client
+                         # Update ByteStreamer instance
+                         byte_streamer = client_manager.get_streamer_for_client(streamer_client)
+                         if not byte_streamer:
+                             logger.error(f"No ByteStreamer found for alternative client @{streamer_client.me.username}")
+                             break
                          # Small delay to avoid rapid switching
                          await asyncio.sleep(1)
                      else:
@@ -299,7 +328,7 @@ async def download_route(request: web.Request):
                  await asyncio.sleep(2 * current_retry_stream)
                  logger.info(f"Retrying stream for {message_id} from offset {start_offset}.")
             except Exception as e:
-                 logger.error(f"Unexpected error during streaming for {message_id}: {e}", exc_info=True)
+                 logger.error(f"Unexpected error during WebStreamer-style streaming for {message_id}: {e}", exc_info=True)
                  return response
 
     stream_duration = asyncio.get_event_loop().time() - stream_start_time
