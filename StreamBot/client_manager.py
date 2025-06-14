@@ -1,13 +1,14 @@
 # StreamBot/client_manager.py
 import asyncio
 import logging
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 from pyrogram import Client
 from pyrogram.errors import ApiIdInvalid, AuthKeyUnregistered, UserDeactivated, UserDeactivatedBan, SessionPasswordNeeded
 
 from StreamBot.config import Var
 from StreamBot.utils.exceptions import NoClientsAvailableError
+from StreamBot.utils.custom_dl import ByteStreamer
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,9 @@ class ClientManager:
         self.primary_client: Optional[Client] = None
         self.worker_clients: List[Client] = []
         self.all_clients: List[Client] = []
+        
+        # ByteStreamer instances for each client
+        self.streamers: Dict[str, ByteStreamer] = {}
 
         self._round_robin_index = 0
         self._lock = asyncio.Lock()
@@ -63,6 +67,9 @@ class ClientManager:
             await self.primary_client.start()
             self.all_clients.append(self.primary_client)
             me = await self.primary_client.get_me()
+            
+            # Create ByteStreamer for primary client
+            self.streamers[f"primary_{me.username}"] = ByteStreamer(self.primary_client)
             logger.info(f"Primary client started as @{me.username} (ID: {me.id})")
         except (ApiIdInvalid, AuthKeyUnregistered, UserDeactivated, UserDeactivatedBan, SessionPasswordNeeded) as e:
             logger.critical(f"CRITICAL: Failed to start primary Telegram client: {e.__class__.__name__} - {e}", exc_info=True)
@@ -85,6 +92,9 @@ class ClientManager:
                 if isinstance(result, Client) and result.is_connected:
                     self.worker_clients.append(result)
                     self.all_clients.append(result)
+                    
+                    # Create ByteStreamer for worker client
+                    self.streamers[f"worker_{i}_{result.me.username}"] = ByteStreamer(result)
                     logger.info(f"Worker client {i} (@{result.me.username}) started successfully with session: {result.name}.")
                 elif isinstance(result, Exception):
                     logger.error(f"Failed to start worker client {i} with token ending in ...{self.additional_tokens[i][-4:]}: {result.__class__.__name__} - {result}", exc_info=False)
@@ -142,6 +152,7 @@ class ClientManager:
             logger.info("No connected clients to stop.")
         self.all_clients.clear()
         self.worker_clients.clear()
+        self.streamers.clear()
         self.primary_client = None
 
     def get_primary_client(self) -> Optional[Client]:
@@ -190,3 +201,11 @@ class ClientManager:
 
             logger.warning(f"No alternative clients available excluding @{exclude_client.me.username}")
             return None
+
+    def get_streamer_for_client(self, client: Client) -> Optional[ByteStreamer]:
+        """Get the ByteStreamer instance for a given client."""
+        for key, streamer in self.streamers.items():
+            if streamer.client.me.id == client.me.id:
+                return streamer
+        logger.warning(f"No ByteStreamer found for client @{client.me.username}")
+        return None
