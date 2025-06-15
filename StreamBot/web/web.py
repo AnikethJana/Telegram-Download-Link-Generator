@@ -432,23 +432,9 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
     webapp['start_time'] = start_time # type: ignore
     logger.info("Web application routes configured with security middleware.")
     
-    # Setup secure API with reCAPTCHA and DDoS protection
+    # Setup secure API with reCAPTCHA and DDoS protection (includes CORS configuration)
     from StreamBot.web.secure_api import setup_secure_api
     setup_secure_api(webapp)
     
-    # Configure CORS with specific allowed origins
-    allowed_origins = [origin.strip() for origin in Var.CORS_ALLOWED_ORIGINS.split(',')]
-    cors_config = {}
-    for origin in allowed_origins:
-        cors_config[origin] = aiohttp_cors.ResourceOptions(
-            allow_credentials=False,
-            expose_headers=["Content-Length", "Content-Range", "Accept-Ranges"],
-            allow_headers=["Range", "Content-Type", "Authorization"],
-            allow_methods=["GET", "HEAD", "OPTIONS", "POST"]
-        )
-    
-    cors = aiohttp_cors.setup(webapp, defaults=cors_config)
-    for route in list(webapp.router.routes()):
-        cors.add(route)
-    logger.info(f"CORS configured for allowed origins: {allowed_origins} with secure API endpoints.")
+    logger.info("Secure API endpoints configured with CORS protection.")
     return webapp

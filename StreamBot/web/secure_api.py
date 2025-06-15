@@ -270,17 +270,17 @@ async def secure_download(request: web.Request):
         recaptcha_response = request_data.get('recaptcha_response')
         
         if not recaptcha_response:
-        raise web.HTTPBadRequest(
-                text=json.dumps({"error": "reCAPTCHA response required"}),
-            content_type="application/json"
-        )
-    
-    # Verify reCAPTCHA
-    if not await verify_recaptcha(recaptcha_response):
             raise web.HTTPBadRequest(
-            text=json.dumps({"error": "reCAPTCHA verification failed"}),
-            content_type="application/json"
-        )
+                text=json.dumps({"error": "reCAPTCHA response required"}),
+                content_type="application/json"
+            )
+    
+        # Verify reCAPTCHA
+        if not await verify_recaptcha(recaptcha_response):
+            raise web.HTTPBadRequest(
+                text=json.dumps({"error": "reCAPTCHA verification failed"}),
+                content_type="application/json"
+            )
     
         # Generate secure download token
         download_token = generate_download_token(encoded_id, client_ip)
@@ -342,29 +342,8 @@ async def token_download(request: web.Request):
     logger.info(f"Token download authenticated for {encoded_id} from {client_ip}")
     raise web.HTTPFound(location=download_url)
 
-@secure_routes.options("/{path:.*}")
-async def options_handler(request: web.Request):
-    """Handle CORS preflight requests."""
-    origin = request.headers.get('Origin')
-    allowed_origins = [origin.strip() for origin in Var.CORS_ALLOWED_ORIGINS.split(',')]
-    
-    # Check if origin is allowed
-    if origin in allowed_origins:
-    return web.Response(headers={
-            'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        'Access-Control-Max-Age': '86400'
-    })
-    else:
-        logger.warning(f"CORS request from unauthorized origin: {origin}")
-        return web.Response(status=403, text="Origin not allowed")
-
 def setup_secure_api(app: web.Application):
     """Set up the secure API with CORS."""
-    # Add routes
-    app.add_routes(secure_routes)
-    
     # Parse allowed origins
     allowed_origins = [origin.strip() for origin in Var.CORS_ALLOWED_ORIGINS.split(',')]
     
@@ -378,13 +357,18 @@ def setup_secure_api(app: web.Application):
             allow_methods=["GET", "POST", "HEAD", "OPTIONS"]
         )
     
-    # Setup CORS with specific origins
+    # Setup CORS
     cors = aiohttp_cors.setup(app, defaults=cors_config)
     
-    # Add CORS to all routes
-    for route in list(app.router.routes()):
-        if hasattr(route, 'resource'):
-            cors.add(route.resource)
+    # Add secure API routes with CORS
+    for route in secure_routes:
+        resource = app.router.add_route(
+            route.method, 
+            route.path, 
+            route.handler, 
+            **route.kwargs
+        )
+        cors.add(resource)
     
     logger.info(f"Secure API initialized with CORS for origins: {allowed_origins}")
     return app 
