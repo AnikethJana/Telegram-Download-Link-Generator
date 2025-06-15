@@ -10,5 +10,8 @@ python-dotenv>=1.0.0
 pymongo
 dnspython
 
+# --- Security & Authentication --- #
+PyJWT>=2.8.0
+
 # --- Memory Management ------- #
 psutil>=5.9.0

@@ -30,7 +30,7 @@ error_groups_detailed.txt
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
-
+frontend/
 # Unit test / coverage reports
 htmlcov/
 .tox/

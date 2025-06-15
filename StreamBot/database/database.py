@@ -1,6 +1,8 @@
 # StreamBot/database.py
 import pymongo
 import logging
+import datetime
+from typing import Optional, Dict, Any
 from ..config import Var
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,9 @@ try:
         # For now, only the default _id index is implicitly managed.
         # If you add other indexes, you can specify background=True for them.
         # Example: database['users'].create_index([("some_other_field", 1)], background=True)
+        
+        # Create index for file metadata expiry
+        database['file_metadata'].create_index([("expires_at", 1)], background=True, expireAfterSeconds=0)
         logger.debug("Database indexes ensured (MongoDB auto-manages _id index)")
     except Exception as e:
         logger.warning(f"Could not create database indexes: {e}")
@@ -49,8 +54,9 @@ except Exception as e:
     exit(f"Failed to connect to MongoDB: {e}")
 
 
-# User collection
+# Collections
 user_data = database['users']
+file_metadata = database['file_metadata']
 
 async def present_user(user_id: int) -> bool:
     """Check if a user exists in the database."""
@@ -120,3 +126,76 @@ async def del_user(user_id: int):
              logger.warning(f"Attempted to delete non-existent user {user_id}.")
     except Exception as e:
         logger.error(f"Error deleting user {user_id}: {e}", exc_info=True)
+
+# File metadata functions
+async def store_file_metadata(encoded_id: str, file_data: Dict[str, Any]) -> bool:
+    """Store file metadata for secure download."""
+    try:
+        # Set expiry time
+        expires_at = datetime.datetime.utcnow() + datetime.timedelta(seconds=Var.LINK_EXPIRY_SECONDS)
+        
+        metadata = {
+            '_id': encoded_id,
+            'file_name': file_data.get('file_name', 'unknown'),
+            'file_size': file_data.get('file_size', 0),
+            'mime_type': file_data.get('mime_type', 'application/octet-stream'),
+            'message_id': file_data.get('message_id'),
+            'created_at': datetime.datetime.utcnow(),
+            'expires_at': expires_at,
+            'download_count': 0,
+            'last_accessed': None
+        }
+        
+        file_metadata.insert_one(metadata)
+        logger.info(f"Stored file metadata for {encoded_id}")
+        return True
+        
+    except pymongo.errors.DuplicateKeyError:
+        logger.warning(f"File metadata already exists for {encoded_id}")
+        return True
+    except Exception as e:
+        logger.error(f"Error storing file metadata for {encoded_id}: {e}", exc_info=True)
+        return False
+
+async def get_file_metadata(encoded_id: str) -> Optional[Dict[str, Any]]:
+    """Get file metadata by encoded ID."""
+    try:
+        metadata = file_metadata.find_one({'_id': encoded_id})
+        if metadata:
+            # Update last accessed time
+            file_metadata.update_one(
+                {'_id': encoded_id},
+                {'$set': {'last_accessed': datetime.datetime.utcnow()}}
+            )
+        return metadata
+    except Exception as e:
+        logger.error(f"Error getting file metadata for {encoded_id}: {e}", exc_info=True)
+        return None
+
+async def increment_download_count(encoded_id: str) -> bool:
+    """Increment download count for file."""
+    try:
+        result = file_metadata.update_one(
+            {'_id': encoded_id},
+            {
+                '$inc': {'download_count': 1},
+                '$set': {'last_accessed': datetime.datetime.utcnow()}
+            }
+        )
+        return result.modified_count > 0
+    except Exception as e:
+        logger.error(f"Error incrementing download count for {encoded_id}: {e}", exc_info=True)
+        return False
+
+async def cleanup_expired_files():
+    """Remove expired file metadata (handled automatically by MongoDB TTL index)."""
+    try:
+        # This is handled automatically by MongoDB TTL index, but we can manually clean if needed
+        current_time = datetime.datetime.utcnow()
+        result = file_metadata.delete_many({'expires_at': {'$lt': current_time}})
+        if result.deleted_count > 0:
+            logger.info(f"Cleaned up {result.deleted_count} expired file records")
+        return result.deleted_count
+    except Exception as e:
+        logger.error(f"Error cleaning up expired files: {e}", exc_info=True)
+        return 0

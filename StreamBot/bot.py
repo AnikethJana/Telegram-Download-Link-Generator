@@ -380,9 +380,21 @@ def attach_handlers(app: Client):
                 logger.error(f"Could not get file attributes for message {log_msg.id}")
                 return
 
-            # Generate download link
+            # Generate frontend download link (secure with reCAPTCHA)
             encoded_msg_id = encode_message_id(log_msg.id)
-            download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
+            
+            # Store file metadata in database for secure access
+            from StreamBot.database.database import store_file_metadata
+            file_data = {
+                'file_name': file_name,
+                'file_size': file_size,
+                'mime_type': _file_mime_type or 'application/octet-stream',
+                'message_id': log_msg.id
+            }
+            await store_file_metadata(encoded_msg_id, file_data)
+            
+            # Use frontend URL for secure downloads
+            download_link = f"{Var.FRONTEND_URL}/file/{encoded_msg_id}"
 
             # Send success response
             await processing_msg.edit_text(

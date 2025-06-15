@@ -103,6 +103,19 @@ class Var:
     MAX_LINKS_PER_DAY = get_env("MAX_LINKS_PER_DAY", default=5, is_int=True)
     BANDWIDTH_LIMIT_GB = get_env("BANDWIDTH_LIMIT_GB", default=100, is_int=True)
     
+    # reCAPTCHA Configuration for secure frontend
+    RECAPTCHA_SECRET_KEY = get_env("RECAPTCHA_SECRET_KEY", default=None)
+    
+    # JWT Configuration for secure downloads
+    JWT_SECRET_KEY = get_env("JWT_SECRET_KEY", default="your-super-secret-jwt-key-change-this")
+    JWT_EXPIRY_MINUTES = get_env("JWT_EXPIRY_MINUTES", default=30, is_int=True)
+    
+    # Frontend URL for redirect-based downloads
+    FRONTEND_URL = get_env("FRONTEND_URL", default="http://localhost:3000")
+    
+    # CORS Configuration - specify allowed origins for security
+    CORS_ALLOWED_ORIGINS = get_env("CORS_ALLOWED_ORIGINS", default="https://,http://localhost:3001")
+    
     # Basic security validation
     if PORT and (PORT < 1 or PORT > 65535):
         logger.error(f"Invalid PORT value: {PORT}. Must be between 1-65535.")
