@@ -8,18 +8,19 @@ import math
 from aiohttp import web
 import aiohttp_cors
 from pyrogram import Client
-from pyrogram.errors import FloodWait, FileIdInvalid, RPCError, OffsetInvalid as PyrogramOffsetInvalid # Import specific error
+from pyrogram.errors import FloodWait, FileIdInvalid, RPCError
 from pyrogram.types import Message, User
 
 from StreamBot.config import Var
 # Ensure decode_message_id is imported from utils
-from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id
+from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id, get_media_message
 from StreamBot.utils.exceptions import NoClientsAvailableError # Import custom exception
 from StreamBot.utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
 from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_response
 from StreamBot.security.middleware import SecurityMiddleware
 from StreamBot.security.validator import validate_range_header, sanitize_filename, get_client_ip
 from StreamBot.utils.custom_dl import ByteStreamer
+from .streaming import stream_video_route, cors_handler
 
 logger = logging.getLogger(__name__)
 
@@ -49,62 +50,7 @@ def format_uptime(start_time_dt: datetime.datetime) -> str:
     uptime_str += f"{seconds}s"
     return uptime_str.strip() if uptime_str else "0s"
 
-# --- Helper to get message and check expiry ---
-async def get_media_message(bot_client: Client, message_id: int) -> Message:
-    """Fetch the media message object from the LOG_CHANNEL and check expiry."""
-    if not bot_client or not bot_client.is_connected:
-        logger.error("Bot client is not available or connected for get_media_message.")
-        raise web.HTTPServiceUnavailable(text="Service temporarily unavailable.")
-
-    max_retries = 3
-    current_retry = 0
-    media_msg = None
-    while current_retry < max_retries:
-        try:
-            media_msg = await bot_client.get_messages(chat_id=Var.LOG_CHANNEL, message_ids=message_id)
-            break
-        except FloodWait as e:
-            if current_retry == max_retries - 1:
-                logger.error(f"Max retries reached for FloodWait getting message {message_id}. Aborting.")
-                raise web.HTTPTooManyRequests(text="Service temporarily rate limited. Please try again later.")
-            sleep_duration = e.value + 2
-            logger.warning(f"FloodWait getting message {message_id} from {Var.LOG_CHANNEL}. Retrying in {sleep_duration}s (Attempt {current_retry+1}/{max_retries}).")
-            await asyncio.sleep(sleep_duration)
-            current_retry += 1
-        except FileIdInvalid:
-            logger.error(f"FileIdInvalid for message {message_id} in log channel {Var.LOG_CHANNEL}. File might be deleted.")
-            raise web.HTTPNotFound(text="File not found or has been deleted.")
-        except (ConnectionError, RPCError, TimeoutError) as e: # RPCError includes OffsetInvalid, but we catch it more specifically in download_route
-            if current_retry == max_retries - 1:
-                logger.error(f"Max retries reached for network/RPC error getting message {message_id}: {e}. Aborting.")
-                raise web.HTTPServiceUnavailable(text="Service temporarily unavailable. Please try again later.")
-            sleep_duration = 5 * (current_retry + 1)
-            logger.warning(f"Network/RPC error getting message {message_id}: {e}. Retrying in {sleep_duration}s (Attempt {current_retry+1}/{max_retries}).")
-            await asyncio.sleep(sleep_duration)
-            current_retry += 1
-        except Exception as e:
-            logger.error(f"Unexpected error getting message {message_id} from {Var.LOG_CHANNEL}: {e}", exc_info=True)
-            raise web.HTTPInternalServerError(text="Internal server error occurred.")
-
-    if not media_msg:
-        logger.error(f"Failed to retrieve message {message_id} after retries, but no exception was raised (should not happen).")
-        raise web.HTTPServiceUnavailable(text="Service temporarily unavailable.")
-
-    # --- Link Expiry Check ---
-    if hasattr(media_msg, 'date') and isinstance(media_msg.date, datetime.datetime):
-        message_timestamp = media_msg.date.replace(tzinfo=datetime.timezone.utc)
-        current_timestamp = datetime.datetime.now(datetime.timezone.utc)
-        time_difference = current_timestamp - message_timestamp
-        expiry_seconds = Var.LINK_EXPIRY_SECONDS
-        
-        # Check if expiry is enabled
-        if expiry_seconds > 0 and time_difference.total_seconds() > expiry_seconds:
-            logger.warning(f"Download link for message {message_id} expired. Age: {time_difference} > {expiry_seconds}s")
-            raise web.HTTPGone(text="Download link has expired.")
-    else:
-        logger.warning(f"Could not determine message timestamp for message {message_id}. Skipping expiry check.")
-
-    return media_msg
+# get_media_message function moved to utils.py to avoid circular imports
 
 # --- Download Route (Fixed streaming error) ---
 @routes.get("/dl/{encoded_id_str}")
@@ -423,8 +369,9 @@ async def api_info_route(request: web.Request):
 
 # --- Setup Web App ---
 async def setup_webapp(bot_instance: Client, client_manager, start_time: datetime.datetime):
-    # Create app with security middleware
-    webapp = web.Application(middlewares=SecurityMiddleware.get_middlewares())
+    # Create app with security middleware + CORS for streaming
+    middlewares = SecurityMiddleware.get_middlewares() + [cors_handler]
+    webapp = web.Application(middlewares=middlewares)
     
     webapp.add_routes(routes)
     webapp['bot_client'] = bot_instance # This is the primary client for general info like /api/info
@@ -446,3 +393,9 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
         cors.add(route)
     logger.info("CORS configured with security restrictions.")
     return webapp
+
+# Add these routes after the existing routes
+@routes.get("/stream/{encoded_id_str}")
+async def stream_route(request: web.Request):
+    """Route handler for video streaming."""
+    return await stream_video_route(request)

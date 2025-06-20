@@ -86,6 +86,9 @@ class Var:
     BASE_URL = str(get_env("BASE_URL", required=True)).rstrip('/')
     PORT = get_env("PORT", 8080, is_int=True)
     BIND_ADDRESS = get_env("BIND_ADDRESS", "0.0.0.0")
+    
+    # Video streaming frontend configuration
+    VIDEO_FRONTEND_URL = get_env("VIDEO_FRONTEND_URL", default=None)
 
     # Link expiry and security
     LINK_EXPIRY_SECONDS = get_env("LINK_EXPIRY_SECONDS", 86400, is_int=True)

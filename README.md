@@ -69,6 +69,11 @@ BASE_URL=https://yourdomain.com
 PORT=8080 # Port the web server will listen on
 BIND_ADDRESS=0.0.0.0 # Address to bind the web server to
 
+# --- Video Streaming Frontend ---
+# Optional: URL of your video streaming frontend (deployed on Cloudflare Pages or similar)
+# When set, video files will show a "Play Video" button
+VIDEO_FRONTEND_URL=https://your-video-frontend.pages.dev
+
 # --- Settings ---
 LINK_EXPIRY_SECONDS=86400 # Default: 24 hours (in seconds)
 SESSION_NAME=TgDlBot # Pyrogram session file name
@@ -107,6 +112,7 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 * **`BASE_URL`**: The public-facing base URL of your web server (where the bot is hosted). **Crucial for download links.** Do *not* include a trailing slash (`/`).
 * **`PORT`**: The network port the internal web server will listen on (default: `8080`).
 * **`BIND_ADDRESS`**: The network address the web server will bind to (default: `0.0.0.0` to listen on all interfaces).
+* **`VIDEO_FRONTEND_URL`**: (Optional) URL of your video streaming frontend. When set, video files will display a "Play Video" button.
 * **`LINK_EXPIRY_SECONDS`**: Duration (in seconds) for which download links remain valid (default: `86400` = 24 hours).
 * **`SESSION_NAME`**: The name for the Pyrogram session file (default: `TgDlBot`).
 * **`WORKERS`**: Number of concurrent threads Pyrogram uses (default: `4`).
