@@ -8,7 +8,7 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import FloodWait, UserNotParticipant, FloodWait, UserIsBlocked, InputUserDeactivated
 from .database.database import add_user, del_user, full_userbase
 from .config import Var
-from .utils.utils import get_file_attr, humanbytes, encode_message_id
+from .utils.utils import get_file_attr, humanbytes, encode_message_id, is_video_file
 from .security.rate_limiter import bot_rate_limiter
 from .utils.bandwidth import is_bandwidth_limit_exceeded, get_current_bandwidth_usage
 from .utils.smart_logger import SmartRateLimitedLogger
@@ -373,7 +373,7 @@ def attach_handlers(app: Client):
                 return
 
             # Get file attributes for response
-            _file_id, file_name, file_size, _file_mime_type, _file_unique_id = get_file_attr(log_msg)
+            _file_id, file_name, file_size, file_mime_type, _file_unique_id = get_file_attr(log_msg)
             file_size_str = humanbytes(file_size)
             if not file_name:
                 await processing_msg.edit_text(Var.ERROR_TEXT)
@@ -384,6 +384,21 @@ def attach_handlers(app: Client):
             encoded_msg_id = encode_message_id(log_msg.id)
             download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
 
+            # Check if it's a video file and create appropriate response
+            is_video = is_video_file(file_mime_type)
+            reply_markup = None
+            
+            if is_video and Var.VIDEO_FRONTEND_URL:
+                # Create inline keyboard with Play Video button - use stream URL directly
+                stream_link = f"{Var.BASE_URL}/stream/{encoded_msg_id}"
+                import urllib.parse
+                encoded_stream_uri = urllib.parse.quote(stream_link)
+                video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
+                
+                reply_markup = InlineKeyboardMarkup([
+                    [InlineKeyboardButton("🎬 Play Video", url=video_play_url)]
+                ])
+
             # Send success response
             await processing_msg.edit_text(
                 Var.LINK_GENERATED_TEXT.format(
@@ -391,6 +406,7 @@ def attach_handlers(app: Client):
                     file_size=file_size_str,
                     download_link=download_link
                 ),
+                reply_markup=reply_markup,
                 disable_web_page_preview=True
             )
 
