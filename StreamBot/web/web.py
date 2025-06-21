@@ -20,7 +20,7 @@ from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_respon
 from StreamBot.security.middleware import SecurityMiddleware
 from StreamBot.security.validator import validate_range_header, sanitize_filename, get_client_ip
 from StreamBot.utils.custom_dl import ByteStreamer
-from .streaming import stream_video_route, cors_handler
+from .streaming import stream_video_route
 
 logger = logging.getLogger(__name__)
 
@@ -369,8 +369,8 @@ async def api_info_route(request: web.Request):
 
 # --- Setup Web App ---
 async def setup_webapp(bot_instance: Client, client_manager, start_time: datetime.datetime):
-    # Create app with security middleware + CORS for streaming
-    middlewares = SecurityMiddleware.get_middlewares() + [cors_handler]
+    # Create app with security middleware
+    middlewares = SecurityMiddleware.get_middlewares()
     webapp = web.Application(middlewares=middlewares)
     
     webapp.add_routes(routes)

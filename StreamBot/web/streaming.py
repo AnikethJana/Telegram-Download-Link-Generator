@@ -11,25 +11,6 @@ from StreamBot.security.validator import validate_range_header, get_client_ip
 
 logger = logging.getLogger(__name__)
 
-@web.middleware
-async def cors_handler(request, handler):
-    """CORS middleware for streaming endpoints."""
-    if request.method == 'OPTIONS':
-        return web.Response(
-            headers={
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
-                'Access-Control-Allow-Headers': 'Range, Content-Type',
-                'Access-Control-Max-Age': '86400'
-            }
-        )
-    
-    response = await handler(request)
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, HEAD, OPTIONS'
-    response.headers['Access-Control-Expose-Headers'] = 'Content-Length, Content-Range, Accept-Ranges'
-    return response
-
 async def stream_video_route(request: web.Request):
     """Handle video streaming requests with optimized streaming support."""
     client_manager = request.app.get('client_manager')
@@ -87,17 +68,19 @@ async def stream_video_route(request: web.Request):
         headers = {
             'Content-Type': file_mime_type,
             'Accept-Ranges': 'bytes',
-            'Cache-Control': 'public, max-age=3600',
-            'Connection': 'keep-alive'
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Connection': 'keep-alive',
+            'Content-Disposition': 'inline'
         }
 
-        # Handle range requests for video seeking
+        # Handle range requests for video seeking - FIXED CALCULATION
         range_header = request.headers.get('Range')
         status_code = 200
         start_offset = 0
         end_offset = file_size - 1
 
         if range_header:
+            logger.debug(f"Video range request for {message_id}: {range_header}")
             range_result = validate_range_header(range_header, file_size)
             if range_result is None:
                 raise web.HTTPRequestRangeNotSatisfiable(
@@ -105,66 +88,119 @@ async def stream_video_route(request: web.Request):
                 )
             
             start_offset, end_offset = range_result
+            
+            # IMPORTANT FIX: Only limit response size for very large requests
+            # Let the browser request what it needs, but prevent abuse
+            requested_size = end_offset - start_offset + 1
+            max_reasonable_request = 50 * 1024 * 1024  # 50MB max per request
+            
+            if requested_size > max_reasonable_request:
+                # Only limit if the request is unreasonably large
+                end_offset = start_offset + max_reasonable_request - 1
+                # Make sure we don't exceed file size
+                if end_offset >= file_size:
+                    end_offset = file_size - 1
+                logger.debug(f"Limited large range request from {requested_size} to {end_offset - start_offset + 1} bytes")
+            
             headers['Content-Range'] = f'bytes {start_offset}-{end_offset}/{file_size}'
             headers['Content-Length'] = str(end_offset - start_offset + 1)
             status_code = 206
+            logger.debug(f"Serving video range {start_offset}-{end_offset}/{file_size} for {message_id}")
         else:
             headers['Content-Length'] = str(file_size)
+            logger.debug(f"Serving full video {file_size} bytes for {message_id}")
 
         response = web.StreamResponse(status=status_code, headers=headers)
         await response.prepare(request)
 
-        # Streaming parameters optimized for video
-        chunk_size = 512 * 1024  # 512KB chunks for smoother video streaming
-        until_bytes = min(end_offset, file_size - 1)
-        offset = start_offset - (start_offset % chunk_size)
-        first_part_cut = start_offset - offset
-        last_part_cut = until_bytes % chunk_size + 1
-        part_count = math.ceil((until_bytes + 1) / chunk_size) - math.floor(offset / chunk_size)
+        # --- REVISED STREAMING LOGIC ---
+        # Using Pyrogram's high-level stream_media for better reliability and seeking.
+        chunk_size = 1024 * 1024  # Pyrogram's stream_media uses 1MB chunks.
+        
+        # Calculate chunk offset and how many bytes to skip in the first chunk.
+        start_chunk = start_offset // chunk_size
+        skip_bytes = start_offset % chunk_size
+        
+        # Calculate the total bytes we need to serve for this request.
+        bytes_to_serve = end_offset - start_offset + 1
 
         bytes_streamed = 0
         request_id = f"stream_{message_id}_{encoded_id[:10]}"
+        max_retries = 2
+        current_retry = 0
 
         async with tracked_stream_response(response, stream_tracker, request_id):
-            try:
-                async for chunk in byte_streamer.yield_file(
-                    file_id_obj,
-                    offset,
-                    first_part_cut,
-                    last_part_cut,
-                    part_count,
-                    chunk_size
-                ):
-                    try:
-                        await response.write(chunk)
-                        bytes_streamed += len(chunk)
-                    except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):
-                        logger.debug(f"Client disconnected during video stream {message_id}")
-                        break
-                    except Exception as e:
-                        logger.error(f"Error streaming chunk for {message_id}: {e}")
-                        break
-
-            except FloodWait as e:
-                logger.warning(f"FloodWait during video stream {message_id}: {e.value}s")
-                # Try alternative client
+            while current_retry <= max_retries:
                 try:
-                    alternative_client = await client_manager.get_alternative_streaming_client(streamer_client)
-                    if alternative_client:
-                        logger.info(f"Switching client for video stream {message_id}")
-                        streamer_client = alternative_client
-                        byte_streamer = client_manager.get_streamer_for_client(streamer_client)
-                except Exception:
-                    pass
+                    # Get the async generator for media chunks.
+                    # NOTE: stream_media offset parameter is in chunks, not bytes
+                    media_stream = streamer_client.stream_media(
+                        media_msg,
+                        offset=start_chunk  # This is chunk offset, not byte offset
+                    )
+                    
+                    current_chunk = 0
+                    async for chunk in media_stream:
+                        if not chunk:
+                            break  # End of file.
 
-            except Exception as e:
-                logger.error(f"Error during video streaming {message_id}: {e}")
+                        # If this is the first chunk from our start_chunk, skip the unneeded bytes from the beginning.
+                        if current_chunk == 0:
+                            chunk = chunk[skip_bytes:]
+
+                        # If this chunk would exceed our byte limit, truncate it.
+                        if bytes_streamed + len(chunk) > bytes_to_serve:
+                            chunk = chunk[:bytes_to_serve - bytes_streamed]
+
+                        try:
+                            await response.write(chunk)
+                            bytes_streamed += len(chunk)
+                        except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError):
+                            logger.debug(f"Client disconnected during video stream {message_id}")
+                            return response  # Exit cleanly on client disconnect.
+                        except Exception as e:
+                            logger.error(f"Error streaming chunk for {message_id}: {e}")
+                            return response  # Exit on write errors.
+                        
+                        current_chunk += 1
+                        
+                        # Stop if we have served all required bytes.
+                        if bytes_streamed >= bytes_to_serve:
+                            break
+                    
+                    # If we reach here, streaming completed successfully.
+                    break
+
+                except FloodWait as e:
+                    logger.warning(f"FloodWait during video stream {message_id}: {e}")
+                    # Try alternative client first before waiting.
+                    try:
+                        alternative_client = await client_manager.get_alternative_streaming_client(streamer_client)
+                        if alternative_client:
+                            logger.info(f"Switching from @{streamer_client.me.username} to @{alternative_client.me.username} for {message_id}")
+                            streamer_client = alternative_client
+                            await asyncio.sleep(1)
+                            continue  # Retry with new client.
+                        else:
+                            # No alternative client, wait briefly.
+                            await asyncio.sleep(min(e.value, 10))
+                    except Exception as alt_e:
+                        logger.error(f"Error switching client for {message_id}: {alt_e}")
+                        await asyncio.sleep(5)  # Short wait before retry.
+
+                except Exception as e:
+                    current_retry += 1
+                    logger.error(f"Error during video streaming {message_id} (attempt {current_retry}): {e}")
+                    if current_retry > max_retries:
+                        logger.error(f"Max retries reached for {message_id}, aborting")
+                        break
+                    await asyncio.sleep(2 * current_retry)  # Exponential backoff
 
         # Record bandwidth usage
         if bytes_streamed > 0:
             await add_bandwidth_usage(bytes_streamed)
 
-        logger.info(f"Video stream completed for {message_id}: {bytes_streamed} bytes")
+        logger.info(f"Video stream completed for {message_id}: {bytes_streamed} bytes (expected: {bytes_to_serve})")
         return response
 
     except (web.HTTPNotFound, web.HTTPServiceUnavailable, web.HTTPBadRequest) as e:
