@@ -20,11 +20,13 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
+NOTE
+error_classification_report.txt
+error_groups_detailed.txt
 # PyInstaller
 *.manifest
 *.spec
-
+.cursorignore
 # Installer logs
 pip-log.txt
 pip-delete-this-directory.txt
@@ -40,7 +42,7 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
-
+frontend/
 # Translations
 *.mo
 *.pot

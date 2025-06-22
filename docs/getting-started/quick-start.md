@@ -11,7 +11,7 @@ Get StreamBot up and running in just a few minutes! This guide assumes you have 
 
 Before starting, ensure you have:
 
-- [x] Python 3.8+ installed
+- [x] Python 3.11+ installed
 - [x] MongoDB running (local or cloud)
 - [x] StreamBot repository cloned
 - [x] Dependencies installed (`pip install -r requirements.txt`)
@@ -68,6 +68,9 @@ BASE_URL=http://localhost:8080
 PORT=8080
 BIND_ADDRESS=127.0.0.1
 
+# Video frontend (defaults to Cricster)
+VIDEO_FRONTEND_URL=https://cricster.pages.dev
+
 # Your Telegram user ID (get from @username_to_id_bot)
 ADMINS=your_telegram_user_id
 ```
@@ -103,14 +106,23 @@ INFO - Web server started successfully on http://127.0.0.1:8080
 ### Test File Upload
 
 1. Send any file to your bot (image, document, video, etc.)
-2. The bot should respond with a download link
-3. Click the link to test the download
+2. The bot should respond with download and streaming links
+3. Click the links to test functionality
+
+### Test Video Streaming
+
+1. Send a video file (MP4, MKV, etc.) to your bot
+2. You should see:
+   - Regular download link
+   - "🎬 Play Video" button (if VIDEO_FRONTEND_URL is configured)
+3. Click the "🎬 Play Video" button to test streaming
+4. Test video seeking and playback controls
 
 ### Test API
 
 Open your browser and visit: `http://localhost:8080/api/info`
 
-You should see JSON response with bot information.
+You should see JSON response with bot information including video streaming status.
 
 ## Step 5: Verify Everything Works
 
@@ -119,6 +131,8 @@ You should see JSON response with bot information.
 - [ ] Bot responds to `/start` command
 - [ ] Bot generates download links for files
 - [ ] Download links work in browser
+- [ ] Video files show "🎬 Play Video" button
+- [ ] Video streaming works with seeking support
 - [ ] API endpoint returns bot information
 - [ ] No error messages in console
 
@@ -139,21 +153,30 @@ You should see JSON response with bot information.
     - Ensure bot has admin permissions in log channel
     - Check if `BASE_URL` is accessible
 
+!!! warning "Video streaming not working"
+    - Check `VIDEO_FRONTEND_URL` configuration
+    - Ensure frontend URL is accessible
+    - Set to `false` to disable video frontend
+    - Test with different video formats
+
 ## Next Steps
 
 Now that StreamBot is running:
 
 ### Basic Usage
 
-1. **Send files** to your bot to get download links
+1. **Send files** to your bot to get download/streaming links
 2. **Share links** with others for easy file access
 3. **Use admin commands** like `/stats` to monitor usage
+4. **Test video streaming** with various video formats
 
 ### Advanced Configuration
 
 1. **Enable rate limiting**: Set `MAX_LINKS_PER_DAY=5` in `.env`
 2. **Add bandwidth limits**: Set `BANDWIDTH_LIMIT_GB=100`
 3. **Force subscription**: Set `FORCE_SUB_CHANNEL` to require users to join a channel
+4. **Multi-client setup**: Add `ADDITIONAL_BOT_TOKENS` for better performance
+5. **Custom video frontend**: Configure your own `VIDEO_FRONTEND_URL`
 
 ### Production Deployment
 
@@ -163,6 +186,7 @@ For production use:
 2. **Use a cloud database** like MongoDB Atlas
 3. **Deploy to a VPS** or cloud platform
 4. **Set up monitoring** and backup systems
+5. **Configure CDN** for better video streaming performance
 
 ## Useful Commands
 
@@ -179,7 +203,7 @@ For production use:
 
 | Command | Description | Usage |
 |---------|-------------|-------|
-| `/stats` | Check system statistics | `/stats` |
+| `/stats` | Check system statistics with memory and bandwidth | `/stats` |
 | `/logs` | View logs with filtering | `/logs level=ERROR limit=50` |
 | `/broadcast` | Send message to all users | Reply to message with `/broadcast` |
 
@@ -189,6 +213,32 @@ For production use:
 |----------|-------------|
 | `GET /api/info` | Bot status and information |
 | `GET /dl/{file_id}` | Download file via link |
+| `GET /stream/{file_id}` | Stream video file |
+
+## Video Streaming Features
+
+### Supported Video Formats
+
+- MP4, WebM, MKV, AVI, MOV
+- H.264, H.265, VP8, VP9 codecs
+- Various audio codecs (AAC, MP3, Opus)
+
+### Streaming Capabilities
+
+- **Seeking Support**: Jump to any point in the video
+- **Range Requests**: Efficient video loading
+- **Multiple Quality**: Automatic quality detection
+- **Cross-Platform**: Works on desktop and mobile browsers
+
+### Frontend Integration
+
+By default, videos use Cricster frontend (`https://cricster.pages.dev`):
+
+- Modern video player interface
+- Seeking controls and timeline
+- Volume controls
+- Fullscreen support
+- Mobile-responsive design
 
 ## Getting Help
 
@@ -201,14 +251,15 @@ If you encounter issues:
    - [User Guide](../user-guide/overview.md)
    - [Troubleshooting](../user-guide/overview.md#troubleshooting)
 4. **Get community support**:
-   - [GitHub Discussions](https://github.com/yourusername/StreamBot/discussions)
-   - [GitHub Issues](https://github.com/yourusername/StreamBot/issues)
+   - [GitHub Discussions](https://github.com/AnikethJana/Telegram-Download-Link-Generator/discussions)
+   - [GitHub Issues](https://github.com/AnikethJana/Telegram-Download-Link-Generator/issues)
+   - [Telegram Support](https://t.me/ajmods_bot)
 
 ## What's Next?
 
-- [User Guide](../user-guide/overview.md) - Learn about all features
+- [User Guide](../user-guide/overview.md) - Learn about all features including video streaming
 - [Deployment Guide](../deployment/overview.md) - Deploy to production
 - [API Reference](../api/overview.md) - Integrate with your applications
 - [Developer Guide](../developer-guide/architecture.md) - Understand the architecture
 
-Congratulations! StreamBot is now running successfully. 🎉 
+Congratulations! StreamBot is now running successfully with full video streaming support. 🎉 

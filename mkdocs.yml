@@ -132,4 +132,8 @@ extra:
       link: https://t.me/ajmods_bot
 
 # Copyright info
-copyright: Copyright &copy; 2023 - Present | Aniket Jana  
+copyright: Copyright &copy; 2023 - Present | Aniketh Jana
+
+# Custom CSS
+extra_css:
+  - stylesheets/extra.css  

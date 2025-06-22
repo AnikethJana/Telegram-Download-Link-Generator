@@ -1,6 +1,7 @@
 # StreamBot/config.py
 import os
 from logging import getLogger
+import re
 
 # Set up basic logging
 logger = getLogger(__name__)
@@ -26,7 +27,15 @@ def get_env(name: str, default=None, required: bool = False, is_bool: bool = Fal
         return str(value).lower() in ("true", "1", "yes", "on")
     elif is_int:
         try:
-            return int(value)
+            int_value = int(value)
+            # Basic security check for reasonable integer bounds
+            if name in ['API_ID', 'LOG_CHANNEL', 'FORCE_SUB_CHANNEL'] and int_value != 0:
+                if abs(int_value) > 2**63:  # Prevent overflow
+                    logger.error(f"Integer value for {name} exceeds reasonable bounds: {int_value}")
+                    if required:
+                        exit(f"Invalid required integer environment variable: {name}")
+                    return default
+            return int_value
         except (ValueError, TypeError):
             logger.error(f"Invalid integer value for {name}: '{value}'. Using default: {default} or exiting if required.")
             if required:
@@ -38,6 +47,19 @@ def get_env(name: str, default=None, required: bool = False, is_bool: bool = Fal
                  logger.error(f"Default value '{default}' for {name} is also not a valid integer.")
                  return default # Return original default if it cannot be converted
     else:
+        # Basic string validation for critical values
+        if name == 'API_HASH' and value:
+            if not re.match(r'^[a-f0-9]{32}$', str(value)):
+                logger.warning(f"API_HASH format appears invalid (should be 32 hex chars)")
+        elif name in ['BOT_TOKEN', 'ADDITIONAL_BOT_TOKENS'] and value:
+            # Basic bot token format validation
+            if name == 'BOT_TOKEN' and not re.match(r'^\d+:[A-Za-z0-9_-]{35}$', str(value)):
+                logger.warning(f"BOT_TOKEN format appears invalid")
+        elif name == 'BASE_URL' and value:
+            # Basic URL validation
+            if not str(value).startswith(('http://', 'https://')):
+                logger.warning(f"BASE_URL should start with http:// or https://")
+        
         # Return as string (or original type if default was used and not string)
         return value
 
@@ -64,12 +86,13 @@ class Var:
     BASE_URL = str(get_env("BASE_URL", required=True)).rstrip('/')
     PORT = get_env("PORT", 8080, is_int=True)
     BIND_ADDRESS = get_env("BIND_ADDRESS", "0.0.0.0")
+    
+    # Video streaming frontend configuration
+    _video_frontend_url = get_env("VIDEO_FRONTEND_URL", default="https://cricster.pages.dev")
+    VIDEO_FRONTEND_URL = None if _video_frontend_url and _video_frontend_url.lower() == "false" else _video_frontend_url
 
     # Link expiry and security
     LINK_EXPIRY_SECONDS = get_env("LINK_EXPIRY_SECONDS", 86400, is_int=True)
-    LOGS_ACCESS_TOKEN = get_env("LOGS_ACCESS_TOKEN", os.urandom(16).hex())
-    _admin_ips_str = get_env("ADMIN_IPS", "127.0.0.1")
-    ADMIN_IPS = [ip.strip() for ip in _admin_ips_str.split(",") if ip.strip()]
 
     # Bot settings
     SESSION_NAME = get_env("SESSION_NAME", "TgDlBot")
@@ -83,6 +106,15 @@ class Var:
     # Rate and bandwidth limiting
     MAX_LINKS_PER_DAY = get_env("MAX_LINKS_PER_DAY", default=5, is_int=True)
     BANDWIDTH_LIMIT_GB = get_env("BANDWIDTH_LIMIT_GB", default=100, is_int=True)
+    
+    # Basic security validation
+    if PORT and (PORT < 1 or PORT > 65535):
+        logger.error(f"Invalid PORT value: {PORT}. Must be between 1-65535.")
+        PORT = 8080
+    
+    if WORKERS and (WORKERS < 1 or WORKERS > 32):
+        logger.warning(f"WORKERS value {WORKERS} outside recommended range 1-32. Adjusting to safe value.")
+        WORKERS = min(max(WORKERS, 1), 8)  # Clamp to 1-8 for low resources
     
     # --- Text Messages ---
     # Function to calculate human-readable duration

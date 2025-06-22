@@ -16,6 +16,7 @@ from .web.web import setup_webapp
 from .client_manager import ClientManager 
 from .utils.cleanup_scheduler import cleanup_scheduler
 from .utils.memory_manager import memory_manager
+from .security.rate_limiter import initialize_rate_limiters
 
 logging.basicConfig(
     level=logging.INFO, 
@@ -45,6 +46,9 @@ async def main():
     logger.info(f"Using Base URL: {Var.BASE_URL}") 
     logger.info(f"Log Channel ID: {Var.LOG_CHANNEL}")
     logger.info("Starting Telegram Download Link Generator Bot...")
+    
+    # Initialize security components
+    initialize_rate_limiters(Var.MAX_LINKS_PER_DAY)
     
     # Log initial memory usage
     memory_manager.log_memory_usage("startup")
