@@ -88,7 +88,8 @@ class Var:
     BIND_ADDRESS = get_env("BIND_ADDRESS", "0.0.0.0")
     
     # Video streaming frontend configuration
-    VIDEO_FRONTEND_URL = get_env("VIDEO_FRONTEND_URL", default=None)
+    _video_frontend_url = get_env("VIDEO_FRONTEND_URL", default="https://cricster.pages.dev")
+    VIDEO_FRONTEND_URL = None if _video_frontend_url and _video_frontend_url.lower() == "false" else _video_frontend_url
 
     # Link expiry and security
     LINK_EXPIRY_SECONDS = get_env("LINK_EXPIRY_SECONDS", 86400, is_int=True)
