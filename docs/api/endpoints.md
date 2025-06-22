@@ -1,17 +1,17 @@
 ---
 title: API Endpoints
-description: Detailed documentation for all StreamBot API endpoints
+description: Detailed documentation for all StreamBot API endpoints including streaming
 ---
 
 # API Endpoints Reference
 
-This page provides detailed documentation for all available StreamBot API endpoints.
+This page provides detailed documentation for all available StreamBot API endpoints including the new video streaming capabilities.
 
 ## System Information
 
 ### GET `/api/info`
 
-Returns comprehensive bot status and configuration information.
+Returns comprehensive bot status and configuration information including video streaming status.
 
 **Authentication**: None required
 
@@ -38,7 +38,9 @@ Accept: application/json
     "force_subscribe_channel_id": -1001234567890,
     "link_expiry_enabled": true,
     "link_expiry_duration_seconds": 86400,
-    "link_expiry_duration_human": "24 hours"
+    "link_expiry_duration_human": "24 hours",
+    "video_streaming": true,
+    "video_frontend_url": "https://cricster.pages.dev"
   },
   "bandwidth_info": {
     "limit_gb": 100,
@@ -48,10 +50,16 @@ Accept: application/json
     "limit_enabled": true,
     "remaining_gb": 54.766
   },
+  "streaming_info": {
+    "active_streams": 12,
+    "supported_formats": ["mp4", "mkv", "avi", "webm", "mov"],
+    "range_requests_supported": true,
+    "seeking_supported": true
+  },
   "uptime": "2d 14h 32m 18s",
   "server_time_utc": "2024-01-15T14:30:45.123456Z",
   "totaluser": 1250,
-  "github_repo": "https://github.com/yourusername/StreamBot"
+  "github_repo": "https://github.com/AnikethJana/Telegram-Download-Link-Generator"
 }
 ```
 
@@ -79,16 +87,17 @@ Accept: application/json
 | `bot_info` | object | Bot identity information |
 | `features` | object | Enabled features and their configuration |
 | `bandwidth_info` | object | Current bandwidth usage and limits |
+| `streaming_info` | object | Video streaming status and capabilities |
 | `uptime` | string | Human-readable bot uptime |
 | `server_time_utc` | string | Current server time in UTC ISO format |
 | `totaluser` | integer | Total number of registered users |
-| `github_repo` | string | Repository URL (if configured) |
+| `github_repo` | string | Repository URL |
 
 ## File Downloads
 
 ### GET `/dl/{encoded_id}`
 
-Download files via generated download links.
+Download files via generated download links with range request support.
 
 **Authentication**: None (uses encoded file IDs for security)
 
@@ -164,6 +173,42 @@ Accept-Ranges: bytes
   "error": "Bot service temporarily overloaded. Please try again shortly."
 }
 ```
+
+## Video Streaming
+
+### GET `/stream/{encoded_id}`
+
+Stream video files with full seeking support and range requests.
+
+**Authentication**: None (uses encoded file IDs for security)
+
+**Request**:
+```http
+GET /stream/VGhpcyBpcyBhIGZha2UgZW5jb2RlZCBpZA HTTP/1.1
+Host: yourdomain.com
+Range: bytes=1048576-2097151
+User-Agent: Mozilla/5.0 (compatible)
+```
+
+**Response (Success - 200/206)**:
+```http
+HTTP/1.1 206 Partial Content
+Content-Type: video/mp4
+Content-Length: 1048576
+Content-Range: bytes 1048576-2097151/104857600
+Accept-Ranges: bytes
+Cache-Control: public, max-age=3600
+
+[Binary video content]
+```
+
+**Supported Video Formats**:
+
+| Format | MIME Type | Description |
+|--------|-----------|-------------|
+| MP4 | `video/mp4` | Most compatible format |
+| MKV | `video/x-matroska` | High quality container |
+| WebM | `video/webm` | Web-optimized format |
 
 ## Error Handling
 
@@ -243,14 +288,10 @@ Retry-After: 60
 # Get bot information
 curl -X GET "https://yourdomain.com/api/info"
 
-# Download a file
-curl -X GET "https://yourdomain.com/dl/encoded_id/filename.pdf" \
-  -o "downloaded_file.pdf"
-
-# Download with range request (first 1024 bytes)
-curl -X GET "https://yourdomain.com/dl/encoded_id/filename.pdf" \
-  -H "Range: bytes=0-1023" \
-  -o "partial_file.pdf"
+# Stream a video with range request
+curl -X GET "https://yourdomain.com/stream/encoded_id" \
+  -H "Range: bytes=0-1048575" \
+  -o "video_chunk.mp4"
 ```
 
 ### Python Examples
@@ -261,53 +302,33 @@ import requests
 # Get bot information
 response = requests.get('https://yourdomain.com/api/info')
 data = response.json()
-print(f"Bot status: {data['bot_status']}")
+print(f"Video streaming: {data['features']['video_streaming']}")
 
-# Download file with progress
-def download_file(url, filename):
-    response = requests.get(url, stream=True)
-    total_size = int(response.headers.get('Content-Length', 0))
-    
-    with open(filename, 'wb') as f:
-        downloaded = 0
-        for chunk in response.iter_content(chunk_size=8192):
-            f.write(chunk)
-            downloaded += len(chunk)
-            progress = (downloaded / total_size) * 100
-            print(f"Progress: {progress:.1f}%")
+# Stream video with range requests
+def stream_video_chunk(encoded_id, start_byte, end_byte):
+    headers = {'Range': f'bytes={start_byte}-{end_byte}'}
+    response = requests.get(
+        f'https://yourdomain.com/stream/{encoded_id}',
+        headers=headers,
+        stream=True
+    )
+    return response.content
 ```
 
 ### JavaScript Examples
 
 ```javascript
-// Get bot information
-async function getBotInfo() {
-    try {
-        const response = await fetch('https://yourdomain.com/api/info');
-        const data = await response.json();
-        console.log('Bot info:', data);
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
-
-// Download file with progress tracking
-async function downloadFile(url, filename) {
-    const response = await fetch(url);
-    const contentLength = response.headers.get('Content-Length');
-    const total = parseInt(contentLength, 10);
+// Setup video streaming
+function setupVideoStreaming(encodedId) {
+    const video = document.getElementById('videoPlayer');
+    const streamUrl = `https://yourdomain.com/stream/${encodedId}`;
     
-    const reader = response.body.getReader();
-    let downloaded = 0;
+    video.src = streamUrl;
     
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        
-        downloaded += value.length;
-        const progress = (downloaded / total) * 100;
-        console.log(`Progress: ${progress.toFixed(1)}%`);
-    }
+    // Handle seeking events
+    video.addEventListener('seeking', function() {
+        console.log('Seeking to:', video.currentTime);
+    });
 }
 ```
 

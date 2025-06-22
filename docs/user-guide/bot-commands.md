@@ -1,6 +1,6 @@
 ---
 title: Bot Commands
-description: Complete reference for all StreamBot Telegram commands
+description: Complete reference for all StreamBot Telegram commands including video streaming
 ---
 
 # Bot Commands Reference
@@ -24,8 +24,10 @@ These commands are available to all users of the bot.
 ```
 🚀 Welcome to StreamBot!
 
-I can convert your files into direct download links.
-Simply send me any file and I'll generate a shareable link for you.
+I can convert your files into direct download links and streaming URLs.
+Simply send me any file and I'll generate shareable links for you.
+
+For videos, you'll get both download and streaming options with advanced playback features.
 
 Commands:
 • /help - Show available commands
@@ -40,7 +42,7 @@ Commands:
 **Response**: Comprehensive command list with descriptions.
 
 #### `/info`
-**Description**: Show bot statistics, uptime, and current status.
+**Description**: Show bot statistics, uptime, current status, and video streaming information.
 
 **Usage**: `/info`
 
@@ -48,7 +50,7 @@ Commands:
 - Bot uptime
 - Total users
 - Current bandwidth usage
-- Available features
+- Available features (including video streaming)
 - Server status
 
 **Example**:
@@ -62,37 +64,52 @@ Commands:
 🔗 Links Generated Today: 127
 
 Features:
+✅ Video Streaming: Enabled (Cricster Frontend)
 ✅ Force Subscription: Enabled
 ✅ Link Expiry: 24 hours
 ✅ Rate Limiting: 5 links/day
+🎬 Supported Video Formats: MP4, MKV, AVI, WebM, MOV
 ```
 
 ### File Upload
 
 #### Send Any File
-**Description**: Upload a file to generate a direct download link.
+**Description**: Upload a file to generate direct download and streaming links.
 
 **Usage**: Simply send any file (document, image, video, audio, etc.)
 
 **Supported Types**:
 - Documents (PDF, DOCX, TXT, etc.)
 - Images (JPG, PNG, GIF, etc.)
-- Videos (MP4, AVI, MKV, etc.)
+- Videos (MP4, MKV, AVI, WebM, MOV, etc.) **with streaming support**
 - Audio (MP3, FLAC, OGG, etc.)
 - Archives (ZIP, RAR, 7Z, etc.)
 - Any other file type
 
-**Response**: Direct download link with file information.
-
-**Example**:
+**Response for Regular Files**:
 ```
 ✅ File uploaded successfully!
 
 📁 Filename: document.pdf
 📏 Size: 2.4 MB
-🔗 Download Link: https://yourdomain.com/dl/abc123/document.pdf
+🔗 Download Link: https://yourdomain.com/dl/abc123
 
 ⏰ Link expires in 24 hours
+📊 Daily links remaining: 4/5
+```
+
+**Response for Video Files**:
+```
+✅ Video uploaded successfully!
+
+🎬 Filename: movie.mp4
+📏 Size: 45.2 MB
+🔗 Download Link: https://yourdomain.com/dl/abc123
+🎞️ Streaming Link: https://yourdomain.com/stream/abc123
+
+[🎬 Play Video] <- Interactive button for Cricster frontend
+
+⏰ Links expire in 24 hours
 📊 Daily links remaining: 4/5
 ```
 
@@ -116,6 +133,7 @@ Features:
 🔗 Links Today: 2/5
 📈 Bandwidth This Month: 127.3 MB
 📁 Total Files: 45
+🎬 Videos Streamed: 12
 📅 Member Since: Jan 15, 2024
 
 Daily reset: 23:45:12
@@ -135,6 +153,7 @@ Monthly reset: Jan 31, 2024
 ```
 🏓 Pong! 
 Response time: 0.12s
+🎬 Streaming service: Online
 ```
 
 ## Admin Commands
@@ -144,13 +163,13 @@ These commands are only available to users configured as administrators.
 ### System Monitoring
 
 #### `/stats`
-**Description**: Check system statistics including memory usage, active streams, bandwidth usage, and uptime.
+**Description**: Check comprehensive system statistics including memory usage, active streams, bandwidth usage, and uptime.
 
 **Usage**: `/stats`
 
 **Access**: Admin only
 
-**Response**: Comprehensive system information including memory, active resources, and bandwidth data.
+**Response**: Comprehensive system information including memory, active resources, bandwidth data, and streaming statistics.
 
 **Example**:
 ```
@@ -165,6 +184,11 @@ These commands are only available to users configured as administrators.
 • Active Streams: 23
 • Telegram Clients: 3
 
+🎬 Streaming Statistics:
+• Active Video Streams: 12
+• Total Streams Today: 145
+• Video Frontend: https://cricster.pages.dev
+
 📊 Bandwidth Usage:
 • Used this month: 45.234 GB
 • Limit: 100 GB (enabled)
@@ -175,6 +199,7 @@ These commands are only available to users configured as administrators.
 🕐 Timestamp: 2024-01-15T14:30:45.123456
 
 💡 Memory cleanup runs automatically every hour
+🧹 Stream cleanup runs every 10 minutes
 ```
 
 #### `/logs`
@@ -185,6 +210,7 @@ These commands are only available to users configured as administrators.
 - `/logs level=ERROR` - Filter by log level
 - `/logs limit=50` - Limit number of entries
 - `/logs filter=download` - Filter by text content
+- `/logs filter=streaming` - Filter for streaming-related logs
 
 **Access**: Admin only
 
@@ -199,7 +225,8 @@ These commands are only available to users configured as administrators.
 
 2024-01-15 14:30:45 - ERROR - Download failed for message 12345
 2024-01-15 14:25:30 - ERROR - User 67890 hit rate limit
-2024-01-15 14:20:15 - ERROR - Database connection timeout
+2024-01-15 14:20:15 - ERROR - Video streaming failed for file abc123
+2024-01-15 14:15:00 - ERROR - Database connection timeout
 
 Total matching entries: 156
 ```
@@ -221,19 +248,26 @@ Total matching entries: 156
 
 👥 Total Users: 1,247
 🔗 Links Generated: 15,643
+🎬 Videos Streamed: 3,421
 📈 Bandwidth Used: 892.4 GB
 📁 Files Processed: 12,891
 
 📊 Today's Activity:
 • New Users: 23
 • Links Generated: 234
+• Video Streams: 87
 • Bandwidth: 45.2 GB
 
 🏆 Top File Types:
-1. PDF (34%)
-2. Images (28%)
-3. Videos (21%)
-4. Archives (17%)
+1. Videos (42%) 🎬
+2. PDF (28%)
+3. Images (18%)
+4. Archives (12%)
+
+🎞️ Video Statistics:
+• Most streamed format: MP4 (78%)
+• Average stream duration: 12.5 minutes
+• Peak concurrent streams: 45
 ```
 
 ### Communication
@@ -255,7 +289,7 @@ Total matching entries: 156
 ```
 📢 Broadcasting Message
 
-Message: "Server maintenance scheduled for tonight at 2 AM UTC"
+Message: "🎬 New video streaming features now available! Stream videos directly with seeking support."
 Recipients: 1,247 users
 
 Type 'CONFIRM' to proceed or 'CANCEL' to abort.
@@ -270,6 +304,44 @@ Failed: 3 users (blocked bot)
 Time taken: 2.3 seconds
 ```
 
+## Video Streaming Features
+
+### Video Upload Response
+
+When users upload video files, they receive enhanced responses:
+
+```
+✅ Video uploaded successfully!
+
+🎬 Filename: example_video.mp4
+📏 Size: 125.4 MB
+🎥 Duration: 15:30
+📺 Resolution: 1920x1080
+🔊 Audio: AAC, 128 kbps
+
+🔗 Download Link: https://yourdomain.com/dl/xyz789
+🎞️ Streaming Link: https://yourdomain.com/stream/xyz789
+
+[🎬 Play Video] <- Opens Cricster video player
+
+✨ Features:
+• Instant seeking support
+• Range request optimization
+• Mobile-friendly player
+• Fullscreen support
+
+⏰ Links expire in 24 hours
+📊 Daily links remaining: 4/5
+```
+
+### Streaming Button Behavior
+
+The "🎬 Play Video" button:
+- Opens the configured video frontend (default: Cricster)
+- Passes the streaming URL as a parameter
+- Enables seeking, volume control, and fullscreen
+- Works on desktop and mobile browsers
+
 ## Error Messages
 
 ### Common Error Responses
@@ -281,7 +353,7 @@ Time taken: 2.3 seconds
 You've reached your daily limit of 5 links.
 Limit resets in: 14h 23m 45s
 
-Upgrade to premium for unlimited links!
+💡 This applies to both download and streaming links.
 ```
 
 #### File Too Large
@@ -301,7 +373,20 @@ Please compress or split your file.
 Monthly limit: 100 GB
 Used: 100.2 GB
 
-Limit resets on: Feb 1, 2024
+⏰ Limit resets on: Feb 1, 2024
+🎬 This affects both downloads and streaming.
+```
+
+#### Video Streaming Unavailable
+```
+🎬 Video Streaming Temporarily Unavailable
+
+Your video was uploaded successfully, but streaming is currently unavailable.
+You can still use the download link.
+
+📱 Download Link: https://yourdomain.com/dl/abc123
+
+💡 Streaming service will be restored shortly.
 ```
 
 #### Force Subscription Required
@@ -320,6 +405,8 @@ After joining, send /start again.
 
 I don't understand that command.
 Use /help to see available commands.
+
+💡 You can also just send me any file to get started!
 ```
 
 ## Command Permissions
@@ -333,7 +420,7 @@ Use /help to see available commands.
 | `/info` | ✅ | ✅ | Bot information |
 | `/stats` | ✅ | ✅ | Personal/System statistics |
 | `/ping` | ✅ | ✅ | Connection test |
-| File Upload | ✅ | ✅ | Generate download links |
+| File Upload | ✅ | ✅ | Generate download/streaming links |
 | `/logs` | ❌ | ✅ | Application logs |
 | `/broadcast` | ❌ | ✅ | Message all users |
 
@@ -356,12 +443,16 @@ ADMINS=123456789 987654321
 - **Check file sizes** before uploading
 - **Monitor your usage** to avoid hitting limits
 - **Keep download links secure** if sensitive
+- **Test video streaming** before sharing with others
+- **Use appropriate video formats** (MP4 works best)
 
 ### For Admins
 - **Monitor system resources** regularly with `/stats`
 - **Check logs** periodically for errors with `/logs`
 - **Use broadcasting responsibly** for important announcements only
 - **Review global stats** to understand usage patterns
+- **Monitor video streaming performance** and bandwidth usage
+- **Test video frontend** functionality regularly
 
 ## Troubleshooting
 
@@ -372,6 +463,14 @@ ADMINS=123456789 987654321
 3. **Try `/ping`** to test bot connectivity
 4. **Check bot status** with `/info`
 
+### Video Streaming Issues
+
+1. **Check video format** - MP4 works best
+2. **Test with smaller files** first
+3. **Verify frontend URL** is accessible
+4. **Try different browser** if issues persist
+5. **Use download link** as fallback
+
 ### No Response from Bot
 
 1. **Check bot status** by visiting the API endpoint
@@ -379,4 +478,4 @@ ADMINS=123456789 987654321
 3. **Try again** in a few minutes
 4. **Contact administrators** if persistent
 
-For more help, see the [User Guide](overview.md) or [Troubleshooting section](overview.md#troubleshooting). 
+For more help, see the [User Guide](overview.md) or contact support at [Telegram](https://t.me/ajmods_bot). 

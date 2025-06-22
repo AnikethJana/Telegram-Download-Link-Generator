@@ -11,7 +11,7 @@ This guide will walk you through installing StreamBot on your system. Choose the
 
 Before installing StreamBot, ensure you have:
 
-- **Python 3.8 or higher** ([Download Python](https://python.org/downloads/))
+- **Python 3.11 or higher** ([Download Python](https://python.org/downloads/))
 - **MongoDB 4.4+** (local or cloud instance)
 - **Git** for cloning the repository
 - **Telegram Bot Token** from [@BotFather](https://t.me/botfather)
@@ -22,8 +22,8 @@ Before installing StreamBot, ensure you have:
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/StreamBot.git
-cd StreamBot
+git clone https://github.com/AnikethJana/Telegram-Download-Link-Generator.git
+cd Telegram-Download-Link-Generator
 ```
 
 ### 2. Create Virtual Environment
@@ -64,8 +64,8 @@ nano .env  # or use your preferred editor
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/StreamBot.git
-cd StreamBot
+git clone https://github.com/AnikethJana/Telegram-Download-Link-Generator.git
+cd Telegram-Download-Link-Generator
 
 # Copy environment file
 cp .env.example .env
@@ -150,6 +150,9 @@ BASE_URL=http://localhost:8080
 PORT=8080
 BIND_ADDRESS=127.0.0.1
 
+# Video Frontend (defaults to Cricster)
+VIDEO_FRONTEND_URL=https://cricster.pages.dev
+
 # Admin Configuration
 ADMINS=your_telegram_user_id
 ```
@@ -174,7 +177,14 @@ INFO - Web server started on http://127.0.0.1:8080
 
 1. Send `/start` to your bot on Telegram
 2. Send a file to test link generation
-3. Visit `http://localhost:8080/api/info` to check API status
+3. For videos, test both download and streaming functionality
+4. Visit `http://localhost:8080/api/info` to check API status
+
+### 3. Test Video Streaming
+
+1. Send a video file to your bot
+2. Click the "🎬 Play Video" button (if VIDEO_FRONTEND_URL is configured)
+3. Test video seeking and playback functionality
 
 ## Troubleshooting
 
@@ -208,14 +218,23 @@ ERROR - Bot doesn't have permission to post in log channel
 - Ensure the bot is added as admin to your log channel
 - Verify the LOG_CHANNEL ID is correct (should be negative for channels)
 
+**Video streaming not working**:
+```
+ERROR - Video frontend not accessible
+```
+- Check your VIDEO_FRONTEND_URL configuration
+- Ensure the frontend URL is accessible
+- Set to `false` to disable video frontend
+
 ### Getting Help
 
 If you encounter issues:
 
 1. Check the [troubleshooting section](../user-guide/overview.md#troubleshooting)
 2. Review logs for error messages
-3. Join our [community discussions](https://github.com/yourusername/StreamBot/discussions)
-4. Report bugs on [GitHub Issues](https://github.com/yourusername/StreamBot/issues)
+3. Join our [community discussions](https://github.com/AnikethJana/Telegram-Download-Link-Generator/discussions)
+4. Report bugs on [GitHub Issues](https://github.com/AnikethJana/Telegram-Download-Link-Generator/issues)
+5. Contact developer on [Telegram](https://t.me/ajmods_bot)
 
 ## Next Steps
 
@@ -223,4 +242,5 @@ Once installation is complete:
 
 1. [Configure your bot](configuration.md) with additional settings
 2. Follow the [Quick Start guide](quick-start.md) for basic usage
-3. Review the [User Guide](../user-guide/overview.md) for detailed features 
+3. Review the [User Guide](../user-guide/overview.md) for detailed features
+4. Explore [Video Streaming](../user-guide/overview.md#video-streaming-features) capabilities 
