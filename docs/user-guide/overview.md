@@ -1,24 +1,25 @@
 ---
 title: User Guide Overview
-description: Complete guide to using StreamBot features
+description: Complete guide to using StreamBot features including video streaming
 ---
 
 # User Guide Overview
 
-StreamBot is designed to be simple yet powerful. This guide covers all features and how to use them effectively.
+StreamBot is designed to be simple yet powerful. This guide covers all features including the new advanced video streaming capabilities and how to use them effectively.
 
 ## Core Functionality
 
 ### File to Link Conversion
 
-StreamBot's primary function is converting files sent via Telegram into direct download links that can be shared with anyone.
+StreamBot's primary function is converting files sent via Telegram into direct download links and streaming URLs that can be shared with anyone.
 
 ```mermaid
 graph LR
     A[User sends file] --> B[Bot processes file]
     B --> C[File stored securely]
-    C --> D[Download link generated]
-    D --> E[Link shared with user]
+    C --> D[Download & streaming links generated]
+    D --> E[Links shared with user]
+    E --> F[Recipients access via browser]
 ```
 
 ### Supported File Types
@@ -27,10 +28,59 @@ StreamBot supports all file types that Telegram accepts:
 
 - **Documents**: PDF, DOCX, TXT, ZIP, etc.
 - **Images**: JPG, PNG, GIF, WebP, etc.
-- **Videos**: MP4, AVI, MKV, etc.
+- **Videos**: MP4, MKV, AVI, WebM, MOV, etc. (with streaming support)
 - **Audio**: MP3, FLAC, OGG, etc.
 - **Archives**: ZIP, RAR, 7Z, etc.
 - **Any other file type** up to Telegram's size limits
+
+## Video Streaming Features
+
+### Advanced Video Streaming
+
+StreamBot now includes comprehensive video streaming capabilities:
+
+- **Direct Video Streaming**: Stream videos directly in browsers without downloading
+- **Seeking Support**: Jump to any point in the video with full range request support
+- **Multiple Formats**: Support for MP4, MKV, AVI, WebM, MOV, and more
+- **Frontend Integration**: Custom video player frontend support (defaults to Cricster)
+- **Cross-Platform**: Works on desktop and mobile browsers
+- **Efficient Loading**: Range requests for optimal video loading
+
+### Video Frontend Integration
+
+By default, StreamBot integrates with Cricster video frontend:
+
+```
+Video Frontend URL: https://cricster.pages.dev
+Final URL Format: {VIDEO_FRONTEND_URL}?stream={encoded_stream_url}
+```
+
+**Features of default frontend:**
+- Modern video player interface
+- Seeking controls and timeline
+- Volume controls and settings
+- Fullscreen support
+- Mobile-responsive design
+- Keyboard shortcuts support
+
+### Custom Video Frontend
+
+You can build your own video frontend to work with StreamBot:
+
+```javascript
+// Example: Extract stream URL from query parameter
+const urlParams = new URLSearchParams(window.location.search);
+const streamUrl = urlParams.get('stream');
+
+// Use the stream URL in your video player
+const videoElement = document.getElementById('video');
+videoElement.src = streamUrl;
+```
+
+**URL Parameter Structure:**
+- Parameter name: `stream`
+- Value: URL-encoded streaming URL
+- Example: `https://your-frontend.com?stream=https%3A//yourdomain.com/stream/abc123`
 
 ## Basic Usage
 
@@ -38,27 +88,37 @@ StreamBot supports all file types that Telegram accepts:
 
 1. **Find your bot** on Telegram (search for your bot's username)
 2. **Send `/start`** to begin using the bot
-3. **Send any file** to generate a download link
-4. **Share the link** with anyone who needs access
+3. **Send any file** to generate download and streaming links
+4. **Share the links** with anyone who needs access
 
 ### File Upload Process
 
 1. **Send a file** to the bot via Telegram
 2. **Wait for processing** (usually instant for small files)
-3. **Receive download link** in the chat
-4. **Copy and share** the link as needed
+3. **Receive links** in the chat:
+   - Direct download link
+   - Streaming link (for videos)
+   - "🎬 Play Video" button (for videos with frontend configured)
+4. **Copy and share** the links as needed
 
-### Download Links
+### Download vs Streaming Links
 
-Generated links have the format:
+**Download Links:**
 ```
-https://yourdomain.com/dl/encoded_file_id/filename.ext
+https://yourdomain.com/dl/encoded_file_id
 ```
+- Direct file download
+- Full file transfer
+- Works for all file types
 
-- Links are **permanent** (unless expiration is enabled)
-- **No Telegram account required** to download
-- **Direct downloads** start immediately
-- **Range requests supported** for partial downloads
+**Streaming Links:**
+```
+https://yourdomain.com/stream/encoded_file_id
+```
+- Progressive video streaming
+- Seeking support
+- Range requests supported
+- Optimized for video playback
 
 ## User Commands
 
@@ -126,6 +186,7 @@ If enabled, users must join specified channels before using the bot:
 Optional link expiration for enhanced security:
 
 - **Configurable expiration time** (default: 24 hours)
+- **Applies to both download and streaming links**
 - **Automatic cleanup** of expired links
 - **Clear expiration notices** in generated links
 - **Can be disabled** for permanent links
@@ -140,6 +201,16 @@ Optional link expiration for enhanced security:
 | `/logs` | View application logs | `/logs level=ERROR limit=50` |
 | `/broadcast` | Send message to all users | Reply to message with `/broadcast` |
 
+### System Statistics
+
+Admins can view comprehensive system information:
+
+- **Memory Usage**: RSS, VMS, percentage
+- **Active Resources**: Stream count, client count
+- **Bandwidth Usage**: Monthly usage and limits
+- **Logger Cache**: Current cache status
+- **Uptime**: System uptime information
+
 ### Log Access
 
 Admins can access detailed logs:
@@ -148,6 +219,7 @@ Admins can access detailed logs:
 /logs level=INFO limit=100
 /logs level=ERROR limit=50
 /logs filter=download
+/logs filter=streaming
 ```
 
 **Log Levels**: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`
@@ -161,25 +233,17 @@ Send announcements to all bot users:
 3. **Confirm** when prompted
 4. **Message sent** to all users
 
-### Memory Monitoring
-
-Track system resource usage:
-
-- **Current memory usage**
-- **Peak memory usage**
-- **Active connections**
-- **Garbage collection stats**
-
 ## API Access
 
 ### Public Endpoints
 
 Anyone can access these endpoints:
 
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/info` | Retrieve bot status and basic information |
-| `GET /dl/{file_id}` | Download files via generated links |
+| Endpoint | Description | Video Support |
+|----------|-------------|---------------|
+| `GET /api/info` | Retrieve bot status and basic information | ✅ Shows video streaming status |
+| `GET /dl/{file_id}` | Download files via generated links | ✅ Range requests supported |
+| `GET /stream/{file_id}` | Stream video files | ✅ Full streaming with seeking |
 
 ### Example API Usage
 
@@ -188,12 +252,54 @@ Anyone can access these endpoints:
 curl https://yourdomain.com/api/info
 
 # Download a file
-curl -O https://yourdomain.com/dl/encoded_file_id/filename.pdf
+curl -O https://yourdomain.com/dl/encoded_file_id
+
+# Stream a video with range request
+curl -H "Range: bytes=0-1048576" https://yourdomain.com/stream/encoded_file_id
 ```
 
 ### Health Check
 
-You can use the `/api/info` endpoint as a basic health check.
+You can use the `/api/info` endpoint as a basic health check for both download and streaming services.
+
+## Video Streaming Usage
+
+### Supported Video Formats
+
+**Container Formats:**
+- MP4, MKV, AVI, WebM, MOV
+- 3GP, M4V, WMV
+
+**Video Codecs:**
+- H.264 (AVC), H.265 (HEVC)
+- VP8, VP9, AV1
+- MPEG-4, DivX, XviD
+
+**Audio Codecs:**
+- AAC, MP3, Opus
+- Vorbis, FLAC, AC3
+
+### Streaming Performance
+
+**Optimization Features:**
+- **Range Requests**: Load only needed video segments
+- **Efficient Buffering**: Smart buffering for smooth playback
+- **Seeking Support**: Instant seeking to any video position
+- **Progressive Loading**: Start playback while downloading
+
+### Browser Compatibility
+
+**Desktop Browsers:**
+- Chrome 80+, Firefox 75+, Safari 13+, Edge 80+
+
+**Mobile Browsers:**
+- Chrome Mobile, Safari Mobile, Samsung Internet
+
+**Video Player Features:**
+- Fullscreen support
+- Picture-in-picture mode
+- Keyboard shortcuts
+- Touch controls (mobile)
 
 ## Troubleshooting
 
@@ -236,16 +342,27 @@ You can use the `/api/info` endpoint as a basic health check.
     - Try from different network
     - Contact administrator
 
+!!! question "Video streaming doesn't work"
+    **Possible causes:**
+    - Video format not supported
+    - Frontend URL not accessible
+    - Network connectivity issues
+    - Browser compatibility issues
+    
+    **Solutions:**
+    - Try different video format
+    - Check VIDEO_FRONTEND_URL configuration
+    - Test in different browser
+    - Use download link as fallback
+
 !!! question "Can't access admin features"
     **Possible causes:**
     - Not configured as admin
-    - IP address not whitelisted
-    - Invalid access token
+    - Invalid permissions
     
     **Solutions:**
     - Check admin configuration
-    - Verify IP whitelist
-    - Update access tokens
+    - Verify user ID in ADMINS setting
 
 ### Error Messages
 
@@ -255,7 +372,8 @@ You can use the `/api/info` endpoint as a basic health check.
 | "File too large" | Exceeds size limits | Use smaller file |
 | "Bandwidth exceeded" | Monthly limit reached | Wait for monthly reset |
 | "Join required channels" | Subscription required | Join specified channels |
-| "Link expired" | Download link invalid | Generate new link |
+| "Link expired" | Download/streaming link invalid | Generate new link |
+| "Video streaming unavailable" | Frontend not configured | Check VIDEO_FRONTEND_URL |
 
 ### Getting Support
 
@@ -265,7 +383,8 @@ If you need help:
 2. **Review error messages** carefully
 3. **Test with different files** to isolate issues
 4. **Contact administrators** via configured support channels
-5. **Report bugs** on GitHub Issues (if applicable)
+5. **Report bugs** on [GitHub Issues](https://github.com/AnikethJana/Telegram-Download-Link-Generator/issues)
+6. **Get help** on [Telegram](https://t.me/ajmods_bot)
 
 ## Best Practices
 
@@ -276,14 +395,19 @@ If you need help:
 - **Share links responsibly** and only with intended recipients
 - **Monitor your usage** to avoid hitting limits
 - **Keep download links secure** if they contain sensitive content
+- **Test video streaming** before sharing streaming links
+- **Use appropriate video formats** for better streaming performance
 
 ### For Administrators
 
 - **Set appropriate limits** based on your server capacity
-- **Monitor system resources** regularly
+- **Monitor system resources** regularly using `/stats`
 - **Keep software updated** for security and features
 - **Backup configuration** and database regularly
 - **Review logs** for unusual activity
+- **Configure video frontend** properly for best user experience
+- **Test streaming functionality** regularly
+- **Monitor bandwidth usage** to prevent overages
 
 ## Advanced Usage
 
@@ -295,13 +419,41 @@ For sharing multiple files:
 2. **Upload the archive** to get a single download link
 3. **Share the archive link** instead of multiple individual links
 
-### Integration with Applications
+### Video Streaming Integration
 
-Use the API to integrate StreamBot with your applications:
+Use the streaming API to integrate StreamBot with your applications:
 
-- **Automated file sharing** for your services
-- **Programmatic link generation** via API calls
-- **Status monitoring** for system health
-- **Log analysis** for usage patterns
+- **Automated video hosting** for your services
+- **Programmatic streaming link generation** via API calls
+- **Custom video player integration** with your frontend
+- **Status monitoring** for streaming service health
 
-This completes the user guide overview. For specific features, see the dedicated sections in this guide. 
+### Custom Frontend Development
+
+Build your own video frontend:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Custom Video Player</title>
+</head>
+<body>
+    <video id="videoPlayer" controls width="100%">
+        Your browser does not support the video tag.
+    </video>
+    
+    <script>
+        // Get stream URL from query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const streamUrl = urlParams.get('stream');
+        
+        if (streamUrl) {
+            document.getElementById('videoPlayer').src = streamUrl;
+        }
+    </script>
+</body>
+</html>
+```
+
+This completes the comprehensive user guide overview with full video streaming capabilities. For specific features, see the dedicated sections in this guide. 

@@ -53,14 +53,25 @@ DATABASE_NAME=StreamBotDB
 # Web server settings (required)
 BASE_URL=https://yourdomain.com
 PORT=8080
-BIND_ADDRESS=127.0.0.1
+BIND_ADDRESS=0.0.0.0
 ```
 
 | Variable | Description | Examples |
 |----------|-------------|----------|
-| `BASE_URL` | Public URL for download links | `https://files.yourdomain.com`, `http://localhost:8080` |
+| `BASE_URL` | Public URL for download/streaming links | `https://files.yourdomain.com`, `http://localhost:8080` |
 | `PORT` | Port for web server | `8080`, `3000`, `80` |
 | `BIND_ADDRESS` | IP address to bind server | `127.0.0.1` (local), `0.0.0.0` (public) |
+
+### Video Streaming Frontend
+
+```env
+# Video streaming frontend (defaults to Cricster)
+VIDEO_FRONTEND_URL=https://cricster.pages.dev
+```
+
+| Variable | Description | Default | Disable |
+|----------|-------------|---------|---------|
+| `VIDEO_FRONTEND_URL` | Video player frontend URL | `https://cricster.pages.dev` | Set to `false` |
 
 ## Optional Configuration
 
@@ -69,26 +80,26 @@ BIND_ADDRESS=127.0.0.1
 ```env
 # Admin users and access
 ADMINS=123456789 987654321
-LOGS_ACCESS_TOKEN=your_secure_random_token_here
-ADMIN_IPS=127.0.0.1,203.0.113.1
 ```
 
 | Variable | Description | Format |
 |----------|-------------|--------|
 | `ADMINS` | Space-separated admin user IDs | `123456789 987654321` |
-| `LOGS_ACCESS_TOKEN` | Token for API log access | Generate secure random string |
-| `ADMIN_IPS` | Comma-separated admin IP addresses | `127.0.0.1,203.0.113.1` |
 
 ### Multi-Client Support
 
 ```env
 # Additional bot tokens for load balancing
 ADDITIONAL_BOT_TOKENS=token1,token2,token3
+WORKER_CLIENT_PYROGRAM_WORKERS=1
+WORKER_SESSIONS_IN_MEMORY=true
 ```
 
 | Variable | Description | Benefits |
 |----------|-------------|----------|
-| `ADDITIONAL_BOT_TOKENS` | Comma-separated additional bot tokens | Increases download throughput, load balancing |
+| `ADDITIONAL_BOT_TOKENS` | Comma-separated additional bot tokens | Increases download/streaming throughput, load balancing |
+| `WORKER_CLIENT_PYROGRAM_WORKERS` | Workers per additional client | Keep at 1 for stability |
+| `WORKER_SESSIONS_IN_MEMORY` | Store sessions in memory | Reduces disk I/O |
 
 ### Rate Limiting
 
@@ -119,41 +130,35 @@ FORCE_SUB_CHANNEL=-1009876543210
 ```env
 # Application performance settings
 WORKERS=4
-WORKER_CLIENT_PYROGRAM_WORKERS=1
 SESSION_NAME=StreamBot
 ```
 
 | Variable | Description | Default | Recommendations |
 |----------|-------------|---------|-----------------|
 | `WORKERS` | Number of worker threads | `4` | 2-8 depending on server |
-| `WORKER_CLIENT_PYROGRAM_WORKERS` | Pyrogram workers per client | `1` | Keep at 1 for stability |
-| `SESSION_NAME` | Session file prefix | `StreamBot` | Unique name per instance |
+| `SESSION_NAME` | Session file prefix | `TgDlBot` | Unique name per instance |
 
 ### Link Management
 
 ```env
 # Link expiration settings
-LINK_EXPIRY_ENABLED=true
-LINK_EXPIRY_DURATION_SECONDS=86400
+LINK_EXPIRY_SECONDS=86400
 ```
 
 | Variable | Description | Default | Notes |
 |----------|-------------|---------|-------|
-| `LINK_EXPIRY_ENABLED` | Enable link expiration | `true` | Set to `false` to disable |
-| `LINK_EXPIRY_DURATION_SECONDS` | Link validity duration | `86400` (24 hours) | In seconds |
+| `LINK_EXPIRY_SECONDS` | Link validity duration | `86400` (24 hours) | In seconds, affects both download and streaming links |
 
 ### External Integrations
 
 ```env
 # Optional external services
-GITHUB_REPO_URL=https://github.com/yourusername/StreamBot
-SUPPORT_CHAT_ID=-1001234567890
+GITHUB_REPO_URL=https://github.com/AnikethJana/Telegram-Download-Link-Generator
 ```
 
 | Variable | Description | Usage |
 |----------|-------------|-------|
-| `GITHUB_REPO_URL` | Repository URL for info display | Shown in `/info` command |
-| `SUPPORT_CHAT_ID` | Support chat/group ID | For user support redirects |
+| `GITHUB_REPO_URL` | Repository URL for info display | Shown in `/info` command and API |
 
 ## Environment-Specific Configurations
 
@@ -170,6 +175,7 @@ DATABASE_NAME=StreamBotDev
 BASE_URL=http://localhost:8080
 PORT=8080
 BIND_ADDRESS=127.0.0.1
+VIDEO_FRONTEND_URL=https://cricster.pages.dev
 ADMINS=your_telegram_user_id
 MAX_LINKS_PER_DAY=0
 BANDWIDTH_LIMIT_GB=0
@@ -190,17 +196,44 @@ DATABASE_NAME=StreamBotProd
 BASE_URL=https://files.yourdomain.com
 PORT=8080
 BIND_ADDRESS=0.0.0.0
+VIDEO_FRONTEND_URL=https://cricster.pages.dev
 ADMINS=your_telegram_user_id
-LOGS_ACCESS_TOKEN=your_secure_production_token
-ADMIN_IPS=your.server.ip,your.home.ip
 MAX_LINKS_PER_DAY=5
 BANDWIDTH_LIMIT_GB=100
 FORCE_SUB_CHANNEL=-1009876543210
 ADDITIONAL_BOT_TOKENS=token1,token2
 SESSION_NAME=StreamBotProd
 WORKERS=4
-LINK_EXPIRY_ENABLED=true
-LINK_EXPIRY_DURATION_SECONDS=86400
+LINK_EXPIRY_SECONDS=86400
+```
+
+## Video Frontend Configuration
+
+### Default Cricster Integration
+
+StreamBot comes with Cricster integration by default:
+
+```env
+# Uses Cricster as default video frontend
+VIDEO_FRONTEND_URL=https://cricster.pages.dev
+```
+
+### Custom Frontend
+
+To use your own video frontend:
+
+```env
+# Your custom video frontend
+VIDEO_FRONTEND_URL=https://my-video-player.example.com
+```
+
+Your frontend will receive streaming URLs as: `{VIDEO_FRONTEND_URL}?stream={encoded_stream_url}`
+
+### Disable Video Frontend
+
+```env
+# Disable video frontend entirely
+VIDEO_FRONTEND_URL=false
 ```
 
 ## Configuration Validation
@@ -231,31 +264,24 @@ StreamBot validates your configuration on startup. Common validation errors:
     ```
     **Solution**: Channel IDs should be negative numbers like `-1001234567890`
 
+!!! error "Video Frontend Not Accessible"
+    ```
+    WARNING - Video frontend URL not accessible
+    ```
+    **Solution**: Check your `VIDEO_FRONTEND_URL` or set to `false` to disable.
+
 ## Security Best Practices
 
 ### Environment Variables Security
 
 1. **Never commit `.env` files** to version control
-2. **Use strong tokens** for `LOGS_ACCESS_TOKEN`
-3. **Restrict admin IPs** with `ADMIN_IPS`
-4. **Use HTTPS** in production for `BASE_URL`
-
-### Generating Secure Tokens
-
-```bash
-# Generate secure random token (Linux/macOS)
-openssl rand -hex 32
-
-# Generate secure random token (Python)
-python -c "import secrets; print(secrets.token_hex(32))"
-```
+2. **Use HTTPS** in production for `BASE_URL`
+3. **Restrict admin access** with proper `ADMINS` configuration
+4. **Use secure MongoDB connections** with authentication
 
 ### IP Address Restrictions
 
-```env
-# Restrict admin access to specific IPs
-ADMIN_IPS=203.0.113.1,198.51.100.2,127.0.0.1
-```
+For additional security, configure your reverse proxy or firewall to restrict access to specific IP addresses.
 
 ## Configuration Templates
 
@@ -275,12 +301,13 @@ DATABASE_NAME=StreamBotDB
 # Server Configuration (Required)
 BASE_URL=https://yourdomain.com
 PORT=8080
-BIND_ADDRESS=127.0.0.1
+BIND_ADDRESS=0.0.0.0
+
+# Video Frontend (defaults to Cricster)
+VIDEO_FRONTEND_URL=https://cricster.pages.dev
 
 # Admin Configuration
 ADMINS=your_telegram_user_id
-LOGS_ACCESS_TOKEN=generate_secure_token
-ADMIN_IPS=127.0.0.1
 
 # Optional Features
 MAX_LINKS_PER_DAY=5
@@ -290,9 +317,8 @@ ADDITIONAL_BOT_TOKENS=
 
 # Performance Settings
 WORKERS=4
-SESSION_NAME=StreamBot
-LINK_EXPIRY_ENABLED=true
-LINK_EXPIRY_DURATION_SECONDS=86400
+SESSION_NAME=TgDlBot
+LINK_EXPIRY_SECONDS=86400
 ```
 
 ## Troubleshooting Configuration
@@ -304,5 +330,6 @@ If StreamBot fails to start, check:
 3. **Format correctness**: Variables follow the correct format
 4. **File permissions**: `.env` file is readable by the application
 5. **No trailing spaces**: Remove any trailing spaces from variable values
+6. **Video frontend accessibility**: Ensure VIDEO_FRONTEND_URL is accessible or set to `false`
 
 For additional help, see the [Installation Guide](installation.md) or [User Guide](../user-guide/overview.md). 

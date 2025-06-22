@@ -77,7 +77,7 @@ Thank you to everyone who uses StreamBot, reports issues, and helps make it bett
 *This section will highlight significant contributors as the project grows.*
 
 ### Contributors
-*All contributors are automatically recognized in our [GitHub Contributors](https://github.com/yourusername/StreamBot/graphs/contributors) page.*
+*All contributors are automatically recognized in our [GitHub Contributors](https://github.com/AnikethJana/Telegram-Download-Link-Generator/graphs/contributors) page.*
 
 ## How to Contribute
 
@@ -96,4 +96,4 @@ All contributions to StreamBot are made under the [MIT License](license.md), ens
 
 ---
 
-*If you feel your contribution should be specifically acknowledged here, please don't hesitate to [open an issue](https://github.com/yourusername/StreamBot/issues) or submit a pull request.* 
+*If you feel your contribution should be specifically acknowledged here, please don't hesitate to [open an issue](https://github.com/AnikethJana/Telegram-Download-Link-Generator/issues) or submit a pull request.* 
