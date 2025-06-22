@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Introduction to the StreamBot REST API for integrations">
+        <meta name="description" content="Introduction to the StreamBot REST API for integrations and streaming">
       
       
       
@@ -49,6 +49,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -1155,6 +1157,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#streaming-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Streaming Capabilities
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Streaming Capabilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#video-streaming-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-vs-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Download vs Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#http-status-codes" class="md-nav__link">
     <span class="md-ellipsis">
       HTTP Status Codes
@@ -1173,6 +1208,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#video-streaming-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-video-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Video Formats
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#range-request-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Range Request Support
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#response-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Response Headers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#versioning" class="md-nav__link">
     <span class="md-ellipsis">
       Versioning
@@ -1187,6 +1264,30 @@
       Cross-Origin Resource Sharing (CORS)
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#video-player-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Player Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1213,6 +1314,72 @@
   <a href="#quick-test" class="md-nav__link">
     <span class="md-ellipsis">
       Quick Test
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Considerations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#streaming-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Streaming Optimization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate-limiting_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limiting
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Integration Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#video-streaming-in-web-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming in Web App
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-progress-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Download Progress Tracking
     </span>
   </a>
   
@@ -1526,6 +1693,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#streaming-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Streaming Capabilities
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Streaming Capabilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#video-streaming-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-vs-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Download vs Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#http-status-codes" class="md-nav__link">
     <span class="md-ellipsis">
       HTTP Status Codes
@@ -1544,6 +1744,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#video-streaming-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-video-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Video Formats
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#range-request-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      Range Request Support
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#response-headers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Response Headers
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#versioning" class="md-nav__link">
     <span class="md-ellipsis">
       Versioning
@@ -1558,6 +1800,30 @@
       Cross-Origin Resource Sharing (CORS)
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#frontend-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Integration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Frontend Integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#video-player-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Player Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1594,6 +1860,72 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#performance-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Considerations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#streaming-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Streaming Optimization
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate-limiting_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Rate Limiting
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#integration-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Integration Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#video-streaming-in-web-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming in Web App
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#download-progress-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Download Progress Tracking
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1614,17 +1946,18 @@
 
 
 <h1 id="streambot-api">StreamBot API<a class="headerlink" href="#streambot-api" title="Permanent link">&para;</a></h1>
-<p>StreamBot provides a RESTful API for interacting with the bot's functionality, monitoring system status, and accessing administrative features. All endpoints return JSON responses and support CORS for web application integration.</p>
+<p>StreamBot provides a comprehensive RESTful API for interacting with the bot's functionality, monitoring system status, accessing download/streaming endpoints, and administrative features. All endpoints return JSON responses and support CORS for web application integration.</p>
 <h2 id="api-basics">API Basics<a class="headerlink" href="#api-basics" title="Permanent link">&para;</a></h2>
 <p><strong>Base URL</strong>: <code>https://yourdomain.com</code> (configured via <code>BASE_URL</code> environment variable)</p>
 <h2 id="authentication-methods">Authentication Methods<a class="headerlink" href="#authentication-methods" title="Permanent link">&para;</a></h2>
-<p>The API endpoints are generally public and do not require authentication:</p>
+<p>The API endpoints are generally public for file access and do not require authentication:</p>
 <div class="grid">
 <div class="card">
 <h3 id="encoded-file-ids">Encoded File IDs<a class="headerlink" href="#encoded-file-ids" title="Permanent link">&para;</a></h3>
-<p>File downloads use encoded message IDs for secure access control.</p>
+<p>File downloads and streaming use encoded message IDs for secure access control.</p>
 <div class="language-http highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nf">GET</span> <span class="nn">/dl/encoded_file_id</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">Host</span><span class="o">:</span> <span class="l">yourdomain.com</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="err">GET</span> <span class="l">/stream/encoded_file_id HTTP/1.1</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="na">Host</span><span class="o">:</span> <span class="l">yourdomain.com</span>
 </span></code></pre></div>
 </div>
 </div>
@@ -1632,7 +1965,8 @@
 <p>All API endpoints implement rate limiting to prevent abuse:</p>
 <ul>
 <li>Standard endpoints: 60 requests per minute</li>
-<li>Download endpoints: 10 requests per minute</li>
+<li>Download/streaming endpoints: 10 requests per minute</li>
+<li>Range requests: Additional optimizations for video streaming</li>
 </ul>
 <p>Rate limit headers are included in all responses:</p>
 <div class="language-http highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="err">X-RateLimit-Limit: 60</span>
@@ -1663,6 +1997,7 @@
 <th>Method</th>
 <th>Description</th>
 <th>Authentication</th>
+<th>Video Support</th>
 </tr>
 </thead>
 <tbody>
@@ -1671,16 +2006,78 @@
 <td>GET</td>
 <td>Bot status and information</td>
 <td>None</td>
+<td>✅ Streaming status</td>
 </tr>
 <tr>
 <td><code>/dl/{file_id}</code></td>
 <td>GET</td>
 <td>Download file</td>
 <td>None*</td>
+<td>✅ Range requests</td>
+</tr>
+<tr>
+<td><code>/stream/{file_id}</code></td>
+<td>GET</td>
+<td>Stream video file</td>
+<td>None*</td>
+<td>✅ Full streaming</td>
 </tr>
 </tbody>
 </table>
-<p>*File downloads use encoded IDs for access control</p>
+<p>*File downloads and streaming use encoded IDs for access control</p>
+<h2 id="streaming-capabilities">Streaming Capabilities<a class="headerlink" href="#streaming-capabilities" title="Permanent link">&para;</a></h2>
+<h3 id="video-streaming-endpoints">Video Streaming Endpoints<a class="headerlink" href="#video-streaming-endpoints" title="Permanent link">&para;</a></h3>
+<p>StreamBot now provides dedicated streaming endpoints with advanced features:</p>
+<p><strong>Streaming URL Format:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>GET /stream/{encoded_file_id}
+</span></code></pre></div></p>
+<p><strong>Features:</strong>
+- <strong>Range Request Support</strong>: Full HTTP range request support for seeking
+- <strong>Progressive Loading</strong>: Start playback while downloading
+- <strong>Multiple Formats</strong>: Support for various video containers and codecs
+- <strong>Efficient Buffering</strong>: Optimized for video streaming performance</p>
+<p><strong>Example Range Request:</strong>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nf">GET</span> <span class="nn">/stream/abc123def456</span> <span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="na">Range</span><span class="o">:</span> <span class="l">bytes=1048576-2097152</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="na">Host</span><span class="o">:</span> <span class="l">yourdomain.com</span>
+</span></code></pre></div></p>
+<h3 id="download-vs-streaming">Download vs Streaming<a class="headerlink" href="#download-vs-streaming" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Download Endpoint</th>
+<th>Streaming Endpoint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>URL Pattern</td>
+<td><code>/dl/{file_id}</code></td>
+<td><code>/stream/{file_id}</code></td>
+</tr>
+<tr>
+<td>Purpose</td>
+<td>Full file download</td>
+<td>Progressive video streaming</td>
+</tr>
+<tr>
+<td>Range Support</td>
+<td>✅ Partial downloads</td>
+<td>✅ Video seeking</td>
+</tr>
+<tr>
+<td>Video Optimized</td>
+<td>❌</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>File Types</td>
+<td>All types</td>
+<td>Video files</td>
+</tr>
+</tbody>
+</table>
 <h2 id="http-status-codes">HTTP Status Codes<a class="headerlink" href="#http-status-codes" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1693,6 +2090,10 @@
 <tr>
 <td>200</td>
 <td>Success</td>
+</tr>
+<tr>
+<td>206</td>
+<td>Partial Content (range requests)</td>
 </tr>
 <tr>
 <td>400</td>
@@ -1711,6 +2112,10 @@
 <td>Not Found - Resource does not exist</td>
 </tr>
 <tr>
+<td>416</td>
+<td>Range Not Satisfiable - Invalid range request</td>
+</tr>
+<tr>
 <td>429</td>
 <td>Too Many Requests - Rate limit exceeded</td>
 </tr>
@@ -1724,24 +2129,75 @@
 <p>The API works with the following content types:</p>
 <ul>
 <li><code>application/json</code> for API requests and responses</li>
-<li>Various MIME types for file downloads</li>
+<li>Various MIME types for file downloads and streaming:</li>
+<li>Video: <code>video/mp4</code>, <code>video/webm</code>, <code>video/mkv</code></li>
+<li>Audio: <code>audio/mp3</code>, <code>audio/aac</code>, <code>audio/ogg</code></li>
+<li>Images: <code>image/jpeg</code>, <code>image/png</code>, <code>image/gif</code></li>
+<li>Documents: <code>application/pdf</code>, <code>text/plain</code>, etc.</li>
 <li><code>multipart/form-data</code> for file uploads (when applicable)</li>
 </ul>
+<h2 id="video-streaming-features">Video Streaming Features<a class="headerlink" href="#video-streaming-features" title="Permanent link">&para;</a></h2>
+<h3 id="supported-video-formats">Supported Video Formats<a class="headerlink" href="#supported-video-formats" title="Permanent link">&para;</a></h3>
+<p><strong>Container Formats:</strong>
+- MP4, MKV, AVI, WebM, MOV, 3GP</p>
+<p><strong>Video Codecs:</strong>
+- H.264 (AVC), H.265 (HEVC), VP8, VP9, AV1</p>
+<p><strong>Audio Codecs:</strong>
+- AAC, MP3, Opus, Vorbis</p>
+<h3 id="range-request-support">Range Request Support<a class="headerlink" href="#range-request-support" title="Permanent link">&para;</a></h3>
+<p>StreamBot provides full HTTP range request support for efficient video streaming:</p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="err"># Request first 1MB of video</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="err">Range: bytes=0-1048575</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="err"># Request from 1MB to 2MB</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="err">Range: bytes=1048576-2097151</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="err"># Request from 5MB to end of file</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="err">Range: bytes=5242880-</span>
+</span></code></pre></div>
+<h3 id="response-headers">Response Headers<a class="headerlink" href="#response-headers" title="Permanent link">&para;</a></h3>
+<p>Streaming responses include appropriate headers:</p>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="kr">HTTP</span><span class="o">/</span><span class="m">1.1</span> <span class="m">206</span> <span class="ne">Partial Content</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="na">Content-Type</span><span class="o">:</span> <span class="l">video/mp4</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="na">Content-Length</span><span class="o">:</span> <span class="l">1048576</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="na">Content-Range</span><span class="o">:</span> <span class="l">bytes 0-1048575/104857600</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="na">Accept-Ranges</span><span class="o">:</span> <span class="l">bytes</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="na">Cache-Control</span><span class="o">:</span> <span class="l">public, max-age=3600</span>
+</span></code></pre></div>
 <h2 id="versioning">Versioning<a class="headerlink" href="#versioning" title="Permanent link">&para;</a></h2>
 <p>The current API version is integrated directly into the endpoints. Future versions will use the format:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>/api/v2/endpoint
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>/api/v2/endpoint
 </span></code></pre></div>
 <h2 id="cross-origin-resource-sharing-cors">Cross-Origin Resource Sharing (CORS)<a class="headerlink" href="#cross-origin-resource-sharing-cors" title="Permanent link">&para;</a></h2>
 <p>The API supports CORS for web application integration. The following headers are included in responses:</p>
-<div class="language-http highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="err">Access-Control-Allow-Origin: *</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="err">Access-Control-Allow-Methods: GET, POST, OPTIONS</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="err">Access-Control-Allow-Headers: Content-Type, Authorization</span>
+<div class="language-http highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="err">Access-Control-Allow-Origin: *</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="err">Access-Control-Allow-Methods: GET, POST, OPTIONS</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="err">Access-Control-Allow-Headers: Content-Type, Authorization, Range</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="err">Access-Control-Expose-Headers: Content-Range, Accept-Ranges</span>
 </span></code></pre></div>
+<h2 id="frontend-integration">Frontend Integration<a class="headerlink" href="#frontend-integration" title="Permanent link">&para;</a></h2>
+<h3 id="video-player-integration">Video Player Integration<a class="headerlink" href="#video-player-integration" title="Permanent link">&para;</a></h3>
+<p>StreamBot integrates with video frontends using URL parameters:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>{VIDEO_FRONTEND_URL}?stream={encoded_stream_url}
+</span></code></pre></div>
+<p><strong>Default Integration (Cricster):</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>https://cricster.pages.dev?stream=https%3A//yourdomain.com/stream/abc123
+</span></code></pre></div></p>
+<p><strong>Custom Frontend Example:</strong>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1">// Extract stream URL from query parameter</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">urlParams</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">URLSearchParams</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">search</span><span class="p">);</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">streamUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">urlParams</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;stream&#39;</span><span class="p">);</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1">// Use with HTML5 video element</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="kd">const</span><span class="w"> </span><span class="nx">video</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;videoPlayer&#39;</span><span class="p">);</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="nx">video</span><span class="p">.</span><span class="nx">src</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">streamUrl</span><span class="p">;</span>
+</span></code></pre></div></p>
 <h2 id="api-explorer">API Explorer<a class="headerlink" href="#api-explorer" title="Permanent link">&para;</a></h2>
 <p>Use the sections below to explore the available API endpoints in detail:</p>
 <ul>
 <li><a href="../endpoints/">Endpoints Reference</a> - Detailed documentation for each endpoint</li>
 <li><a href="../examples/">Examples &amp; Integration</a> - Code examples for common scenarios</li>
+<li><a href="../authentication/">Authentication</a> - Authentication methods and security</li>
 </ul>
 <h2 id="testing-the-api">Testing the API<a class="headerlink" href="#testing-the-api" title="Permanent link">&para;</a></h2>
 <p>You can test the API endpoints using:</p>
@@ -1752,9 +2208,70 @@
 <li><strong>Programming languages</strong>: Python, JavaScript, etc.</li>
 </ul>
 <h3 id="quick-test">Quick Test<a class="headerlink" href="#quick-test" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Test if the API is accessible</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>curl<span class="w"> </span>https://yourdomain.com/api/info
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Test if the API is accessible</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>curl<span class="w"> </span>https://yourdomain.com/api/info
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="c1"># Test video streaming with range request</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Range: bytes=0-1048576&quot;</span><span class="w"> </span>https://yourdomain.com/stream/your_file_id
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="c1"># Test download endpoint</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://yourdomain.com/dl/your_file_id
 </span></code></pre></div>
+<h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="streaming-optimization">Streaming Optimization<a class="headerlink" href="#streaming-optimization" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Range Requests</strong>: Use range requests for efficient video seeking</li>
+<li><strong>Chunk Size</strong>: Optimal chunk sizes for different network conditions</li>
+<li><strong>Caching</strong>: Implement client-side caching for better performance</li>
+<li><strong>CDN Integration</strong>: Use CDN for global content delivery</li>
+</ul>
+<h3 id="rate-limiting_1">Rate Limiting<a class="headerlink" href="#rate-limiting_1" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Respect Limits</strong>: Stay within rate limit boundaries</li>
+<li><strong>Exponential Backoff</strong>: Implement retry logic with exponential backoff</li>
+<li><strong>Multiple Clients</strong>: Use multiple client tokens for higher throughput</li>
+</ul>
+<h2 id="integration-examples">Integration Examples<a class="headerlink" href="#integration-examples" title="Permanent link">&para;</a></h2>
+<h3 id="video-streaming-in-web-app">Video Streaming in Web App<a class="headerlink" href="#video-streaming-in-web-app" title="Permanent link">&para;</a></h3>
+<div class="language-html highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="p">&lt;</span><span class="nt">video</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;videoPlayer&quot;</span> <span class="na">controls</span><span class="p">&gt;</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>    <span class="p">&lt;</span><span class="nt">source</span> <span class="na">src</span><span class="o">=</span><span class="s">&quot;https://yourdomain.com/stream/file_id&quot;</span> <span class="na">type</span><span class="o">=</span><span class="s">&quot;video/mp4&quot;</span><span class="p">&gt;</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    Your browser does not support the video tag.
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="p">&lt;/</span><span class="nt">video</span><span class="p">&gt;</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="kd">const</span><span class="w"> </span><span class="nx">video</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;videoPlayer&#39;</span><span class="p">);</span>
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="c1">// Enable seeking with range requests</span>
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="nx">video</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;seeking&#39;</span><span class="p">,</span><span class="w"> </span><span class="kd">function</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Seeking to:&#39;</span><span class="p">,</span><span class="w"> </span><span class="nx">video</span><span class="p">.</span><span class="nx">currentTime</span><span class="p">);</span>
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="p">});</span>
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="c1">// Handle loading events</span>
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="nx">video</span><span class="p">.</span><span class="nx">addEventListener</span><span class="p">(</span><span class="s1">&#39;loadstart&#39;</span><span class="p">,</span><span class="w"> </span><span class="kd">function</span><span class="p">()</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="w">    </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;Started loading video&#39;</span><span class="p">);</span>
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="p">});</span>
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span></code></pre></div>
+<h3 id="download-progress-tracking">Download Progress Tracking<a class="headerlink" href="#download-progress-tracking" title="Permanent link">&para;</a></h3>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">async</span><span class="w"> </span><span class="kd">function</span><span class="w"> </span><span class="nx">downloadWithProgress</span><span class="p">(</span><span class="nx">fileId</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">fetch</span><span class="p">(</span><span class="sb">`https://yourdomain.com/dl/</span><span class="si">${</span><span class="nx">fileId</span><span class="si">}</span><span class="sb">`</span><span class="p">);</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">contentLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">headers</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;Content-Length&#39;</span><span class="p">);</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">total</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">parseInt</span><span class="p">(</span><span class="nx">contentLength</span><span class="p">,</span><span class="w"> </span><span class="mf">10</span><span class="p">);</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="kd">const</span><span class="w"> </span><span class="nx">reader</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">response</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">getReader</span><span class="p">();</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">    </span><span class="kd">let</span><span class="w"> </span><span class="nx">received</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0</span><span class="p">;</span>
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nx">done</span><span class="p">,</span><span class="w"> </span><span class="nx">value</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">await</span><span class="w"> </span><span class="nx">reader</span><span class="p">.</span><span class="nx">read</span><span class="p">();</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">done</span><span class="p">)</span><span class="w"> </span><span class="k">break</span><span class="p">;</span>
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">        </span><span class="nx">received</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="nx">value</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
+</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">progress</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="nx">received</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="nx">total</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mf">100</span><span class="p">;</span>
+</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="w">        </span><span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="sb">`Progress: </span><span class="si">${</span><span class="nx">progress</span><span class="p">.</span><span class="nx">toFixed</span><span class="p">(</span><span class="mf">1</span><span class="p">)</span><span class="si">}</span><span class="sb">%`</span><span class="p">);</span>
+</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>This API overview provides comprehensive information about StreamBot's REST API with full video streaming support. For detailed endpoint documentation, see the <a href="../endpoints/">Endpoints Reference</a>. </p>
 
 
 
@@ -1789,7 +2306,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2023 - Present | Aniket Jana
+      Copyright &copy; 2023 - Present | Aniketh Jana
     </div>
   
   

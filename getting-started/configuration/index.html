@@ -50,6 +50,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -645,6 +647,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#video-streaming-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Frontend
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -762,6 +773,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#video-frontend-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Frontend Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Frontend Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default-cricster-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default Cricster Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Frontend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disable-video-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disable Video Frontend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#configuration-validation" class="md-nav__link">
     <span class="md-ellipsis">
       Configuration Validation
@@ -784,15 +837,6 @@
   <a href="#environment-variables-security" class="md-nav__link">
     <span class="md-ellipsis">
       Environment Variables Security
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#generating-secure-tokens" class="md-nav__link">
-    <span class="md-ellipsis">
-      Generating Secure Tokens
     </span>
   </a>
   
@@ -1628,6 +1672,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#video-streaming-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Frontend
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1745,6 +1798,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#video-frontend-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Frontend Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Frontend Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#default-cricster-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default Cricster Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Frontend
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#disable-video-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Disable Video Frontend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#configuration-validation" class="md-nav__link">
     <span class="md-ellipsis">
       Configuration Validation
@@ -1767,15 +1862,6 @@
   <a href="#environment-variables-security" class="md-nav__link">
     <span class="md-ellipsis">
       Environment Variables Security
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#generating-secure-tokens" class="md-nav__link">
-    <span class="md-ellipsis">
-      Generating Secure Tokens
     </span>
   </a>
   
@@ -1922,7 +2008,7 @@
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a># Web server settings (required)
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>BASE_URL=https://yourdomain.com
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>PORT=8080
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>BIND_ADDRESS=127.0.0.1
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>BIND_ADDRESS=0.0.0.0
 </span></code></pre></div>
 <table>
 <thead>
@@ -1935,7 +2021,7 @@
 <tbody>
 <tr>
 <td><code>BASE_URL</code></td>
-<td>Public URL for download links</td>
+<td>Public URL for download/streaming links</td>
 <td><code>https://files.yourdomain.com</code>, <code>http://localhost:8080</code></td>
 </tr>
 <tr>
@@ -1950,12 +2036,32 @@
 </tr>
 </tbody>
 </table>
+<h3 id="video-streaming-frontend">Video Streaming Frontend<a class="headerlink" href="#video-streaming-frontend" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># Video streaming frontend (defaults to Cricster)
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>VIDEO_FRONTEND_URL=https://cricster.pages.dev
+</span></code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Default</th>
+<th>Disable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>VIDEO_FRONTEND_URL</code></td>
+<td>Video player frontend URL</td>
+<td><code>https://cricster.pages.dev</code></td>
+<td>Set to <code>false</code></td>
+</tr>
+</tbody>
+</table>
 <h2 id="optional-configuration">Optional Configuration<a class="headerlink" href="#optional-configuration" title="Permanent link">&para;</a></h2>
 <h3 id="admin-settings">Admin Settings<a class="headerlink" href="#admin-settings" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a># Admin users and access
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>ADMINS=123456789 987654321
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>LOGS_ACCESS_TOKEN=your_secure_random_token_here
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>ADMIN_IPS=127.0.0.1,203.0.113.1
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a># Admin users and access
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ADMINS=123456789 987654321
 </span></code></pre></div>
 <table>
 <thead>
@@ -1971,21 +2077,13 @@
 <td>Space-separated admin user IDs</td>
 <td><code>123456789 987654321</code></td>
 </tr>
-<tr>
-<td><code>LOGS_ACCESS_TOKEN</code></td>
-<td>Token for API log access</td>
-<td>Generate secure random string</td>
-</tr>
-<tr>
-<td><code>ADMIN_IPS</code></td>
-<td>Comma-separated admin IP addresses</td>
-<td><code>127.0.0.1,203.0.113.1</code></td>
-</tr>
 </tbody>
 </table>
 <h3 id="multi-client-support">Multi-Client Support<a class="headerlink" href="#multi-client-support" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a># Additional bot tokens for load balancing
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>ADDITIONAL_BOT_TOKENS=token1,token2,token3
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a># Additional bot tokens for load balancing
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>ADDITIONAL_BOT_TOKENS=token1,token2,token3
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>WORKER_CLIENT_PYROGRAM_WORKERS=1
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>WORKER_SESSIONS_IN_MEMORY=true
 </span></code></pre></div>
 <table>
 <thead>
@@ -1999,14 +2097,24 @@
 <tr>
 <td><code>ADDITIONAL_BOT_TOKENS</code></td>
 <td>Comma-separated additional bot tokens</td>
-<td>Increases download throughput, load balancing</td>
+<td>Increases download/streaming throughput, load balancing</td>
+</tr>
+<tr>
+<td><code>WORKER_CLIENT_PYROGRAM_WORKERS</code></td>
+<td>Workers per additional client</td>
+<td>Keep at 1 for stability</td>
+</tr>
+<tr>
+<td><code>WORKER_SESSIONS_IN_MEMORY</code></td>
+<td>Store sessions in memory</td>
+<td>Reduces disk I/O</td>
 </tr>
 </tbody>
 </table>
 <h3 id="rate-limiting">Rate Limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a># User rate limiting
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>MAX_LINKS_PER_DAY=5
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>BANDWIDTH_LIMIT_GB=100
+<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a># User rate limiting
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>MAX_LINKS_PER_DAY=5
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>BANDWIDTH_LIMIT_GB=100
 </span></code></pre></div>
 <table>
 <thead>
@@ -2033,8 +2141,8 @@
 </tbody>
 </table>
 <h3 id="force-subscription">Force Subscription<a class="headerlink" href="#force-subscription" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a># Require channel subscription
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>FORCE_SUB_CHANNEL=-1009876543210
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a># Require channel subscription
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>FORCE_SUB_CHANNEL=-1009876543210
 </span></code></pre></div>
 <table>
 <thead>
@@ -2053,10 +2161,9 @@
 </tbody>
 </table>
 <h3 id="performance-tuning">Performance Tuning<a class="headerlink" href="#performance-tuning" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a># Application performance settings
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>WORKERS=4
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>WORKER_CLIENT_PYROGRAM_WORKERS=1
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>SESSION_NAME=StreamBot
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a># Application performance settings
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>WORKERS=4
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>SESSION_NAME=StreamBot
 </span></code></pre></div>
 <table>
 <thead>
@@ -2075,23 +2182,16 @@
 <td>2-8 depending on server</td>
 </tr>
 <tr>
-<td><code>WORKER_CLIENT_PYROGRAM_WORKERS</code></td>
-<td>Pyrogram workers per client</td>
-<td><code>1</code></td>
-<td>Keep at 1 for stability</td>
-</tr>
-<tr>
 <td><code>SESSION_NAME</code></td>
 <td>Session file prefix</td>
-<td><code>StreamBot</code></td>
+<td><code>TgDlBot</code></td>
 <td>Unique name per instance</td>
 </tr>
 </tbody>
 </table>
 <h3 id="link-management">Link Management<a class="headerlink" href="#link-management" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a># Link expiration settings
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>LINK_EXPIRY_ENABLED=true
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>LINK_EXPIRY_DURATION_SECONDS=86400
+<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a># Link expiration settings
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>LINK_EXPIRY_SECONDS=86400
 </span></code></pre></div>
 <table>
 <thead>
@@ -2104,23 +2204,16 @@
 </thead>
 <tbody>
 <tr>
-<td><code>LINK_EXPIRY_ENABLED</code></td>
-<td>Enable link expiration</td>
-<td><code>true</code></td>
-<td>Set to <code>false</code> to disable</td>
-</tr>
-<tr>
-<td><code>LINK_EXPIRY_DURATION_SECONDS</code></td>
+<td><code>LINK_EXPIRY_SECONDS</code></td>
 <td>Link validity duration</td>
 <td><code>86400</code> (24 hours)</td>
-<td>In seconds</td>
+<td>In seconds, affects both download and streaming links</td>
 </tr>
 </tbody>
 </table>
 <h3 id="external-integrations">External Integrations<a class="headerlink" href="#external-integrations" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a># Optional external services
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>GITHUB_REPO_URL=https://github.com/yourusername/StreamBot
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>SUPPORT_CHAT_ID=-1001234567890
+<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a># Optional external services
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>GITHUB_REPO_URL=https://github.com/AnikethJana/Telegram-Download-Link-Generator
 </span></code></pre></div>
 <table>
 <thead>
@@ -2134,134 +2227,141 @@
 <tr>
 <td><code>GITHUB_REPO_URL</code></td>
 <td>Repository URL for info display</td>
-<td>Shown in <code>/info</code> command</td>
-</tr>
-<tr>
-<td><code>SUPPORT_CHAT_ID</code></td>
-<td>Support chat/group ID</td>
-<td>For user support redirects</td>
+<td>Shown in <code>/info</code> command and API</td>
 </tr>
 </tbody>
 </table>
 <h2 id="environment-specific-configurations">Environment-Specific Configurations<a class="headerlink" href="#environment-specific-configurations" title="Permanent link">&para;</a></h2>
 <h3 id="development-environment">Development Environment<a class="headerlink" href="#development-environment" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a># Development settings
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>API_ID=12345678
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>API_HASH=your_dev_api_hash
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>BOT_TOKEN=your_dev_bot_token
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>LOG_CHANNEL=-1001234567890
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>DATABASE_URL=mongodb://localhost:27017
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>DATABASE_NAME=StreamBotDev
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>BASE_URL=http://localhost:8080
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>PORT=8080
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>BIND_ADDRESS=127.0.0.1
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>ADMINS=your_telegram_user_id
-</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>MAX_LINKS_PER_DAY=0
-</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>BANDWIDTH_LIMIT_GB=0
-</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a>SESSION_NAME=StreamBotDev
-</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>WORKERS=2
+<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a># Development settings
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>API_ID=12345678
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>API_HASH=your_dev_api_hash
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>BOT_TOKEN=your_dev_bot_token
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>LOG_CHANNEL=-1001234567890
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>DATABASE_URL=mongodb://localhost:27017
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>DATABASE_NAME=StreamBotDev
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>BASE_URL=http://localhost:8080
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>PORT=8080
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>BIND_ADDRESS=127.0.0.1
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>VIDEO_FRONTEND_URL=https://cricster.pages.dev
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>ADMINS=your_telegram_user_id
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>MAX_LINKS_PER_DAY=0
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>BANDWIDTH_LIMIT_GB=0
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>SESSION_NAME=StreamBotDev
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>WORKERS=2
 </span></code></pre></div>
 <h3 id="production-environment">Production Environment<a class="headerlink" href="#production-environment" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a># Production settings
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>API_ID=12345678
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>API_HASH=your_production_api_hash
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>BOT_TOKEN=your_production_bot_token
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>LOG_CHANNEL=-1001234567890
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>DATABASE_URL=mongodb+srv://user:password@cluster.mongodb.net/
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>DATABASE_NAME=StreamBotProd
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>BASE_URL=https://files.yourdomain.com
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>PORT=8080
-</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a>BIND_ADDRESS=0.0.0.0
-</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>ADMINS=your_telegram_user_id
-</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a>LOGS_ACCESS_TOKEN=your_secure_production_token
-</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>ADMIN_IPS=your.server.ip,your.home.ip
-</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a>MAX_LINKS_PER_DAY=5
-</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>BANDWIDTH_LIMIT_GB=100
-</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>FORCE_SUB_CHANNEL=-1009876543210
-</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>ADDITIONAL_BOT_TOKENS=token1,token2
-</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a>SESSION_NAME=StreamBotProd
-</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>WORKERS=4
-</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a>LINK_EXPIRY_ENABLED=true
-</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a>LINK_EXPIRY_DURATION_SECONDS=86400
+<div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a># Production settings
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>API_ID=12345678
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>API_HASH=your_production_api_hash
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>BOT_TOKEN=your_production_bot_token
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>LOG_CHANNEL=-1001234567890
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>DATABASE_URL=mongodb+srv://user:password@cluster.mongodb.net/
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>DATABASE_NAME=StreamBotProd
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>BASE_URL=https://files.yourdomain.com
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>PORT=8080
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>BIND_ADDRESS=0.0.0.0
+</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>VIDEO_FRONTEND_URL=https://cricster.pages.dev
+</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>ADMINS=your_telegram_user_id
+</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>MAX_LINKS_PER_DAY=5
+</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>BANDWIDTH_LIMIT_GB=100
+</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a>FORCE_SUB_CHANNEL=-1009876543210
+</span><span id="__span-13-16"><a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>ADDITIONAL_BOT_TOKENS=token1,token2
+</span><span id="__span-13-17"><a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a>SESSION_NAME=StreamBotProd
+</span><span id="__span-13-18"><a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a>WORKERS=4
+</span><span id="__span-13-19"><a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a>LINK_EXPIRY_SECONDS=86400
+</span></code></pre></div>
+<h2 id="video-frontend-configuration">Video Frontend Configuration<a class="headerlink" href="#video-frontend-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="default-cricster-integration">Default Cricster Integration<a class="headerlink" href="#default-cricster-integration" title="Permanent link">&para;</a></h3>
+<p>StreamBot comes with Cricster integration by default:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a># Uses Cricster as default video frontend
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>VIDEO_FRONTEND_URL=https://cricster.pages.dev
+</span></code></pre></div>
+<h3 id="custom-frontend">Custom Frontend<a class="headerlink" href="#custom-frontend" title="Permanent link">&para;</a></h3>
+<p>To use your own video frontend:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a># Your custom video frontend
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>VIDEO_FRONTEND_URL=https://my-video-player.example.com
+</span></code></pre></div>
+<p>Your frontend will receive streaming URLs as: <code>{VIDEO_FRONTEND_URL}?stream={encoded_stream_url}</code></p>
+<h3 id="disable-video-frontend">Disable Video Frontend<a class="headerlink" href="#disable-video-frontend" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a># Disable video frontend entirely
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>VIDEO_FRONTEND_URL=false
 </span></code></pre></div>
 <h2 id="configuration-validation">Configuration Validation<a class="headerlink" href="#configuration-validation" title="Permanent link">&para;</a></h2>
 <p>StreamBot validates your configuration on startup. Common validation errors:</p>
 <div class="admonition error">
 <p class="admonition-title">Missing Required Variables</p>
-<p><div class="language-text highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>ERROR - Missing required environment variable: BOT_TOKEN
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>ERROR - Missing required environment variable: BOT_TOKEN
 </span></code></pre></div>
 <strong>Solution</strong>: Ensure all required variables are set in your <code>.env</code> file.</p>
 </div>
 <div class="admonition error">
 <p class="admonition-title">Invalid Bot Token</p>
-<p><div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>ERROR - Bot token format is invalid
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>ERROR - Bot token format is invalid
 </span></code></pre></div>
 <strong>Solution</strong>: Check your bot token format. It should look like <code>123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghi</code></p>
 </div>
 <div class="admonition error">
 <p class="admonition-title">Database Connection Failed</p>
-<p><div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>ERROR - Failed to connect to MongoDB
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>ERROR - Failed to connect to MongoDB
 </span></code></pre></div>
 <strong>Solution</strong>: Verify your <code>DATABASE_URL</code> and ensure MongoDB is running.</p>
 </div>
 <div class="admonition error">
 <p class="admonition-title">Invalid Channel ID</p>
-<p><div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>ERROR - LOG_CHANNEL must be a negative integer
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>ERROR - LOG_CHANNEL must be a negative integer
 </span></code></pre></div>
 <strong>Solution</strong>: Channel IDs should be negative numbers like <code>-1001234567890</code></p>
+</div>
+<div class="admonition error">
+<p class="admonition-title">Video Frontend Not Accessible</p>
+<p><div class="language-text highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>WARNING - Video frontend URL not accessible
+</span></code></pre></div>
+<strong>Solution</strong>: Check your <code>VIDEO_FRONTEND_URL</code> or set to <code>false</code> to disable.</p>
 </div>
 <h2 id="security-best-practices">Security Best Practices<a class="headerlink" href="#security-best-practices" title="Permanent link">&para;</a></h2>
 <h3 id="environment-variables-security">Environment Variables Security<a class="headerlink" href="#environment-variables-security" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Never commit <code>.env</code> files</strong> to version control</li>
-<li><strong>Use strong tokens</strong> for <code>LOGS_ACCESS_TOKEN</code></li>
-<li><strong>Restrict admin IPs</strong> with <code>ADMIN_IPS</code></li>
 <li><strong>Use HTTPS</strong> in production for <code>BASE_URL</code></li>
+<li><strong>Restrict admin access</strong> with proper <code>ADMINS</code> configuration</li>
+<li><strong>Use secure MongoDB connections</strong> with authentication</li>
 </ol>
-<h3 id="generating-secure-tokens">Generating Secure Tokens<a class="headerlink" href="#generating-secure-tokens" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Generate secure random token (Linux/macOS)</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">32</span>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
-</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># Generate secure random token (Python)</span>
-</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import secrets; print(secrets.token_hex(32))&quot;</span>
-</span></code></pre></div>
 <h3 id="ip-address-restrictions">IP Address Restrictions<a class="headerlink" href="#ip-address-restrictions" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a># Restrict admin access to specific IPs
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>ADMIN_IPS=203.0.113.1,198.51.100.2,127.0.0.1
-</span></code></pre></div>
+<p>For additional security, configure your reverse proxy or firewall to restrict access to specific IP addresses.</p>
 <h2 id="configuration-templates">Configuration Templates<a class="headerlink" href="#configuration-templates" title="Permanent link">&para;</a></h2>
 <h3 id="envexample-template"><code>.env.example</code> Template<a class="headerlink" href="#envexample-template" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a># Telegram Configuration (Required)
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>API_ID=your_api_id
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>API_HASH=your_api_hash
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>BOT_TOKEN=your_bot_token
-</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>LOG_CHANNEL=your_log_channel_id
-</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
-</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a># Database Configuration (Required)
-</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a>DATABASE_URL=mongodb://localhost:27017
-</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>DATABASE_NAME=StreamBotDB
-</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a>
-</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a># Server Configuration (Required)
-</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>BASE_URL=https://yourdomain.com
-</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a>PORT=8080
-</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>BIND_ADDRESS=127.0.0.1
-</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a>
-</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a># Admin Configuration
-</span><span id="__span-19-17"><a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a>ADMINS=your_telegram_user_id
-</span><span id="__span-19-18"><a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a>LOGS_ACCESS_TOKEN=generate_secure_token
-</span><span id="__span-19-19"><a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a>ADMIN_IPS=127.0.0.1
-</span><span id="__span-19-20"><a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>
-</span><span id="__span-19-21"><a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a># Optional Features
-</span><span id="__span-19-22"><a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a>MAX_LINKS_PER_DAY=5
-</span><span id="__span-19-23"><a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a>BANDWIDTH_LIMIT_GB=100
-</span><span id="__span-19-24"><a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a>FORCE_SUB_CHANNEL=
-</span><span id="__span-19-25"><a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a>ADDITIONAL_BOT_TOKENS=
-</span><span id="__span-19-26"><a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a>
-</span><span id="__span-19-27"><a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a># Performance Settings
-</span><span id="__span-19-28"><a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a>WORKERS=4
-</span><span id="__span-19-29"><a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a>SESSION_NAME=StreamBot
-</span><span id="__span-19-30"><a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a>LINK_EXPIRY_ENABLED=true
-</span><span id="__span-19-31"><a id="__codelineno-19-31" name="__codelineno-19-31" href="#__codelineno-19-31"></a>LINK_EXPIRY_DURATION_SECONDS=86400
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a># Telegram Configuration (Required)
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>API_ID=your_api_id
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>API_HASH=your_api_hash
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>BOT_TOKEN=your_bot_token
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>LOG_CHANNEL=your_log_channel_id
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>
+</span><span id="__span-22-7"><a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a># Database Configuration (Required)
+</span><span id="__span-22-8"><a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>DATABASE_URL=mongodb://localhost:27017
+</span><span id="__span-22-9"><a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>DATABASE_NAME=StreamBotDB
+</span><span id="__span-22-10"><a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>
+</span><span id="__span-22-11"><a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a># Server Configuration (Required)
+</span><span id="__span-22-12"><a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a>BASE_URL=https://yourdomain.com
+</span><span id="__span-22-13"><a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a>PORT=8080
+</span><span id="__span-22-14"><a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a>BIND_ADDRESS=0.0.0.0
+</span><span id="__span-22-15"><a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a>
+</span><span id="__span-22-16"><a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a># Video Frontend (defaults to Cricster)
+</span><span id="__span-22-17"><a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a>VIDEO_FRONTEND_URL=https://cricster.pages.dev
+</span><span id="__span-22-18"><a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a>
+</span><span id="__span-22-19"><a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a># Admin Configuration
+</span><span id="__span-22-20"><a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a>ADMINS=your_telegram_user_id
+</span><span id="__span-22-21"><a id="__codelineno-22-21" name="__codelineno-22-21" href="#__codelineno-22-21"></a>
+</span><span id="__span-22-22"><a id="__codelineno-22-22" name="__codelineno-22-22" href="#__codelineno-22-22"></a># Optional Features
+</span><span id="__span-22-23"><a id="__codelineno-22-23" name="__codelineno-22-23" href="#__codelineno-22-23"></a>MAX_LINKS_PER_DAY=5
+</span><span id="__span-22-24"><a id="__codelineno-22-24" name="__codelineno-22-24" href="#__codelineno-22-24"></a>BANDWIDTH_LIMIT_GB=100
+</span><span id="__span-22-25"><a id="__codelineno-22-25" name="__codelineno-22-25" href="#__codelineno-22-25"></a>FORCE_SUB_CHANNEL=
+</span><span id="__span-22-26"><a id="__codelineno-22-26" name="__codelineno-22-26" href="#__codelineno-22-26"></a>ADDITIONAL_BOT_TOKENS=
+</span><span id="__span-22-27"><a id="__codelineno-22-27" name="__codelineno-22-27" href="#__codelineno-22-27"></a>
+</span><span id="__span-22-28"><a id="__codelineno-22-28" name="__codelineno-22-28" href="#__codelineno-22-28"></a># Performance Settings
+</span><span id="__span-22-29"><a id="__codelineno-22-29" name="__codelineno-22-29" href="#__codelineno-22-29"></a>WORKERS=4
+</span><span id="__span-22-30"><a id="__codelineno-22-30" name="__codelineno-22-30" href="#__codelineno-22-30"></a>SESSION_NAME=TgDlBot
+</span><span id="__span-22-31"><a id="__codelineno-22-31" name="__codelineno-22-31" href="#__codelineno-22-31"></a>LINK_EXPIRY_SECONDS=86400
 </span></code></pre></div>
 <h2 id="troubleshooting-configuration">Troubleshooting Configuration<a class="headerlink" href="#troubleshooting-configuration" title="Permanent link">&para;</a></h2>
 <p>If StreamBot fails to start, check:</p>
@@ -2271,6 +2371,7 @@
 <li><strong>Format correctness</strong>: Variables follow the correct format</li>
 <li><strong>File permissions</strong>: <code>.env</code> file is readable by the application</li>
 <li><strong>No trailing spaces</strong>: Remove any trailing spaces from variable values</li>
+<li><strong>Video frontend accessibility</strong>: Ensure VIDEO_FRONTEND_URL is accessible or set to <code>false</code></li>
 </ol>
 <p>For additional help, see the <a href="../installation/">Installation Guide</a> or <a href="../../user-guide/overview/">User Guide</a>. </p>
 
@@ -2307,7 +2408,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2023 - Present | Aniket Jana
+      Copyright &copy; 2023 - Present | Aniketh Jana
     </div>
   
   

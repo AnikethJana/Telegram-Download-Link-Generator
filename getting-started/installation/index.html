@@ -50,6 +50,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -734,6 +736,15 @@
   <a href="#2-test-bot-functionality" class="md-nav__link">
     <span class="md-ellipsis">
       2. Test Bot Functionality
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-test-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Test Video Streaming
     </span>
   </a>
   
@@ -1709,6 +1720,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#3-test-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Test Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1780,7 +1800,7 @@
 <h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
 <p>Before installing StreamBot, ensure you have:</p>
 <ul>
-<li><strong>Python 3.8 or higher</strong> (<a href="https://python.org/downloads/">Download Python</a>)</li>
+<li><strong>Python 3.11 or higher</strong> (<a href="https://python.org/downloads/">Download Python</a>)</li>
 <li><strong>MongoDB 4.4+</strong> (local or cloud instance)</li>
 <li><strong>Git</strong> for cloning the repository</li>
 <li><strong>Telegram Bot Token</strong> from <a href="https://t.me/botfather">@BotFather</a></li>
@@ -1788,8 +1808,8 @@
 </ul>
 <h2 id="method-1-standard-installation">Method 1: Standard Installation<a class="headerlink" href="#method-1-standard-installation" title="Permanent link">&para;</a></h2>
 <h3 id="1-clone-the-repository">1. Clone the Repository<a class="headerlink" href="#1-clone-the-repository" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/yourusername/StreamBot.git
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>StreamBot
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/AnikethJana/Telegram-Download-Link-Generator.git
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>Telegram-Download-Link-Generator
 </span></code></pre></div>
 <h3 id="2-create-virtual-environment">2. Create Virtual Environment<a class="headerlink" href="#2-create-virtual-environment" title="Permanent link">&para;</a></h3>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">Windows</label><label for="__tabbed_1_2">macOS/Linux</label></div>
@@ -1819,8 +1839,8 @@
 <h2 id="method-2-docker-installation">Method 2: Docker Installation<a class="headerlink" href="#method-2-docker-installation" title="Permanent link">&para;</a></h2>
 <h3 id="1-using-docker-compose-recommended">1. Using Docker Compose (Recommended)<a class="headerlink" href="#1-using-docker-compose-recommended" title="Permanent link">&para;</a></h3>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Clone repository</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/yourusername/StreamBot.git
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nb">cd</span><span class="w"> </span>StreamBot
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/AnikethJana/Telegram-Download-Link-Generator.git
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="nb">cd</span><span class="w"> </span>Telegram-Download-Link-Generator
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># Copy environment file</span>
 </span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>cp<span class="w"> </span>.env.example<span class="w"> </span>.env
@@ -1905,8 +1925,11 @@
 </span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>PORT=8080
 </span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>BIND_ADDRESS=127.0.0.1
 </span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>
-</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a># Admin Configuration
-</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>ADMINS=your_telegram_user_id
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a># Video Frontend (defaults to Cricster)
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>VIDEO_FRONTEND_URL=https://cricster.pages.dev
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a># Admin Configuration
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>ADMINS=your_telegram_user_id
 </span></code></pre></div>
 <h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">&para;</a></h2>
 <h3 id="1-test-the-installation">1. Test the Installation<a class="headerlink" href="#1-test-the-installation" title="Permanent link">&para;</a></h3>
@@ -1922,7 +1945,14 @@
 <ol>
 <li>Send <code>/start</code> to your bot on Telegram</li>
 <li>Send a file to test link generation</li>
+<li>For videos, test both download and streaming functionality</li>
 <li>Visit <code>http://localhost:8080/api/info</code> to check API status</li>
+</ol>
+<h3 id="3-test-video-streaming">3. Test Video Streaming<a class="headerlink" href="#3-test-video-streaming" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Send a video file to your bot</li>
+<li>Click the "🎬 Play Video" button (if VIDEO_FRONTEND_URL is configured)</li>
+<li>Test video seeking and playback functionality</li>
 </ol>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
@@ -1946,20 +1976,28 @@
 </span></code></pre></div>
 - Ensure the bot is added as admin to your log channel
 - Verify the LOG_CHANNEL ID is correct (should be negative for channels)</p>
+<p><strong>Video streaming not working</strong>:
+<div class="language-text highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>ERROR - Video frontend not accessible
+</span></code></pre></div>
+- Check your VIDEO_FRONTEND_URL configuration
+- Ensure the frontend URL is accessible
+- Set to <code>false</code> to disable video frontend</p>
 <h3 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h3>
 <p>If you encounter issues:</p>
 <ol>
 <li>Check the <a href="../../user-guide/overview/#troubleshooting">troubleshooting section</a></li>
 <li>Review logs for error messages</li>
-<li>Join our <a href="https://github.com/yourusername/StreamBot/discussions">community discussions</a></li>
-<li>Report bugs on <a href="https://github.com/yourusername/StreamBot/issues">GitHub Issues</a></li>
+<li>Join our <a href="https://github.com/AnikethJana/Telegram-Download-Link-Generator/discussions">community discussions</a></li>
+<li>Report bugs on <a href="https://github.com/AnikethJana/Telegram-Download-Link-Generator/issues">GitHub Issues</a></li>
+<li>Contact developer on <a href="https://t.me/ajmods_bot">Telegram</a></li>
 </ol>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <p>Once installation is complete:</p>
 <ol>
 <li><a href="../configuration/">Configure your bot</a> with additional settings</li>
 <li>Follow the <a href="../quick-start/">Quick Start guide</a> for basic usage</li>
-<li>Review the <a href="../../user-guide/overview/">User Guide</a> for detailed features </li>
+<li>Review the <a href="../../user-guide/overview/">User Guide</a> for detailed features</li>
+<li>Explore <a href="../../user-guide/overview/#video-streaming-features">Video Streaming</a> capabilities </li>
 </ol>
 
 
@@ -1995,7 +2033,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2023 - Present | Aniket Jana
+      Copyright &copy; 2023 - Present | Aniketh Jana
     </div>
   
   

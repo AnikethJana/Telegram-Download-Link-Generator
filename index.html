@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="A high-performance Telegram file to link generator">
+        <meta name="description" content="A high-performance Telegram file to link generator with video streaming capabilities">
       
       
       
@@ -48,6 +48,8 @@
       
     
     
+      <link rel="stylesheet" href="stylesheets/extra.css">
+    
     <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -74,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#streambot" class="md-skip">
+        <a href="#streambot-telegram-file-download-streaming-link-generator" class="md-skip">
           Skip to content
         </a>
       
@@ -502,6 +504,15 @@
   <a href="#how-it-works" class="md-nav__link">
     <span class="md-ellipsis">
       How It Works
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#video-streaming-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Features
     </span>
   </a>
   
@@ -1422,6 +1433,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#video-streaming-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#project-status" class="md-nav__link">
     <span class="md-ellipsis">
       Project Status
@@ -1458,25 +1478,25 @@
   
 
 
-<h1 id="streambot">StreamBot<a class="headerlink" href="#streambot" title="Permanent link">&para;</a></h1>
+<h1 id="streambot-telegram-file-download-streaming-link-generator">StreamBot - Telegram File Download &amp; Streaming Link Generator<a class="headerlink" href="#streambot-telegram-file-download-streaming-link-generator" title="Permanent link">&para;</a></h1>
 <div class="grid cards">
 <ul>
 <li>
 <p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 1 10 10 10 10 0 0 1-10 10A10 10 0 0 1 2 12 10 10 0 0 1 12 2M8 7.71v3.34l7.14.95-7.14.95v3.34L18 12z"/></svg></span> <strong>Telegram File to Link Generator</strong></p>
 <hr />
-<p>Instantly convert Telegram files to direct download links with StreamBot.</p>
+<p>Instantly convert Telegram files to direct download links and streaming URLs with StreamBot.</p>
 <p><a href="#getting-started"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span> Get started</a></p>
 </li>
 <li>
 <p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m13.13 22.19-1.63-3.83c1.57-.58 3.04-1.36 4.4-2.27zM5.64 12.5l-3.83-1.63 6.1-2.77C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39S16.66.269 11 5.93c-2.19 2.19-3.5 4.6-4.35 6.71-.28.75-.09 1.57.46 2.13l2.13 2.12c.55.56 1.37.74 2.12.46A19.1 19.1 0 0 0 18.07 13c5.66-5.66 3.54-10.61 3.54-10.61m-7.07 7.07c-.78-.78-.78-2.05 0-2.83s2.05-.78 2.83 0c.77.78.78 2.05 0 2.83s-2.05.78-2.83 0m-5.66 7.07-1.41-1.41zM6.24 22l3.64-3.64c-.34-.09-.67-.24-.97-.45L4.83 22zM2 22h1.41l4.77-4.76-1.42-1.41L2 20.59zm0-2.83 4.09-4.08c-.21-.3-.36-.62-.45-.97L2 17.76z"/></svg></span> <strong>High Performance Architecture</strong></p>
 <hr />
-<p>Built with a multi-client architecture for maximum speed and reliability.</p>
+<p>Built with a multi-client architecture for maximum speed and reliability with video streaming support.</p>
 <p><a href="developer-guide/architecture/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span> Architecture</a></p>
 </li>
 <li>
-<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6.5 20q-2.28 0-3.89-1.57Q1 16.85 1 14.58q0-1.95 1.17-3.48 1.18-1.53 3.08-1.95.58-2.02 2.14-3.4Q8.95 4.38 11 4.08v8.07L9.4 10.6 8 12l4 4 4-4-1.4-1.4-1.6 1.55V4.08q2.58.35 4.29 2.31T19 11q1.73.2 2.86 1.5 1.14 1.28 1.14 3 0 1.88-1.31 3.19T18.5 20Z"/></svg></span> <strong>Powerful Features</strong></p>
+<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 16.5v-9l6 4.5M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> <strong>Video Streaming</strong></p>
 <hr />
-<p>Rate limiting, bandwidth management, and force subscription built-in.</p>
+<p>Advanced video streaming with seeking support and custom frontend integration.</p>
 <p><a href="user-guide/overview/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13.22 19.03a.75.75 0 0 1 0-1.06L18.19 13H3.75a.75.75 0 0 1 0-1.5h14.44l-4.97-4.97a.749.749 0 0 1 .326-1.275.75.75 0 0 1 .734.215l6.25 6.25a.75.75 0 0 1 0 1.06l-6.25 6.25a.75.75 0 0 1-1.06 0"/></svg></span> Features</a></p>
 </li>
 <li>
@@ -1488,11 +1508,12 @@
 </ul>
 </div>
 <h2 id="what-is-streambot">What is StreamBot?<a class="headerlink" href="#what-is-streambot" title="Permanent link">&para;</a></h2>
-<p>StreamBot is a high-performance Telegram bot that generates direct download links for files sent to it. It's built with a modern asynchronous Python architecture featuring multi-client support, bandwidth management, and rate limiting.</p>
-<p>Whether you're sharing media, documents, or any other files, StreamBot makes it simple to distribute content via direct links without requiring recipients to use Telegram.</p>
+<p>StreamBot is a high-performance Telegram bot that generates direct download links and streaming URLs for files sent to it. It's built with a modern asynchronous Python architecture featuring multi-client support, bandwidth management, video streaming with seeking support, and rate limiting.</p>
+<p>Whether you're sharing media, documents, or any other files, StreamBot makes it simple to distribute content via direct links without requiring recipients to use Telegram. The bot now includes advanced video streaming capabilities with custom frontend integration.</p>
 <h2 id="key-features">Key Features<a class="headerlink" href="#key-features" title="Permanent link">&para;</a></h2>
 <ul>
 <li><strong>🔗 Direct Download Links</strong> - Convert Telegram files to direct download URLs</li>
+<li><strong>🎬 Video Streaming</strong> - Advanced video streaming with seeking support and custom player integration</li>
 <li><strong>⚡ High Performance</strong> - Multi-client architecture with load balancing</li>
 <li><strong>📊 Bandwidth Management</strong> - Built-in bandwidth tracking and limits</li>
 <li><strong>🛡️ Rate Limiting</strong> - User-based rate limiting with configurable quotas</li>
@@ -1500,12 +1521,13 @@
 <li><strong>📱 Web Interface</strong> - RESTful API with real-time status monitoring</li>
 <li><strong>🧹 Auto Cleanup</strong> - Automatic cleanup of expired links and resources</li>
 <li><strong>📈 Admin Tools</strong> - Advanced logging, memory monitoring, and broadcast features</li>
+<li><strong>🎯 Frontend Integration</strong> - Custom video player frontend support with default Cricster integration</li>
 </ul>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
 <p>Getting started with StreamBot is easy:</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Clone the repository</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/yourusername/StreamBot.git
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">cd</span><span class="w"> </span>StreamBot
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/AnikethJana/Telegram-Download-Link-Generator.git
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">cd</span><span class="w"> </span>Telegram-Download-Link-Generator
 </span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># Install dependencies</span>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
@@ -1521,20 +1543,31 @@
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <ol>
 <li><strong>User sends a file</strong> to the StreamBot Telegram bot</li>
-<li><strong>Bot processes the file</strong> and stores it securely</li>
-<li><strong>Direct download link is generated</strong> and sent to the user</li>
-<li><strong>Recipients can download the file</strong> directly via the link without needing Telegram</li>
+<li><strong>Bot processes the file</strong> and stores it securely in Telegram's cloud</li>
+<li><strong>Direct download and streaming links are generated</strong> and sent to the user</li>
+<li><strong>Recipients can download or stream the file</strong> directly via the link without needing Telegram</li>
+<li><strong>For videos</strong>, users get both download and streaming options with seeking support</li>
 </ol>
+<h2 id="video-streaming-features">Video Streaming Features<a class="headerlink" href="#video-streaming-features" title="Permanent link">&para;</a></h2>
+<p>StreamBot now includes advanced video streaming capabilities:</p>
+<ul>
+<li><strong>Direct Video Streaming</strong> - Stream videos directly in browsers with seeking support</li>
+<li><strong>Custom Frontend Integration</strong> - Integrates with video player frontends (defaults to Cricster)</li>
+<li><strong>Range Request Support</strong> - Full HTTP range request support for video seeking</li>
+<li><strong>Multiple Video Formats</strong> - Supports MP4, WebM, MKV, AVI, and more</li>
+<li><strong>Seamless Experience</strong> - One-click video playback with enhanced UI</li>
+</ul>
 <h2 id="project-status">Project Status<a class="headerlink" href="#project-status" title="Permanent link">&para;</a></h2>
 <p>StreamBot is actively maintained and regularly updated with new features and improvements.</p>
-<p><a href="https://python.org"><img alt="Python" src="https://img.shields.io/badge/Python-3.8+-blue.svg" /></a>
+<p><a href="https://python.org"><img alt="Python" src="https://img.shields.io/badge/Python-3.11+-blue.svg" /></a>
 <a href="about/license/"><img alt="License" src="https://img.shields.io/badge/License-MIT-green.svg" /></a>
-<a href="https://mongodb.com"><img alt="MongoDB" src="https://img.shields.io/badge/Database-MongoDB-green.svg" /></a></p>
+<a href="https://mongodb.com"><img alt="MongoDB" src="https://img.shields.io/badge/Database-MongoDB-green.svg" /></a>
+<a href="https://github.com/AnikethJana/Telegram-Download-Link-Generator"><img alt="GitHub" src="https://img.shields.io/badge/GitHub-Repository-black.svg" /></a></p>
 <h2 id="support-community">Support &amp; Community<a class="headerlink" href="#support-community" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>GitHub Issues</strong>: <a href="https://github.com/yourusername/StreamBot/issues">Report bugs or request features</a></li>
-<li><strong>GitHub Discussions</strong>: <a href="https://github.com/yourusername/StreamBot/discussions">Ask questions and share ideas</a></li>
-<li><strong>Telegram Channel</strong>: <a href="https://t.me/yourstreambot">Get updates and announcements</a> </li>
+<li><strong>GitHub Issues</strong>: <a href="https://github.com/AnikethJana/Telegram-Download-Link-Generator/issues">Report bugs or request features</a></li>
+<li><strong>GitHub Discussions</strong>: <a href="https://github.com/AnikethJana/Telegram-Download-Link-Generator/discussions">Ask questions and share ideas</a></li>
+<li><strong>Telegram Support</strong>: <a href="https://t.me/ajmods_bot">Contact developer</a> </li>
 </ul>
 
 
@@ -1570,7 +1603,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2023 - Present | Aniket Jana
+      Copyright &copy; 2023 - Present | Aniketh Jana
     </div>
   
   

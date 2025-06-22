@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Detailed system architecture and component overview of StreamBot">
+        <meta name="description" content="Technical architecture of StreamBot including video streaming infrastructure">
       
       
       
@@ -24,7 +24,7 @@
     
     
       
-        <title>StreamBot Architecture - StreamBot Documentation</title>
+        <title>Architecture Overview - StreamBot Documentation</title>
       
     
     
@@ -49,6 +49,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -76,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture-overview" class="md-skip">
+        <a href="#streambot-architecture" class="md-skip">
           Skip to content
         </a>
       
@@ -111,7 +113,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              StreamBot Architecture
+              Architecture Overview
             
           </span>
         </div>
@@ -808,28 +810,73 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#multi-client-architecture" class="md-nav__link">
+  <a href="#system-overview" class="md-nav__link">
     <span class="md-ellipsis">
-      Multi-Client Architecture
+      System Overview
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Multi-Client Architecture">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core Components">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#primary-client" class="md-nav__link">
+  <a href="#1-application-entry-point" class="md-nav__link">
     <span class="md-ellipsis">
-      Primary Client
+      1. Application Entry Point
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#worker-clients" class="md-nav__link">
+  <a href="#2-bot-layer-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      Worker Clients
+      2. Bot Layer Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-web-services-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Web Services Layer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-database-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Database Layer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-security-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Security Layer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-utility-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Utility Services
     </span>
   </a>
   
@@ -841,37 +888,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#application-layers" class="md-nav__link">
+  <a href="#technology-stack" class="md-nav__link">
     <span class="md-ellipsis">
-      Application Layers
+      Technology Stack
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Application Layers">
+    <nav class="md-nav" aria-label="Technology Stack">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#presentation-layer" class="md-nav__link">
+  <a href="#core-technologies" class="md-nav__link">
     <span class="md-ellipsis">
-      Presentation Layer
+      Core Technologies
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#business-layer" class="md-nav__link">
+  <a href="#supporting-libraries" class="md-nav__link">
     <span class="md-ellipsis">
-      Business Layer
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#data-layer" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Layer
+      Supporting Libraries
     </span>
   </a>
   
@@ -883,13 +921,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#data-flow-diagrams" class="md-nav__link">
+  <a href="#data-flow-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      Data Flow Diagrams
+      Data Flow Architecture
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Data Flow Diagrams">
+    <nav class="md-nav" aria-label="Data Flow Architecture">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -902,9 +940,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#file-download-flow" class="md-nav__link">
+  <a href="#video-streaming-flow" class="md-nav__link">
     <span class="md-ellipsis">
-      File Download Flow
+      Video Streaming Flow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-request-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Request Flow
     </span>
   </a>
   
@@ -916,130 +963,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#component-details" class="md-nav__link">
+  <a href="#video-streaming-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      Component Details
+      Video Streaming Architecture
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Component Details">
+    <nav class="md-nav" aria-label="Video Streaming Architecture">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#clientmanager-client_managerpy" class="md-nav__link">
+  <a href="#streaming-infrastructure" class="md-nav__link">
     <span class="md-ellipsis">
-      ClientManager (client_manager.py)
+      Streaming Infrastructure
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuration-management-configpy" class="md-nav__link">
+  <a href="#performance-optimizations" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Management (config.py)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#database-layer-databasedatabasepy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Database Layer (database/database.py)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#web-server-webwebpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Web Server (web/web.py)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#utility-modules" class="md-nav__link">
-    <span class="md-ellipsis">
-      Utility Modules
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Utility Modules">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#rate-limiter-utilsrate_limiterpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Rate Limiter (utils/rate_limiter.py)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bandwidth-manager-utilsbandwidthpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Bandwidth Manager (utils/bandwidth.py)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#memory-manager-utilsmemory_managerpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Memory Manager (utils/memory_manager.py)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stream-cleanup-utilsstream_cleanuppy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stream Cleanup (utils/stream_cleanup.py)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#scaling-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Scaling Considerations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Scaling Considerations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#horizontal-scaling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Horizontal Scaling
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vertical-scaling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Vertical Scaling
+      Performance Optimizations
     </span>
   </a>
   
@@ -1061,84 +1006,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#authentication-authorization" class="md-nav__link">
+  <a href="#multi-layer-security" class="md-nav__link">
     <span class="md-ellipsis">
-      Authentication &amp; Authorization
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#input-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Input Validation
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#error-handling-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Error Handling Strategy
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Error Handling Strategy">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#graceful-degradation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Graceful Degradation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#monitoring-recovery" class="md-nav__link">
-    <span class="md-ellipsis">
-      Monitoring &amp; Recovery
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration-patterns" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration Patterns
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration Patterns">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#environment-based-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Environment-Based Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#feature-flags" class="md-nav__link">
-    <span class="md-ellipsis">
-      Feature Flags
+      Multi-Layer Security
     </span>
   </a>
   
@@ -1160,27 +1030,51 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#throughput" class="md-nav__link">
+  <a href="#benchmarks-and-capabilities" class="md-nav__link">
     <span class="md-ellipsis">
-      Throughput
+      Benchmarks and Capabilities
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#latency" class="md-nav__link">
+  <a href="#scalability-patterns" class="md-nav__link">
     <span class="md-ellipsis">
-      Latency
+      Scalability Patterns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development Environment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development Environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-development-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local Development Setup
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#resource-usage" class="md-nav__link">
+  <a href="#testing-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      Resource Usage
+      Testing Architecture
     </span>
   </a>
   
@@ -1202,18 +1096,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#single-server-deployment" class="md-nav__link">
+  <a href="#production-deployment" class="md-nav__link">
     <span class="md-ellipsis">
-      Single Server Deployment
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#distributed-deployment" class="md-nav__link">
-    <span class="md-ellipsis">
-      Distributed Deployment
+      Production Deployment
     </span>
   </a>
   
@@ -1221,6 +1106,39 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-architecture-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Future Architecture Considerations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Future Architecture Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#planned-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Planned Enhancements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      Repository Information
+    </span>
+  </a>
   
 </li>
       
@@ -1754,28 +1672,73 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#multi-client-architecture" class="md-nav__link">
+  <a href="#system-overview" class="md-nav__link">
     <span class="md-ellipsis">
-      Multi-Client Architecture
+      System Overview
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Multi-Client Architecture">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Components
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core Components">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#primary-client" class="md-nav__link">
+  <a href="#1-application-entry-point" class="md-nav__link">
     <span class="md-ellipsis">
-      Primary Client
+      1. Application Entry Point
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#worker-clients" class="md-nav__link">
+  <a href="#2-bot-layer-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      Worker Clients
+      2. Bot Layer Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-web-services-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Web Services Layer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-database-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Database Layer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-security-layer" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Security Layer
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-utility-services" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Utility Services
     </span>
   </a>
   
@@ -1787,37 +1750,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#application-layers" class="md-nav__link">
+  <a href="#technology-stack" class="md-nav__link">
     <span class="md-ellipsis">
-      Application Layers
+      Technology Stack
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Application Layers">
+    <nav class="md-nav" aria-label="Technology Stack">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#presentation-layer" class="md-nav__link">
+  <a href="#core-technologies" class="md-nav__link">
     <span class="md-ellipsis">
-      Presentation Layer
+      Core Technologies
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#business-layer" class="md-nav__link">
+  <a href="#supporting-libraries" class="md-nav__link">
     <span class="md-ellipsis">
-      Business Layer
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#data-layer" class="md-nav__link">
-    <span class="md-ellipsis">
-      Data Layer
+      Supporting Libraries
     </span>
   </a>
   
@@ -1829,13 +1783,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#data-flow-diagrams" class="md-nav__link">
+  <a href="#data-flow-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      Data Flow Diagrams
+      Data Flow Architecture
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Data Flow Diagrams">
+    <nav class="md-nav" aria-label="Data Flow Architecture">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1848,9 +1802,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#file-download-flow" class="md-nav__link">
+  <a href="#video-streaming-flow" class="md-nav__link">
     <span class="md-ellipsis">
-      File Download Flow
+      Video Streaming Flow
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#api-request-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      API Request Flow
     </span>
   </a>
   
@@ -1862,130 +1825,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#component-details" class="md-nav__link">
+  <a href="#video-streaming-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      Component Details
+      Video Streaming Architecture
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Component Details">
+    <nav class="md-nav" aria-label="Video Streaming Architecture">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#clientmanager-client_managerpy" class="md-nav__link">
+  <a href="#streaming-infrastructure" class="md-nav__link">
     <span class="md-ellipsis">
-      ClientManager (client_manager.py)
+      Streaming Infrastructure
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuration-management-configpy" class="md-nav__link">
+  <a href="#performance-optimizations" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Management (config.py)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#database-layer-databasedatabasepy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Database Layer (database/database.py)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#web-server-webwebpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Web Server (web/web.py)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#utility-modules" class="md-nav__link">
-    <span class="md-ellipsis">
-      Utility Modules
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Utility Modules">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#rate-limiter-utilsrate_limiterpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Rate Limiter (utils/rate_limiter.py)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#bandwidth-manager-utilsbandwidthpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Bandwidth Manager (utils/bandwidth.py)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#memory-manager-utilsmemory_managerpy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Memory Manager (utils/memory_manager.py)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stream-cleanup-utilsstream_cleanuppy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Stream Cleanup (utils/stream_cleanup.py)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#scaling-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Scaling Considerations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Scaling Considerations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#horizontal-scaling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Horizontal Scaling
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#vertical-scaling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Vertical Scaling
+      Performance Optimizations
     </span>
   </a>
   
@@ -2007,84 +1868,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#authentication-authorization" class="md-nav__link">
+  <a href="#multi-layer-security" class="md-nav__link">
     <span class="md-ellipsis">
-      Authentication &amp; Authorization
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#input-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Input Validation
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#error-handling-strategy" class="md-nav__link">
-    <span class="md-ellipsis">
-      Error Handling Strategy
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Error Handling Strategy">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#graceful-degradation" class="md-nav__link">
-    <span class="md-ellipsis">
-      Graceful Degradation
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#monitoring-recovery" class="md-nav__link">
-    <span class="md-ellipsis">
-      Monitoring &amp; Recovery
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#configuration-patterns" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration Patterns
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration Patterns">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#environment-based-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Environment-Based Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#feature-flags" class="md-nav__link">
-    <span class="md-ellipsis">
-      Feature Flags
+      Multi-Layer Security
     </span>
   </a>
   
@@ -2106,27 +1892,51 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#throughput" class="md-nav__link">
+  <a href="#benchmarks-and-capabilities" class="md-nav__link">
     <span class="md-ellipsis">
-      Throughput
+      Benchmarks and Capabilities
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#latency" class="md-nav__link">
+  <a href="#scalability-patterns" class="md-nav__link">
     <span class="md-ellipsis">
-      Latency
+      Scalability Patterns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#development-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development Environment
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Development Environment">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#local-development-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Local Development Setup
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#resource-usage" class="md-nav__link">
+  <a href="#testing-architecture" class="md-nav__link">
     <span class="md-ellipsis">
-      Resource Usage
+      Testing Architecture
     </span>
   </a>
   
@@ -2148,18 +1958,9 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#single-server-deployment" class="md-nav__link">
+  <a href="#production-deployment" class="md-nav__link">
     <span class="md-ellipsis">
-      Single Server Deployment
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#distributed-deployment" class="md-nav__link">
-    <span class="md-ellipsis">
-      Distributed Deployment
+      Production Deployment
     </span>
   </a>
   
@@ -2167,6 +1968,39 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-architecture-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Future Architecture Considerations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Future Architecture Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#planned-enhancements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Planned Enhancements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      Repository Information
+    </span>
+  </a>
   
 </li>
       
@@ -2189,282 +2023,599 @@
   
 
 
-<h1 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h1>
-<p>StreamBot is built with a distributed architecture that employs a multi-client design pattern with clear separation of concerns for scalability, reliability, and maintainability.</p>
-<h2 id="multi-client-architecture">Multi-Client Architecture<a class="headerlink" href="#multi-client-architecture" title="Permanent link">&para;</a></h2>
-<p>StreamBot uses a primary client for user interactions and multiple worker clients for file streaming operations, providing load balancing and improved throughput.</p>
-<pre class="mermaid"><code>graph TD
-    subgraph StreamBot
-        subgraph "Primary Client"
-            PC[Primary Client]
-            PC --&gt;|User Commands| UC[User Commands]
-            PC --&gt;|File Uploads| FU[File Uploads]
-            PC --&gt;|Admin Tasks| AT[Admin Tasks]
-        end
-
-        subgraph "Worker Clients"
-            WC[Worker Clients]
-            WC --&gt;|Streaming| C1[Client 1]
-            WC --&gt;|Streaming| C2[Client 2]
-            WC --&gt;|Streaming| C3[Client 3]
-        end
+<h1 id="streambot-architecture">StreamBot Architecture<a class="headerlink" href="#streambot-architecture" title="Permanent link">&para;</a></h1>
+<p>StreamBot is built with a modern, scalable architecture designed for high-performance file downloads and video streaming. This document provides a comprehensive overview of the system's components, data flow, and technical implementation.</p>
+<h2 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>graph TB
+    subgraph "Client Layer"
+        TG[Telegram API]
+        USER[Users]
+        ADMIN[Administrators]
     end
 
-    PC --&gt;|User Interactions| UI[User Facing Operations]
-    WC --&gt;|File Serving| FS[File Serving Operations]</code></pre>
-<h3 id="primary-client">Primary Client<a class="headerlink" href="#primary-client" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Handles all user interactions and commands</li>
-<li>Manages file uploads and validation</li>
-<li>Processes administrative tasks and monitoring</li>
-</ul>
-<h3 id="worker-clients">Worker Clients<a class="headerlink" href="#worker-clients" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Dedicated to streaming operations</li>
-<li>Provide load balancing for downloads</li>
-<li>Improve overall system throughput</li>
-</ul>
-<h2 id="application-layers">Application Layers<a class="headerlink" href="#application-layers" title="Permanent link">&para;</a></h2>
-<p>The application follows a layered architecture for separation of concerns and maintainability.</p>
-<pre class="mermaid"><code>flowchart TD
-    PL[Presentation Layer] --&gt; BL[Business Layer]
-    BL --&gt; DL[Data Layer]
-
-    subgraph "Presentation Layer"
-        TB[Telegram Bot Commands]
-        WS[Web Server Download]
-        API[REST API Endpoints]
+    subgraph "Bot Layer"
+        BOT[Bot Handler]
+        CLIENT[Client Manager]
+        MULTI[Multi-Client Pool]
     end
 
-    subgraph "Business Layer"
-        RL[Rate Limiting]
-        BM[Bandwidth Management]
-        FH[File Handler]
+    subgraph "Application Core"
+        APP[Main Application]
+        CONFIG[Configuration Manager]
+        SECURITY[Security Middleware]
+        RATE[Rate Limiter]
+        BANDWIDTH[Bandwidth Manager]
     end
 
-    subgraph "Data Layer"
-        DB[MongoDB Database]
-        FS[File Storage - Log Channel]
-        TA[Telegram API]
-    end</code></pre>
-<h3 id="presentation-layer">Presentation Layer<a class="headerlink" href="#presentation-layer" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Telegram Bot</strong>: User commands and interactions</li>
-<li><strong>Web Server</strong>: File download functionality</li>
-<li><strong>REST API</strong>: System monitoring and integration</li>
-</ul>
-<h3 id="business-layer">Business Layer<a class="headerlink" href="#business-layer" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Rate Limiting</strong>: Controls user access frequency</li>
-<li><strong>Bandwidth Management</strong>: Monitors and limits data transfer</li>
-<li><strong>File Handler</strong>: Processes and manages file operations</li>
-</ul>
-<h3 id="data-layer">Data Layer<a class="headerlink" href="#data-layer" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>MongoDB</strong>: User data and application state</li>
-<li><strong>File Storage</strong>: Uses Telegram channels for storage</li>
-<li><strong>Telegram API</strong>: Core communication infrastructure</li>
-</ul>
-<h2 id="data-flow-diagrams">Data Flow Diagrams<a class="headerlink" href="#data-flow-diagrams" title="Permanent link">&para;</a></h2>
+    subgraph "Web Services"
+        WEB[Web Server]
+        API[REST API]
+        DOWNLOAD[Download Handler]
+        STREAM[Video Streaming Service]
+        CORS[CORS Handler]
+    end
+
+    subgraph "Storage &amp; Database"
+        DB[(MongoDB Database)]
+        CACHE[File Cache]
+        SESSION[Session Storage]
+        LOGS[Log Storage]
+    end
+
+    subgraph "Video Frontend Integration"
+        CRICSTER[Cricster Player]
+        CUSTOM[Custom Frontend]
+        CDN[Content Delivery Network]
+    end
+
+    subgraph "Monitoring &amp; Utils"
+        LOGGER[Smart Logger]
+        MEMORY[Memory Manager]
+        CLEANUP[Cleanup Scheduler]
+        MONITOR[Health Monitor]
+    end
+
+    USER --&gt; TG
+    ADMIN --&gt; TG
+    TG &lt;--&gt; BOT
+    BOT &lt;--&gt; CLIENT
+    CLIENT &lt;--&gt; MULTI
+
+    BOT &lt;--&gt; APP
+    APP &lt;--&gt; CONFIG
+    APP &lt;--&gt; SECURITY
+    APP &lt;--&gt; RATE
+    APP &lt;--&gt; BANDWIDTH
+
+    APP &lt;--&gt; WEB
+    WEB &lt;--&gt; API
+    WEB &lt;--&gt; DOWNLOAD
+    WEB &lt;--&gt; STREAM
+    WEB &lt;--&gt; CORS
+
+    APP &lt;--&gt; DB
+    APP &lt;--&gt; CACHE
+    APP &lt;--&gt; SESSION
+    APP &lt;--&gt; LOGS
+
+    STREAM -.-&gt; CRICSTER
+    STREAM -.-&gt; CUSTOM
+    STREAM -.-&gt; CDN
+
+    APP &lt;--&gt; LOGGER
+    APP &lt;--&gt; MEMORY
+    APP &lt;--&gt; CLEANUP
+    APP &lt;--&gt; MONITOR</code></pre>
+<h2 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h2>
+<h3 id="1-application-entry-point">1. Application Entry Point<a class="headerlink" href="#1-application-entry-point" title="Permanent link">&para;</a></h3>
+<p><strong>Main Module</strong> (<code>StreamBot/__main__.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Application lifecycle management</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="o">-</span> <span class="n">Environment</span> <span class="n">validation</span> <span class="ow">and</span> <span class="n">configuration</span> <span class="n">loading</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="o">-</span> <span class="n">Service</span> <span class="n">initialization</span> <span class="ow">and</span> <span class="n">dependency</span> <span class="n">injection</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="o">-</span> <span class="n">Graceful</span> <span class="n">shutdown</span> <span class="n">handling</span> <span class="k">with</span> <span class="n">cleanup</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="o">-</span> <span class="n">Signal</span> <span class="n">handling</span> <span class="k">for</span> <span class="n">production</span> <span class="n">deployments</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="o">-</span> <span class="n">Health</span> <span class="n">check</span> <span class="n">initialization</span>
+</span></code></pre></div></p>
+<p><strong>Configuration Manager</strong> (<code>StreamBot/config.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Centralized configuration management</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="o">-</span> <span class="n">Environment</span> <span class="n">variable</span> <span class="n">validation</span> <span class="ow">and</span> <span class="n">parsing</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="o">-</span> <span class="n">Video</span> <span class="n">streaming</span> <span class="n">configuration</span> <span class="k">with</span> <span class="n">Cricster</span> <span class="n">defaults</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="o">-</span> <span class="n">Python</span> <span class="mf">3.11</span><span class="o">+</span> <span class="n">requirement</span> <span class="n">enforcement</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="o">-</span> <span class="n">Feature</span> <span class="n">flag</span> <span class="n">management</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="o">-</span> <span class="n">Runtime</span> <span class="n">configuration</span> <span class="n">updates</span>
+</span></code></pre></div></p>
+<h3 id="2-bot-layer-architecture">2. Bot Layer Architecture<a class="headerlink" href="#2-bot-layer-architecture" title="Permanent link">&para;</a></h3>
+<p><strong>Bot Handler</strong> (<code>StreamBot/bot.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Core bot functionality</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">StreamBot</span><span class="p">:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="o">-</span> <span class="n">Message</span> <span class="n">processing</span> <span class="ow">and</span> <span class="n">command</span> <span class="n">handling</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="o">-</span> <span class="n">File</span> <span class="n">upload</span> <span class="n">detection</span> <span class="ow">and</span> <span class="n">processing</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="o">-</span> <span class="n">Video</span> <span class="nb">format</span> <span class="n">detection</span> <span class="ow">and</span> <span class="n">optimization</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="o">-</span> <span class="n">Link</span> <span class="n">generation</span> <span class="k">for</span> <span class="n">downloads</span> <span class="ow">and</span> <span class="n">streaming</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="o">-</span> <span class="n">User</span> <span class="n">interaction</span> <span class="ow">and</span> <span class="n">response</span> <span class="n">formatting</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="o">-</span> <span class="n">Admin</span> <span class="n">command</span> <span class="n">processing</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="o">-</span> <span class="n">Error</span> <span class="n">handling</span> <span class="ow">and</span> <span class="n">user</span> <span class="n">feedback</span>
+</span></code></pre></div></p>
+<p><strong>Client Manager</strong> (<code>StreamBot/client_manager.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Multi-client session management</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">ClientManager</span><span class="p">:</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="o">-</span> <span class="n">Primary</span> <span class="ow">and</span> <span class="n">secondary</span> <span class="n">client</span> <span class="n">coordination</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    <span class="o">-</span> <span class="n">Load</span> <span class="n">balancing</span> <span class="n">across</span> <span class="n">multiple</span> <span class="n">bot</span> <span class="n">tokens</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="o">-</span> <span class="n">Connection</span> <span class="n">pooling</span> <span class="ow">and</span> <span class="n">optimization</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="o">-</span> <span class="n">Failover</span> <span class="ow">and</span> <span class="n">redundancy</span> <span class="n">handling</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    <span class="o">-</span> <span class="n">Session</span> <span class="n">persistence</span> <span class="ow">and</span> <span class="n">recovery</span>
+</span></code></pre></div></p>
+<h3 id="3-web-services-layer">3. Web Services Layer<a class="headerlink" href="#3-web-services-layer" title="Permanent link">&para;</a></h3>
+<p><strong>Web Server</strong> (<code>StreamBot/web/web.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># HTTP server implementation</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">WebServer</span><span class="p">:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="o">-</span> <span class="n">aiohttp</span><span class="o">-</span><span class="n">based</span> <span class="k">async</span> <span class="n">web</span> <span class="n">server</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="o">-</span> <span class="n">Route</span> <span class="n">registration</span> <span class="ow">and</span> <span class="n">middleware</span> <span class="n">setup</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>    <span class="o">-</span> <span class="n">CORS</span> <span class="n">configuration</span> <span class="k">for</span> <span class="n">video</span> <span class="n">streaming</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="o">-</span> <span class="n">Request</span><span class="o">/</span><span class="n">response</span> <span class="n">lifecycle</span> <span class="n">management</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>    <span class="o">-</span> <span class="n">Static</span> <span class="n">file</span> <span class="n">serving</span> <span class="ow">and</span> <span class="n">optimization</span>
+</span></code></pre></div></p>
+<p><strong>Video Streaming Service</strong> (<code>StreamBot/web/streaming.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Advanced video streaming implementation</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">StreamingHandler</span><span class="p">:</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="o">-</span> <span class="n">HTTP</span> <span class="nb">range</span> <span class="n">request</span> <span class="n">processing</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="o">-</span> <span class="n">Video</span> <span class="n">seeking</span> <span class="ow">and</span> <span class="n">progressive</span> <span class="n">loading</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>    <span class="o">-</span> <span class="n">Multiple</span> <span class="nb">format</span> <span class="n">support</span> <span class="p">(</span><span class="n">MP4</span><span class="p">,</span> <span class="n">MKV</span><span class="p">,</span> <span class="n">AVI</span><span class="p">,</span> <span class="n">WebM</span><span class="p">,</span> <span class="n">MOV</span><span class="p">)</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="o">-</span> <span class="n">Bandwidth</span> <span class="n">optimization</span> <span class="ow">and</span> <span class="n">throttling</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="o">-</span> <span class="n">Frontend</span> <span class="n">integration</span> <span class="k">with</span> <span class="n">URL</span> <span class="n">parameters</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="o">-</span> <span class="n">Caching</span> <span class="n">strategy</span> <span class="ow">and</span> <span class="n">performance</span> <span class="n">optimization</span>
+</span></code></pre></div></p>
+<p><strong>Download Handler</strong> (<code>StreamBot/web/</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># File download management</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">DownloadHandler</span><span class="p">:</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="o">-</span> <span class="n">Direct</span> <span class="n">file</span> <span class="n">download</span> <span class="n">processing</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="o">-</span> <span class="n">Range</span> <span class="n">request</span> <span class="n">support</span> <span class="k">for</span> <span class="n">large</span> <span class="n">files</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    <span class="o">-</span> <span class="n">Resume</span> <span class="n">capability</span> <span class="n">implementation</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    <span class="o">-</span> <span class="n">Bandwidth</span> <span class="n">tracking</span> <span class="ow">and</span> <span class="n">limiting</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="o">-</span> <span class="n">Error</span> <span class="n">handling</span> <span class="ow">and</span> <span class="n">retry</span> <span class="n">logic</span>
+</span></code></pre></div></p>
+<h3 id="4-database-layer">4. Database Layer<a class="headerlink" href="#4-database-layer" title="Permanent link">&para;</a></h3>
+<p><strong>Database Manager</strong> (<code>StreamBot/database/database.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># MongoDB operations and data management</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">DatabaseManager</span><span class="p">:</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="o">-</span> <span class="n">User</span> <span class="n">registration</span> <span class="ow">and</span> <span class="n">management</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="o">-</span> <span class="n">File</span> <span class="n">metadata</span> <span class="n">storage</span> <span class="ow">and</span> <span class="n">retrieval</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="o">-</span> <span class="n">Bandwidth</span> <span class="n">usage</span> <span class="n">tracking</span> <span class="ow">and</span> <span class="n">analytics</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="o">-</span> <span class="n">Session</span> <span class="n">management</span> <span class="ow">and</span> <span class="n">persistence</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="o">-</span> <span class="n">Automatic</span> <span class="n">cleanup</span> <span class="ow">and</span> <span class="n">maintenance</span>
+</span></code></pre></div></p>
+<p><strong>Data Models</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># User document structure</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="p">{</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>    <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">,</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>    <span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>    <span class="s2">&quot;username&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>    <span class="s2">&quot;first_name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>    <span class="s2">&quot;join_date&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>    <span class="s2">&quot;last_active&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>    <span class="s2">&quot;bandwidth_used&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>    <span class="s2">&quot;files_shared&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>    <span class="s2">&quot;is_banned&quot;</span><span class="p">:</span> <span class="nb">bool</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="p">}</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="c1"># File document structure</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="p">{</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>    <span class="s2">&quot;_id&quot;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">,</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>    <span class="s2">&quot;message_id&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>    <span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>    <span class="s2">&quot;file_name&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>    <span class="s2">&quot;file_size&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>    <span class="s2">&quot;file_type&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>    <span class="s2">&quot;mime_type&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>    <span class="s2">&quot;is_video&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>    <span class="s2">&quot;upload_date&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="p">,</span>
+</span><span id="__span-8-25"><a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>    <span class="s2">&quot;download_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-8-26"><a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>    <span class="s2">&quot;stream_count&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+</span><span id="__span-8-27"><a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>    <span class="s2">&quot;expires_at&quot;</span><span class="p">:</span> <span class="n">datetime</span>
+</span><span id="__span-8-28"><a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a><span class="p">}</span>
+</span></code></pre></div></p>
+<h3 id="5-security-layer">5. Security Layer<a class="headerlink" href="#5-security-layer" title="Permanent link">&para;</a></h3>
+<p><strong>Security Middleware</strong> (<code>StreamBot/security/middleware.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Request/response security processing</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">SecurityMiddleware</span><span class="p">:</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>    <span class="o">-</span> <span class="n">Input</span> <span class="n">validation</span> <span class="ow">and</span> <span class="n">sanitization</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>    <span class="o">-</span> <span class="n">Rate</span> <span class="n">limiting</span> <span class="n">enforcement</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="o">-</span> <span class="n">CORS</span> <span class="n">policy</span> <span class="n">implementation</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="o">-</span> <span class="n">Security</span> <span class="n">header</span> <span class="n">injection</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="o">-</span> <span class="n">Request</span> <span class="n">logging</span> <span class="ow">and</span> <span class="n">monitoring</span>
+</span></code></pre></div></p>
+<p><strong>Rate Limiter</strong> (<code>StreamBot/security/rate_limiter.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Advanced rate limiting system</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">RateLimiter</span><span class="p">:</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    <span class="o">-</span> <span class="n">Per</span><span class="o">-</span><span class="n">user</span> <span class="n">request</span> <span class="n">limiting</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="o">-</span> <span class="n">IP</span><span class="o">-</span><span class="n">based</span> <span class="n">rate</span> <span class="n">limiting</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>    <span class="o">-</span> <span class="n">Bandwidth</span><span class="o">-</span><span class="n">aware</span> <span class="n">throttling</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>    <span class="o">-</span> <span class="n">Exponential</span> <span class="n">backoff</span> <span class="n">implementation</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="o">-</span> <span class="n">Whitelist</span> <span class="ow">and</span> <span class="n">blacklist</span> <span class="n">management</span>
+</span></code></pre></div></p>
+<p><strong>Validator</strong> (<code>StreamBot/security/validator.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Input validation and security checks</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">Validator</span><span class="p">:</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>    <span class="o">-</span> <span class="n">File</span> <span class="nb">type</span> <span class="n">validation</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>    <span class="o">-</span> <span class="n">Size</span> <span class="n">limit</span> <span class="n">enforcement</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>    <span class="o">-</span> <span class="n">Malicious</span> <span class="n">content</span> <span class="n">detection</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>    <span class="o">-</span> <span class="n">URL</span> <span class="n">validation</span> <span class="k">for</span> <span class="n">frontends</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="o">-</span> <span class="n">User</span> <span class="n">permission</span> <span class="n">verification</span>
+</span></code></pre></div></p>
+<h3 id="6-utility-services">6. Utility Services<a class="headerlink" href="#6-utility-services" title="Permanent link">&para;</a></h3>
+<p><strong>Smart Logger</strong> (<code>StreamBot/utils/smart_logger.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Advanced logging system</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">SmartLogger</span><span class="p">:</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>    <span class="o">-</span> <span class="n">Structured</span> <span class="n">logging</span> <span class="k">with</span> <span class="n">JSON</span> <span class="nb">format</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="o">-</span> <span class="n">Log</span> <span class="n">level</span> <span class="n">management</span> <span class="ow">and</span> <span class="n">filtering</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="o">-</span> <span class="n">Performance</span> <span class="n">metrics</span> <span class="n">collection</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    <span class="o">-</span> <span class="n">Error</span> <span class="n">tracking</span> <span class="ow">and</span> <span class="n">alerting</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>    <span class="o">-</span> <span class="n">Log</span> <span class="n">rotation</span> <span class="ow">and</span> <span class="n">archival</span>
+</span></code></pre></div></p>
+<p><strong>Memory Manager</strong> (<code>StreamBot/utils/memory_manager.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Memory optimization and monitoring</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MemoryManager</span><span class="p">:</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    <span class="o">-</span> <span class="n">Memory</span> <span class="n">usage</span> <span class="n">tracking</span> <span class="ow">and</span> <span class="n">optimization</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    <span class="o">-</span> <span class="n">Garbage</span> <span class="n">collection</span> <span class="n">management</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    <span class="o">-</span> <span class="n">Cache</span> <span class="n">management</span> <span class="ow">and</span> <span class="n">cleanup</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    <span class="o">-</span> <span class="n">Memory</span> <span class="n">leak</span> <span class="n">detection</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    <span class="o">-</span> <span class="n">Resource</span> <span class="n">allocation</span> <span class="n">monitoring</span>
+</span></code></pre></div></p>
+<p><strong>Cleanup Scheduler</strong> (<code>StreamBot/utils/cleanup_scheduler.py</code>)
+<div class="language-python highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Automated maintenance tasks</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">CleanupScheduler</span><span class="p">:</span>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>    <span class="o">-</span> <span class="n">Expired</span> <span class="n">file</span> <span class="n">cleanup</span>
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>    <span class="o">-</span> <span class="n">Database</span> <span class="n">maintenance</span>
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="o">-</span> <span class="n">Log</span> <span class="n">file</span> <span class="n">rotation</span>
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>    <span class="o">-</span> <span class="n">Session</span> <span class="n">cleanup</span>
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>    <span class="o">-</span> <span class="n">Cache</span> <span class="n">optimization</span>
+</span></code></pre></div></p>
+<h2 id="technology-stack">Technology Stack<a class="headerlink" href="#technology-stack" title="Permanent link">&para;</a></h2>
+<h3 id="core-technologies">Core Technologies<a class="headerlink" href="#core-technologies" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Technology</th>
+<th>Version</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Runtime</strong></td>
+<td>Python</td>
+<td>3.11+</td>
+<td>Core application language</td>
+</tr>
+<tr>
+<td><strong>Bot Framework</strong></td>
+<td>Pyrogram</td>
+<td>2.0+</td>
+<td>Telegram API integration</td>
+</tr>
+<tr>
+<td><strong>Web Framework</strong></td>
+<td>aiohttp</td>
+<td>3.8+</td>
+<td>HTTP server and client</td>
+</tr>
+<tr>
+<td><strong>Database</strong></td>
+<td>MongoDB</td>
+<td>4.4+</td>
+<td>Data persistence</td>
+</tr>
+<tr>
+<td><strong>Async Runtime</strong></td>
+<td>asyncio</td>
+<td>Built-in</td>
+<td>Asynchronous operations</td>
+</tr>
+</tbody>
+</table>
+<h3 id="supporting-libraries">Supporting Libraries<a class="headerlink" href="#supporting-libraries" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Library</th>
+<th>Purpose</th>
+<th>Features</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>motor</strong></td>
+<td>Async MongoDB driver</td>
+<td>Non-blocking database operations</td>
+</tr>
+<tr>
+<td><strong>aiofiles</strong></td>
+<td>Async file operations</td>
+<td>Efficient file I/O</td>
+</tr>
+<tr>
+<td><strong>python-dotenv</strong></td>
+<td>Environment management</td>
+<td>Configuration loading</td>
+</tr>
+<tr>
+<td><strong>psutil</strong></td>
+<td>System monitoring</td>
+<td>Resource usage tracking</td>
+</tr>
+<tr>
+<td><strong>uvloop</strong></td>
+<td>Performance optimization</td>
+<td>Enhanced event loop</td>
+</tr>
+</tbody>
+</table>
+<h2 id="data-flow-architecture">Data Flow Architecture<a class="headerlink" href="#data-flow-architecture" title="Permanent link">&para;</a></h2>
 <h3 id="file-upload-flow">File Upload Flow<a class="headerlink" href="#file-upload-flow" title="Permanent link">&para;</a></h3>
 <pre class="mermaid"><code>sequenceDiagram
     participant User
     participant Bot
-    participant Validation
-    participant LogChannel
+    participant ClientManager
     participant Database
-
-    User-&gt;&gt;Bot: Send File
-    Bot-&gt;&gt;Validation: Validate File
-    Validation--&gt;&gt;Bot: Validation Result
-
-    alt Valid File
-        Bot-&gt;&gt;LogChannel: Forward to Log Channel
-        LogChannel--&gt;&gt;Bot: Message ID
-        Bot-&gt;&gt;Database: Create Link Record
-        Database--&gt;&gt;Bot: Record Created
-        Bot-&gt;&gt;User: Send Download Link
-    else Invalid File
-        Bot-&gt;&gt;User: Send Error Message
-    end</code></pre>
-<h3 id="file-download-flow">File Download Flow<a class="headerlink" href="#file-download-flow" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>sequenceDiagram
-    participant User
+    participant Storage
     participant WebServer
-    participant Validation
-    participant LogChannel
+
+    User-&gt;&gt;Bot: Upload file
+    Bot-&gt;&gt;Bot: Detect file type
+    Bot-&gt;&gt;ClientManager: Process file
+    ClientManager-&gt;&gt;Storage: Store in Telegram
+    Storage--&gt;&gt;ClientManager: File stored
+    ClientManager--&gt;&gt;Bot: File ID &amp; metadata
+    Bot-&gt;&gt;Database: Save file record
+    Database--&gt;&gt;Bot: Record saved
+    Bot-&gt;&gt;Bot: Generate download/stream URLs
+    Bot-&gt;&gt;User: Send links
+
+    Note over Bot,User: For videos: Both download and streaming links</code></pre>
+<h3 id="video-streaming-flow">Video Streaming Flow<a class="headerlink" href="#video-streaming-flow" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Client
+    participant WebServer
+    participant StreamingHandler
+    participant TelegramAPI
+    participant VideoFrontend
+
+    Client-&gt;&gt;VideoFrontend: Access video URL
+    VideoFrontend-&gt;&gt;WebServer: Request stream with range
+    WebServer-&gt;&gt;StreamingHandler: Process range request
+    StreamingHandler-&gt;&gt;TelegramAPI: Fetch file chunk
+    TelegramAPI--&gt;&gt;StreamingHandler: Return chunk data
+    StreamingHandler--&gt;&gt;WebServer: Process and optimize
+    WebServer--&gt;&gt;VideoFrontend: Stream chunk with headers
+    VideoFrontend--&gt;&gt;Client: Video playback
+
+    Note over Client,VideoFrontend: Supports seeking and progressive loading</code></pre>
+<h3 id="api-request-flow">API Request Flow<a class="headerlink" href="#api-request-flow" title="Permanent link">&para;</a></h3>
+<pre class="mermaid"><code>sequenceDiagram
+    participant Client
+    participant WebServer
+    participant SecurityMiddleware
+    participant RateLimiter
+    participant Handler
     participant Database
 
-    User-&gt;&gt;WebServer: Request Download Link
-    WebServer-&gt;&gt;Validation: Decode and Validate Link
-
-    alt Valid Link
-        Validation-&gt;&gt;Database: Check Limitations
-        Database--&gt;&gt;Validation: Validation Result
-
-        alt Within Limits
-            Validation-&gt;&gt;LogChannel: Fetch from Log Channel
-            LogChannel--&gt;&gt;WebServer: Return File
-            WebServer-&gt;&gt;Database: Track Bandwidth
-            WebServer-&gt;&gt;User: Stream File
-        else Exceeded Limits
-            Validation-&gt;&gt;User: Return Error
-        end
-    else Invalid Link
-        Validation-&gt;&gt;User: Return Error
-    end</code></pre>
-<h2 id="component-details">Component Details<a class="headerlink" href="#component-details" title="Permanent link">&para;</a></h2>
-<h3 id="clientmanager-client_managerpy">ClientManager (<code>client_manager.py</code>)<a class="headerlink" href="#clientmanager-client_managerpy" title="Permanent link">&para;</a></h3>
-<p>The ClientManager orchestrates multiple Telegram client instances for distributed workloads.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ClientManager</span><span class="p">:</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">primary_client</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Primary bot for user interactions</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">worker_clients</span> <span class="o">=</span> <span class="p">[]</span>    <span class="c1"># List of streaming-dedicated clients</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_round_robin_index</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Load balancer state</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span> <span class="c1"># Thread-safe operations</span>
-</span></code></pre></div>
-<p><strong>Key Features</strong>:
-- Round-robin load balancing for streaming
-- Automatic client health monitoring
-- Graceful startup/shutdown handling
-- Connection recovery mechanisms</p>
-<h3 id="configuration-management-configpy">Configuration Management (<code>config.py</code>)<a class="headerlink" href="#configuration-management-configpy" title="Permanent link">&para;</a></h3>
-<p>Centralized configuration with environment variable validation.</p>
-<p><strong>Features</strong>:
-- Type-safe environment variable loading
-- Required/optional parameter validation
-- Default value handling
-- Sensitive data masking in logs</p>
-<h3 id="database-layer-databasedatabasepy">Database Layer (<code>database/database.py</code>)<a class="headerlink" href="#database-layer-databasedatabasepy" title="Permanent link">&para;</a></h3>
-<p>MongoDB operations for user and system management.</p>
-<p><strong>Collections</strong>:
-- <code>users</code>: User registration and tracking
-- <code>bandwidth_usage</code>: Monthly bandwidth monitoring</p>
-<p><strong>Features</strong>:
-- Connection pooling
-- Error handling and retry logic
-- Efficient query patterns</p>
-<h3 id="web-server-webwebpy">Web Server (<code>web/web.py</code>)<a class="headerlink" href="#web-server-webwebpy" title="Permanent link">&para;</a></h3>
-<p>HTTP server for file downloads and API functionality.</p>
-<p><strong>Features</strong>:
-- Range request support (partial downloads)
-- CORS configuration
-- Rate limiting integration
-- Error handling and logging</p>
-<h2 id="utility-modules">Utility Modules<a class="headerlink" href="#utility-modules" title="Permanent link">&para;</a></h2>
-<h3 id="rate-limiter-utilsrate_limiterpy">Rate Limiter (<code>utils/rate_limiter.py</code>)<a class="headerlink" href="#rate-limiter-utilsrate_limiterpy" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Algorithm</strong>: Sliding window with deque-based timestamp tracking</li>
-<li><strong>Features</strong>: Per-user daily limits, thread-safe operations</li>
-</ul>
-<h3 id="bandwidth-manager-utilsbandwidthpy">Bandwidth Manager (<code>utils/bandwidth.py</code>)<a class="headerlink" href="#bandwidth-manager-utilsbandwidthpy" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Algorithm</strong>: Monthly rolling limits with auto-reset</li>
-<li><strong>Features</strong>: Real-time tracking, MongoDB persistence</li>
-</ul>
-<h3 id="memory-manager-utilsmemory_managerpy">Memory Manager (<code>utils/memory_manager.py</code>)<a class="headerlink" href="#memory-manager-utilsmemory_managerpy" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Purpose</strong>: Memory leak prevention and monitoring</li>
-<li><strong>Features</strong>: Periodic cleanup, usage tracking, garbage collection</li>
-</ul>
-<h3 id="stream-cleanup-utilsstream_cleanuppy">Stream Cleanup (<code>utils/stream_cleanup.py</code>)<a class="headerlink" href="#stream-cleanup-utilsstream_cleanuppy" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Purpose</strong>: HTTP stream lifecycle management</li>
-<li><strong>Features</strong>: Active connection tracking, automatic cleanup on errors</li>
-</ul>
-<h2 id="scaling-considerations">Scaling Considerations<a class="headerlink" href="#scaling-considerations" title="Permanent link">&para;</a></h2>
-<h3 id="horizontal-scaling">Horizontal Scaling<a class="headerlink" href="#horizontal-scaling" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Worker Clients</strong>: Add more bot tokens for increased throughput</li>
-<li><strong>Database</strong>: MongoDB sharding for larger user bases</li>
-<li><strong>Load Balancing</strong>: Multiple web server instances behind proxy</li>
-</ul>
-<h3 id="vertical-scaling">Vertical Scaling<a class="headerlink" href="#vertical-scaling" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Workers</strong>: Increase Pyrogram worker threads</li>
-<li><strong>Memory</strong>: Tune cleanup intervals and cache sizes</li>
-<li><strong>Bandwidth</strong>: Adjust chunk sizes for optimal streaming</li>
-</ul>
+    Client-&gt;&gt;WebServer: API Request
+    WebServer-&gt;&gt;SecurityMiddleware: Validate request
+    SecurityMiddleware-&gt;&gt;RateLimiter: Check limits
+    RateLimiter--&gt;&gt;SecurityMiddleware: Allowed/Denied
+    SecurityMiddleware-&gt;&gt;Handler: Process request
+    Handler-&gt;&gt;Database: Query data
+    Database--&gt;&gt;Handler: Return data
+    Handler--&gt;&gt;WebServer: Response
+    WebServer--&gt;&gt;Client: JSON response</code></pre>
+<h2 id="video-streaming-architecture">Video Streaming Architecture<a class="headerlink" href="#video-streaming-architecture" title="Permanent link">&para;</a></h2>
+<h3 id="streaming-infrastructure">Streaming Infrastructure<a class="headerlink" href="#streaming-infrastructure" title="Permanent link">&para;</a></h3>
+<p><strong>Range Request Processing</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># HTTP range request handling</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">RangeRequestHandler</span><span class="p">:</span>
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>    <span class="o">-</span> <span class="n">Parse</span> <span class="nb">range</span> <span class="n">headers</span> <span class="p">(</span><span class="nb">bytes</span><span class="o">=</span><span class="n">start</span><span class="o">-</span><span class="n">end</span><span class="p">)</span>
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>    <span class="o">-</span> <span class="n">Validate</span> <span class="nb">range</span> <span class="n">against</span> <span class="n">file</span> <span class="n">size</span>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>    <span class="o">-</span> <span class="n">Stream</span> <span class="n">partial</span> <span class="n">content</span> <span class="k">with</span> <span class="mi">206</span> <span class="n">status</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    <span class="o">-</span> <span class="n">Support</span> <span class="n">multiple</span> <span class="nb">range</span> <span class="n">requests</span>
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>    <span class="o">-</span> <span class="n">Optimize</span> <span class="n">chunk</span> <span class="n">sizes</span> <span class="k">for</span> <span class="n">performance</span>
+</span></code></pre></div></p>
+<p><strong>Video Format Support</strong>:
+- <strong>Container Formats</strong>: MP4, MKV, AVI, WebM, MOV, 3GP
+- <strong>Video Codecs</strong>: H.264, H.265, VP8, VP9, AV1
+- <strong>Audio Codecs</strong>: AAC, MP3, Opus, Vorbis
+- <strong>Streaming Protocols</strong>: HTTP progressive download with range support</p>
+<p><strong>Frontend Integration</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Video frontend URL generation</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">generate_video_url</span><span class="p">(</span><span class="n">stream_url</span><span class="p">,</span> <span class="n">frontend_url</span><span class="p">):</span>
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">frontend_url</span><span class="si">}</span><span class="s2">?stream=</span><span class="si">{</span><span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">stream_url</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="c1"># Default: https://cricster.pages.dev?stream=...</span>
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="c1"># Custom: https://your-player.com?stream=...</span>
+</span></code></pre></div></p>
+<h3 id="performance-optimizations">Performance Optimizations<a class="headerlink" href="#performance-optimizations" title="Permanent link">&para;</a></h3>
+<p><strong>Caching Strategy</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Multi-level caching implementation</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="o">-</span> <span class="n">Browser</span> <span class="n">caching</span> <span class="k">with</span> <span class="n">appropriate</span> <span class="n">headers</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="o">-</span> <span class="n">CDN</span> <span class="n">integration</span> <span class="k">for</span> <span class="k">global</span> <span class="n">distribution</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="o">-</span> <span class="n">Application</span><span class="o">-</span><span class="n">level</span> <span class="n">caching</span> <span class="k">for</span> <span class="n">metadata</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="o">-</span> <span class="n">Database</span> <span class="n">query</span> <span class="n">optimization</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="o">-</span> <span class="n">Memory</span><span class="o">-</span><span class="n">based</span> <span class="n">session</span> <span class="n">caching</span>
+</span></code></pre></div></p>
+<p><strong>Bandwidth Management</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Intelligent bandwidth allocation</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="o">-</span> <span class="n">Per</span><span class="o">-</span><span class="n">user</span> <span class="n">bandwidth</span> <span class="n">tracking</span>
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="o">-</span> <span class="n">Quality</span><span class="o">-</span><span class="n">based</span> <span class="n">streaming</span> <span class="n">optimization</span>
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="o">-</span> <span class="n">Adaptive</span> <span class="n">bitrate</span> <span class="n">simulation</span>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="o">-</span> <span class="n">Concurrent</span> <span class="n">stream</span> <span class="n">limiting</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="o">-</span> <span class="n">Peak</span> <span class="n">usage</span> <span class="n">load</span> <span class="n">balancing</span>
+</span></code></pre></div></p>
 <h2 id="security-architecture">Security Architecture<a class="headerlink" href="#security-architecture" title="Permanent link">&para;</a></h2>
-<h3 id="authentication-authorization">Authentication &amp; Authorization<a class="headerlink" href="#authentication-authorization" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Admin Commands</strong>: User ID-based authorization</li>
-<li><strong>API Access</strong>: Token-based authentication with IP whitelisting</li>
-<li><strong>File Access</strong>: Encoded message IDs with expiration</li>
-</ul>
-<h3 id="input-validation">Input Validation<a class="headerlink" href="#input-validation" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>File Types</strong>: MIME type validation and sanitization</li>
-<li><strong>URLs</strong>: Encoded ID validation and decoding</li>
-<li><strong>Rate Limits</strong>: Per-user request throttling</li>
-</ul>
-<h2 id="error-handling-strategy">Error Handling Strategy<a class="headerlink" href="#error-handling-strategy" title="Permanent link">&para;</a></h2>
-<h3 id="graceful-degradation">Graceful Degradation<a class="headerlink" href="#graceful-degradation" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Client Failures</strong>: Automatic fallback to available clients</li>
-<li><strong>Database Issues</strong>: In-memory fallbacks for non-critical operations</li>
-<li><strong>Rate Limits</strong>: Exponential backoff with retry logic</li>
-</ul>
-<h3 id="monitoring-recovery">Monitoring &amp; Recovery<a class="headerlink" href="#monitoring-recovery" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Health Checks</strong>: Continuous client connection monitoring</li>
-<li><strong>Automatic Cleanup</strong>: Resource leak prevention</li>
-<li><strong>Error Logging</strong>: Structured logging with rate limiting</li>
-</ul>
-<h2 id="configuration-patterns">Configuration Patterns<a class="headerlink" href="#configuration-patterns" title="Permanent link">&para;</a></h2>
-<h3 id="environment-based-configuration">Environment-Based Configuration<a class="headerlink" href="#environment-based-configuration" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Development</strong>: Local settings with debug logging</li>
-<li><strong>Production</strong>: Optimized settings with minimal logging</li>
-<li><strong>Docker</strong>: Container-friendly configuration</li>
-</ul>
-<h3 id="feature-flags">Feature Flags<a class="headerlink" href="#feature-flags" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Force Subscription</strong>: Optional channel requirement</li>
-<li><strong>Rate Limiting</strong>: Configurable daily limits</li>
-<li><strong>Bandwidth Limits</strong>: Optional monthly quotas</li>
-</ul>
+<h3 id="multi-layer-security">Multi-Layer Security<a class="headerlink" href="#multi-layer-security" title="Permanent link">&para;</a></h3>
+<p><strong>Request Security</strong>:
+1. <strong>Input Validation</strong>: Comprehensive input sanitization
+2. <strong>Rate Limiting</strong>: Multiple rate limiting strategies
+3. <strong>Authentication</strong>: Encoded file ID security
+4. <strong>Authorization</strong>: User permission verification
+5. <strong>Encryption</strong>: HTTPS enforcement and secure headers</p>
+<p><strong>File Security</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># File validation pipeline</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">FileSecurityPipeline</span><span class="p">:</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>    <span class="o">-</span> <span class="n">File</span> <span class="nb">type</span> <span class="n">validation</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>    <span class="o">-</span> <span class="n">Size</span> <span class="n">limit</span> <span class="n">enforcement</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>    <span class="o">-</span> <span class="n">Malicious</span> <span class="n">content</span> <span class="n">scanning</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>    <span class="o">-</span> <span class="n">Virus</span> <span class="n">scanning</span> <span class="n">integration</span> <span class="p">(</span><span class="n">optional</span><span class="p">)</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a>    <span class="o">-</span> <span class="n">Content</span> <span class="n">policy</span> <span class="n">enforcement</span>
+</span></code></pre></div></p>
+<p><strong>API Security</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># API protection mechanisms</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="o">-</span> <span class="n">CORS</span> <span class="n">policy</span> <span class="n">enforcement</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="o">-</span> <span class="n">Security</span> <span class="n">header</span> <span class="n">injection</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="o">-</span> <span class="n">Request</span> <span class="n">size</span> <span class="n">limiting</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="o">-</span> <span class="n">Response</span> <span class="n">sanitization</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="o">-</span> <span class="n">Error</span> <span class="n">message</span> <span class="n">sanitization</span>
+</span></code></pre></div></p>
 <h2 id="performance-characteristics">Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Permanent link">&para;</a></h2>
-<h3 id="throughput">Throughput<a class="headerlink" href="#throughput" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Single Client</strong>: ~50 concurrent downloads</li>
-<li><strong>Multi-Client</strong>: Scales linearly with worker count</li>
-<li><strong>Database</strong>: Optimized for read-heavy workloads</li>
-</ul>
-<h3 id="latency">Latency<a class="headerlink" href="#latency" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Link Generation</strong>: &lt;100ms average</li>
-<li><strong>Download Start</strong>: &lt;500ms average</li>
-<li><strong>API Response</strong>: &lt;50ms average</li>
-</ul>
-<h3 id="resource-usage">Resource Usage<a class="headerlink" href="#resource-usage" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Memory</strong>: ~50MB base + 10MB per active client</li>
-<li><strong>CPU</strong>: Low usage, I/O bound operations</li>
-<li><strong>Network</strong>: Dependent on file transfer volume</li>
-</ul>
+<h3 id="benchmarks-and-capabilities">Benchmarks and Capabilities<a class="headerlink" href="#benchmarks-and-capabilities" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Performance</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Concurrent Downloads</strong></td>
+<td>100+ per instance</td>
+<td>With proper resource allocation</td>
+</tr>
+<tr>
+<td><strong>Video Streams</strong></td>
+<td>50+ simultaneous</td>
+<td>Depends on bandwidth and storage</td>
+</tr>
+<tr>
+<td><strong>Response Time</strong></td>
+<td>&lt;100ms API calls</td>
+<td>Excluding file transfer time</td>
+</tr>
+<tr>
+<td><strong>Memory Usage</strong></td>
+<td>1-4 GB typical</td>
+<td>Scales with concurrent operations</td>
+</tr>
+<tr>
+<td><strong>CPU Usage</strong></td>
+<td>10-30% average</td>
+<td>Spikes during file processing</td>
+</tr>
+<tr>
+<td><strong>Database Ops</strong></td>
+<td>1000+ ops/sec</td>
+<td>MongoDB with proper indexing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="scalability-patterns">Scalability Patterns<a class="headerlink" href="#scalability-patterns" title="Permanent link">&para;</a></h3>
+<p><strong>Horizontal Scaling</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Multi-instance deployment</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="o">-</span> <span class="n">Load</span> <span class="n">balancer</span> <span class="n">distribution</span>
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="o">-</span> <span class="n">Shared</span> <span class="n">database</span> <span class="n">cluster</span>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="o">-</span> <span class="n">Session</span> <span class="n">affinity</span> <span class="n">handling</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="o">-</span> <span class="n">Cross</span><span class="o">-</span><span class="n">instance</span> <span class="n">communication</span>
+</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="o">-</span> <span class="n">Distributed</span> <span class="n">caching</span>
+</span></code></pre></div></p>
+<p><strong>Vertical Scaling</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Resource optimization</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="o">-</span> <span class="n">Worker</span> <span class="n">process</span> <span class="n">scaling</span>
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a><span class="o">-</span> <span class="n">Memory</span> <span class="n">allocation</span> <span class="n">tuning</span>
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="o">-</span> <span class="n">Database</span> <span class="n">connection</span> <span class="n">pooling</span>
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a><span class="o">-</span> <span class="n">Cache</span> <span class="n">size</span> <span class="n">optimization</span>
+</span><span id="__span-22-6"><a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a><span class="o">-</span> <span class="n">Concurrent</span> <span class="n">operation</span> <span class="n">limits</span>
+</span></code></pre></div></p>
+<h2 id="development-environment">Development Environment<a class="headerlink" href="#development-environment" title="Permanent link">&para;</a></h2>
+<h3 id="local-development-setup">Local Development Setup<a class="headerlink" href="#local-development-setup" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Development configuration</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="n">ENVIRONMENT</span> <span class="o">=</span> <span class="s2">&quot;development&quot;</span>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="n">DEBUG</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="n">LOG_LEVEL</span> <span class="o">=</span> <span class="s2">&quot;DEBUG&quot;</span>
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="n">AUTO_RELOAD</span> <span class="o">=</span> <span class="kc">True</span>
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a><span class="n">DEVELOPMENT_FEATURES</span> <span class="o">=</span> <span class="kc">True</span>
+</span></code></pre></div>
+<h3 id="testing-architecture">Testing Architecture<a class="headerlink" href="#testing-architecture" title="Permanent link">&para;</a></h3>
+<p><strong>Unit Testing</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># Test coverage areas</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="o">-</span> <span class="n">Component</span> <span class="n">isolation</span> <span class="n">testing</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="o">-</span> <span class="n">Mock</span> <span class="n">external</span> <span class="n">dependencies</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="o">-</span> <span class="n">Database</span> <span class="n">operation</span> <span class="n">testing</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="o">-</span> <span class="n">API</span> <span class="n">endpoint</span> <span class="n">validation</span>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="o">-</span> <span class="n">Security</span> <span class="n">feature</span> <span class="n">testing</span>
+</span></code></pre></div></p>
+<p><strong>Integration Testing</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># End-to-end testing</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="o">-</span> <span class="n">Full</span> <span class="n">workflow</span> <span class="n">testing</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="o">-</span> <span class="n">Multi</span><span class="o">-</span><span class="n">client</span> <span class="n">scenarios</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="o">-</span> <span class="n">Video</span> <span class="n">streaming</span> <span class="n">validation</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="o">-</span> <span class="n">Performance</span> <span class="n">benchmarking</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="o">-</span> <span class="n">Error</span> <span class="n">condition</span> <span class="n">handling</span>
+</span></code></pre></div></p>
 <h2 id="deployment-architecture">Deployment Architecture<a class="headerlink" href="#deployment-architecture" title="Permanent link">&para;</a></h2>
-<h3 id="single-server-deployment">Single Server Deployment<a class="headerlink" href="#single-server-deployment" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
-    subgraph "StreamBot Server"
-        subgraph "Application"
-            PC[Primary Client]
-            WC[Worker Clients]
-            WS[Web Server]
-        end
-    end
-
-    DB[MongoDB Database]
-
-    Application --- DB</code></pre>
-<h3 id="distributed-deployment">Distributed Deployment<a class="headerlink" href="#distributed-deployment" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart TD
-    LB[Load Balancer] --&gt; SB1[StreamBot 1]
-    LB --&gt; SB2[StreamBot 2]
-
-    SB1 --&gt; DB[(MongoDB Cluster)]
-    SB2 --&gt; DB</code></pre>
-<p>This architecture provides a solid foundation for understanding how StreamBot components interact and can be extended or modified for specific deployment needs. </p>
+<h3 id="production-deployment">Production Deployment<a class="headerlink" href="#production-deployment" title="Permanent link">&para;</a></h3>
+<p><strong>Container Architecture</strong>:
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># Docker composition</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="w">  </span><span class="nt">streambot</span><span class="p">:</span>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Application container</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Health check endpoints</span>
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Resource limits</span>
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Environment configuration</span>
+</span><span id="__span-26-8"><a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Volume mounts for persistence</span>
+</span><span id="__span-26-9"><a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a>
+</span><span id="__span-26-10"><a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a><span class="w">  </span><span class="nt">mongodb</span><span class="p">:</span>
+</span><span id="__span-26-11"><a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Database container</span>
+</span><span id="__span-26-12"><a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Data persistence</span>
+</span><span id="__span-26-13"><a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Backup configuration</span>
+</span><span id="__span-26-14"><a id="__codelineno-26-14" name="__codelineno-26-14" href="#__codelineno-26-14"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Performance tuning</span>
+</span><span id="__span-26-15"><a id="__codelineno-26-15" name="__codelineno-26-15" href="#__codelineno-26-15"></a><span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Security hardening</span>
+</span></code></pre></div></p>
+<p><strong>Monitoring Integration</strong>:
+<div class="language-python highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># Production monitoring</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="o">-</span> <span class="n">Health</span> <span class="n">check</span> <span class="n">endpoints</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="o">-</span> <span class="n">Metrics</span> <span class="n">collection</span>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="o">-</span> <span class="n">Error</span> <span class="n">tracking</span>
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="o">-</span> <span class="n">Performance</span> <span class="n">monitoring</span>
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="o">-</span> <span class="n">Alerting</span> <span class="n">configuration</span>
+</span></code></pre></div></p>
+<h2 id="future-architecture-considerations">Future Architecture Considerations<a class="headerlink" href="#future-architecture-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="planned-enhancements">Planned Enhancements<a class="headerlink" href="#planned-enhancements" title="Permanent link">&para;</a></h3>
+<p><strong>Microservices Migration</strong>:
+- Service decomposition strategy
+- API gateway implementation
+- Service mesh integration
+- Independent scaling capabilities
+- Fault isolation improvements</p>
+<p><strong>Advanced Video Features</strong>:
+- Adaptive bitrate streaming
+- Video transcoding pipeline
+- Quality optimization
+- CDN integration
+- Edge caching strategies</p>
+<p><strong>Enhanced Security</strong>:
+- End-to-end encryption
+- Advanced threat detection
+- Audit logging system
+- Compliance frameworks
+- Zero-trust architecture</p>
+<h2 id="repository-information">Repository Information<a class="headerlink" href="#repository-information" title="Permanent link">&para;</a></h2>
+<p><strong>GitHub Repository</strong>: <a href="https://github.com/AnikethJana/Telegram-Download-Link-Generator">https://github.com/AnikethJana/Telegram-Download-Link-Generator</a></p>
+<p><strong>Architecture Documentation</strong>: This document is part of the comprehensive StreamBot documentation suite.</p>
+<p>For implementation details, see:
+- <a href="../../getting-started/installation/">Installation Guide</a>
+- <a href="../../getting-started/configuration/">Configuration Reference</a>
+- <a href="../../api/overview/">API Documentation</a>
+- <a href="../contributing/">Contributing Guide</a> </p>
 
 
 
@@ -2499,7 +2650,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2023 - Present | Aniket Jana
+      Copyright &copy; 2023 - Present | Aniketh Jana
     </div>
   
   

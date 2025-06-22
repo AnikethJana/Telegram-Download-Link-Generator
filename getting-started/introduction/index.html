@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Learn about StreamBot and how it can help you share files via Telegram">
+        <meta name="description" content="Learn about StreamBot's file sharing and video streaming capabilities via Telegram">
       
       
       
@@ -49,6 +49,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -590,6 +592,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#video-streaming-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#streaming-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎬 Streaming Infrastructure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      🖥️ Frontend Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚡ Performance Optimizations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#getting-started" class="md-nav__link">
     <span class="md-ellipsis">
       Getting Started
@@ -604,6 +648,39 @@
       Features at a Glance
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#minimum-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Minimum Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#video-streaming-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Recommendations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1436,6 +1513,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#video-streaming-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#streaming-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      🎬 Streaming Infrastructure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      🖥️ Frontend Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-optimizations" class="md-nav__link">
+    <span class="md-ellipsis">
+      ⚡ Performance Optimizations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#getting-started" class="md-nav__link">
     <span class="md-ellipsis">
       Getting Started
@@ -1450,6 +1569,39 @@
       Features at a Glance
     </span>
   </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Requirements
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#minimum-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Minimum Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#video-streaming-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Recommendations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1482,70 +1634,116 @@
 
 
 <h1 id="introduction-to-streambot">Introduction to StreamBot<a class="headerlink" href="#introduction-to-streambot" title="Permanent link">&para;</a></h1>
-<p>StreamBot is a powerful Telegram bot that generates direct download links for files sent to it. It allows you to share files of any size through Telegram, providing recipients with direct download links that don't require a Telegram account to access.</p>
+<p>StreamBot is a powerful Telegram bot that generates direct download links and streaming URLs for files sent to it. Beyond simple file sharing, StreamBot offers advanced video streaming capabilities with seeking support, making it ideal for sharing media content through Telegram without requiring recipients to have a Telegram account.</p>
 <h2 id="what-streambot-does">What StreamBot Does<a class="headerlink" href="#what-streambot-does" title="Permanent link">&para;</a></h2>
-<p>StreamBot solves a common problem: sharing large files through Telegram in a way that anyone can access them. When you send a file to StreamBot, it:</p>
+<p>StreamBot solves multiple file sharing challenges: sharing large files through Telegram and providing seamless video streaming experiences. When you send a file to StreamBot, it:</p>
 <ol>
-<li>Processes the file securely</li>
-<li>Stores it using Telegram's infrastructure</li>
-<li>Generates a direct download link</li>
-<li>Manages bandwidth and download limits</li>
-<li>Tracks usage statistics</li>
+<li><strong>Processes files securely</strong> with automatic format detection</li>
+<li><strong>Stores files</strong> using Telegram's robust infrastructure  </li>
+<li><strong>Generates direct download links</strong> for universal access</li>
+<li><strong>Creates streaming URLs</strong> for video files with seeking support</li>
+<li><strong>Integrates with video frontends</strong> (defaults to Cricster player)</li>
+<li><strong>Manages bandwidth and download limits</strong> with real-time tracking</li>
+<li><strong>Tracks detailed usage statistics</strong> for monitoring and optimization</li>
 </ol>
 <h2 id="key-benefits">Key Benefits<a class="headerlink" href="#key-benefits" title="Permanent link">&para;</a></h2>
 <div class="grid cards">
 <ul>
 <li>
+<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 16.5v-9l6 4.5M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> <strong>Video Streaming</strong></p>
+<hr />
+<p>Advanced video streaming with seeking support, range requests, and custom frontend integration including default Cricster player.</p>
+</li>
+<li>
 <p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m13.13 22.19-1.63-3.83c1.57-.58 3.04-1.36 4.4-2.27zM5.64 12.5l-3.83-1.63 6.1-2.77C7 9.46 6.22 10.93 5.64 12.5M21.61 2.39S16.66.269 11 5.93c-2.19 2.19-3.5 4.6-4.35 6.71-.28.75-.09 1.57.46 2.13l2.13 2.12c.55.56 1.37.74 2.12.46A19.1 19.1 0 0 0 18.07 13c5.66-5.66 3.54-10.61 3.54-10.61m-7.07 7.07c-.78-.78-.78-2.05 0-2.83s2.05-.78 2.83 0c.77.78.78 2.05 0 2.83s-2.05.78-2.83 0m-5.66 7.07-1.41-1.41zM6.24 22l3.64-3.64c-.34-.09-.67-.24-.97-.45L4.83 22zM2 22h1.41l4.77-4.76-1.42-1.41L2 20.59zm0-2.83 4.09-4.08c-.21-.3-.36-.62-.45-.97L2 17.76z"/></svg></span> <strong>High Performance</strong></p>
 <hr />
-<p>Multi-client architecture ensures fast processing and downloads even under heavy load.</p>
+<p>Multi-client architecture with Python 3.11+ optimization ensures fast processing and downloads even under heavy load.</p>
 </li>
 <li>
 <p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 1 3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5zm0 6c1.4 0 2.8 1.1 2.8 2.5V11c.6 0 1.2.6 1.2 1.3v3.5c0 .6-.6 1.2-1.3 1.2H9.2c-.6 0-1.2-.6-1.2-1.3v-3.5c0-.6.6-1.2 1.2-1.2V9.5C9.2 8.1 10.6 7 12 7m0 1.2c-.8 0-1.5.5-1.5 1.3V11h3V9.5c0-.8-.7-1.3-1.5-1.3"/></svg></span> <strong>Controlled Access</strong></p>
 <hr />
-<p>Configure download limits, rate limiting, and optional force subscription for greater control.</p>
+<p>Configure download limits, rate limiting, bandwidth quotas, and optional force subscription for greater control.</p>
 </li>
 <li>
 <p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m16 11.78 4.24-7.33 1.73 1-5.23 9.05-6.51-3.75L5.46 19H22v2H2V3h2v14.54L9.5 8z"/></svg></span> <strong>Usage Monitoring</strong></p>
 <hr />
-<p>Track bandwidth usage, user statistics, and system performance in real-time.</p>
+<p>Track bandwidth usage, streaming statistics, user analytics, and system performance in real-time.</p>
 </li>
 <li>
-<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 7H5a2 2 0 0 0-2 2v8h2v-4h2v4h2V9a2 2 0 0 0-2-2m0 4H5V9h2m7-2h-4v10h2v-4h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2m0 4h-2V9h2m6 0v6h1v2h-4v-2h1V9h-1V7h4v2Z"/></svg></span> <strong>API Integration</strong></p>
+<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 7H5a2 2 0 0 0-2 2v8h2v-4h2v4h2V9a2 2 0 0 0-2-2m0 4H5V9h2m7-2h-4v10h2v-4h2a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2m0 4h-2V9h2m6 0v6h1v2h-4v-2h1V9h-1V7h4v2Z"/></svg></span> <strong>REST API</strong></p>
 <hr />
-<p>REST API allows integration with your applications and services.</p>
+<p>Comprehensive REST API with streaming endpoints allows integration with your applications and services.</p>
+</li>
+<li>
+<p><span class="twemoji lg middle"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 17H3V5h18m0-2H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5v2h8v-2h5a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2"/></svg></span> <strong>Frontend Integration</strong></p>
+<hr />
+<p>Seamless integration with video frontends including default Cricster support and custom player development.</p>
 </li>
 </ul>
 </div>
 <h2 id="who-should-use-streambot">Who Should Use StreamBot<a class="headerlink" href="#who-should-use-streambot" title="Permanent link">&para;</a></h2>
 <p>StreamBot is ideal for:</p>
 <ul>
-<li><strong>Content Creators</strong> sharing files with audiences</li>
-<li><strong>Businesses</strong> distributing documents to clients</li>
-<li><strong>Developers</strong> sharing builds or large code packages</li>
-<li><strong>Communities</strong> managing file distribution</li>
-<li><strong>Personal Users</strong> who want simple file sharing with friends and family</li>
+<li><strong>Content Creators</strong> sharing video content and media files with audiences</li>
+<li><strong>Educators</strong> distributing course materials and instructional videos</li>
+<li><strong>Businesses</strong> sharing presentations, documents, and training videos with clients</li>
+<li><strong>Developers</strong> sharing builds, demos, or large code packages</li>
+<li><strong>Media Teams</strong> distributing video content with professional playback experience</li>
+<li><strong>Communities</strong> managing file and video distribution with controlled access</li>
+<li><strong>Personal Users</strong> who want simple file sharing and video streaming with friends and family</li>
 </ul>
 <h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
 <pre class="mermaid"><code>sequenceDiagram
     participant User
     participant Bot
     participant Storage
+    participant Frontend
     participant Recipient
 
-    User-&gt;&gt;Bot: Send file
-    Bot-&gt;&gt;Storage: Store file
-    Storage--&gt;&gt;Bot: File stored successfully
-    Bot-&gt;&gt;User: Return download link
-    User-&gt;&gt;Recipient: Share download link
-    Recipient-&gt;&gt;Storage: Request file via link
-    Storage--&gt;&gt;Recipient: Stream file to recipient</code></pre>
+    User-&gt;&gt;Bot: Send video/file
+    Bot-&gt;&gt;Storage: Store file securely
+    Storage--&gt;&gt;Bot: File stored with metadata
+    Bot-&gt;&gt;User: Return download + streaming links
+    User-&gt;&gt;Recipient: Share links
+
+    alt Video Streaming
+        Recipient-&gt;&gt;Frontend: Access via video frontend
+        Frontend-&gt;&gt;Storage: Request video stream
+        Storage--&gt;&gt;Frontend: Stream with range support
+        Frontend--&gt;&gt;Recipient: Enhanced video playback
+    else Direct Download
+        Recipient-&gt;&gt;Storage: Request file via download link
+        Storage--&gt;&gt;Recipient: Stream file to recipient
+    end</code></pre>
+<h2 id="video-streaming-features">Video Streaming Features<a class="headerlink" href="#video-streaming-features" title="Permanent link">&para;</a></h2>
+<p>StreamBot's advanced video streaming capabilities include:</p>
+<h3 id="streaming-infrastructure">🎬 <strong>Streaming Infrastructure</strong><a class="headerlink" href="#streaming-infrastructure" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Range Request Support</strong>: Full HTTP range request implementation for instant seeking</li>
+<li><strong>Progressive Loading</strong>: Start playback while video is still downloading</li>
+<li><strong>Multiple Format Support</strong>: MP4, MKV, AVI, WebM, MOV, and more</li>
+<li><strong>Adaptive Quality</strong>: Automatic quality detection and optimization</li>
+</ul>
+<h3 id="frontend-integration">🖥️ <strong>Frontend Integration</strong><a class="headerlink" href="#frontend-integration" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Default Cricster Integration</strong>: Professional video player at <code>https://cricster.pages.dev</code></li>
+<li><strong>Custom Frontend Support</strong>: Build and integrate your own video players</li>
+<li><strong>URL Parameter Format</strong>: <code>{frontend_url}?stream={encoded_stream_url}</code></li>
+<li><strong>Cross-Platform Compatibility</strong>: Works on desktop, mobile, and tablets</li>
+</ul>
+<h3 id="performance-optimizations">⚡ <strong>Performance Optimizations</strong><a class="headerlink" href="#performance-optimizations" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Seeking Support</strong>: Jump to any point in videos instantly</li>
+<li><strong>Bandwidth Efficiency</strong>: Optimized streaming protocols</li>
+<li><strong>Concurrent Streaming</strong>: Support for multiple simultaneous streams</li>
+<li><strong>Caching Strategy</strong>: Smart caching for improved performance</li>
+</ul>
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
 <p>Ready to get started with StreamBot? The next sections will guide you through:</p>
 <ol>
-<li><a href="../installation/">Installation</a> - How to set up StreamBot</li>
-<li><a href="../configuration/">Configuration</a> - Configuring your bot</li>
-<li><a href="../quick-start/">Quick Start</a> - Getting up and running quickly</li>
+<li><a href="../installation/">Installation</a> - Complete setup with Python 3.11+ requirements</li>
+<li><a href="../configuration/">Configuration</a> - Configure bot with video streaming options</li>
+<li><a href="../quick-start/">Quick Start</a> - Test file sharing and video streaming features</li>
 </ol>
 <h2 id="features-at-a-glance">Features at a Glance<a class="headerlink" href="#features-at-a-glance" title="Permanent link">&para;</a></h2>
 <table>
@@ -1553,45 +1751,80 @@
 <tr>
 <th>Feature</th>
 <th>Description</th>
+<th>Video Support</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Direct Download Links</td>
+<td><strong>Direct Download Links</strong></td>
 <td>Generate shareable links for any file</td>
+<td>✅ All formats</td>
 </tr>
 <tr>
-<td>Multi-Client Support</td>
+<td><strong>Video Streaming</strong></td>
+<td>Stream videos with seeking and frontend integration</td>
+<td>✅ Enhanced experience</td>
+</tr>
+<tr>
+<td><strong>Multi-Client Support</strong></td>
 <td>Distribute load across multiple Telegram clients</td>
+<td>✅ Better performance</td>
 </tr>
 <tr>
-<td>Bandwidth Management</td>
-<td>Track and limit bandwidth usage</td>
+<td><strong>Bandwidth Management</strong></td>
+<td>Track and limit bandwidth with streaming analytics</td>
+<td>✅ Separate tracking</td>
 </tr>
 <tr>
-<td>Rate Limiting</td>
-<td>Control access frequency per user</td>
+<td><strong>Rate Limiting</strong></td>
+<td>Control access frequency per user with stream quotas</td>
+<td>✅ Stream-aware limits</td>
 </tr>
 <tr>
-<td>Force Subscription</td>
+<td><strong>Force Subscription</strong></td>
 <td>Require users to join channels before using the bot</td>
+<td>✅ Works with streaming</td>
 </tr>
 <tr>
-<td>Admin Commands</td>
-<td>Monitor and manage the bot via Telegram</td>
+<td><strong>Admin Commands</strong></td>
+<td>Monitor and manage bot with streaming statistics</td>
+<td>✅ Enhanced admin tools</td>
 </tr>
 <tr>
-<td>REST API</td>
-<td>Integrate with your own applications</td>
+<td><strong>REST API</strong></td>
+<td>Integrate with streaming endpoints and video data</td>
+<td>✅ Streaming API</td>
 </tr>
 <tr>
-<td>Automatic Cleanup</td>
-<td>Maintain system resources efficiently</td>
+<td><strong>Automatic Cleanup</strong></td>
+<td>Maintain system resources with stream management</td>
+<td>✅ Stream cleanup</td>
+</tr>
+<tr>
+<td><strong>Frontend Integration</strong></td>
+<td>Default Cricster + custom video player support</td>
+<td>✅ Video-specific</td>
 </tr>
 </tbody>
 </table>
+<h2 id="system-requirements">System Requirements<a class="headerlink" href="#system-requirements" title="Permanent link">&para;</a></h2>
+<h3 id="minimum-requirements">Minimum Requirements<a class="headerlink" href="#minimum-requirements" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Python</strong>: 3.11 or higher (required for optimal performance)</li>
+<li><strong>MongoDB</strong>: 4.4+ for data persistence</li>
+<li><strong>RAM</strong>: 1 GB minimum (2 GB+ recommended for video streaming)</li>
+<li><strong>Storage</strong>: 10 GB minimum for application and caching</li>
+<li><strong>Bandwidth</strong>: 100 Mbps minimum (1 Gbps+ recommended for HD streaming)</li>
+</ul>
+<h3 id="video-streaming-recommendations">Video Streaming Recommendations<a class="headerlink" href="#video-streaming-recommendations" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>CPU</strong>: 2+ cores for concurrent video processing</li>
+<li><strong>RAM</strong>: 4 GB+ for multiple simultaneous streams</li>
+<li><strong>Network</strong>: High bandwidth for quality video streaming experience</li>
+<li><strong>Storage</strong>: SSD recommended for better I/O performance</li>
+</ul>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
-<p>Proceed to the <a href="../installation/">Installation Guide</a> to set up your own StreamBot instance. </p>
+<p>Proceed to the <a href="../installation/">Installation Guide</a> to set up your own StreamBot instance with full video streaming capabilities. Make sure to review the <a href="../configuration/">Configuration Guide</a> to properly set up video frontend integration and streaming optimizations. </p>
 
 
 
@@ -1626,7 +1859,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2023 - Present | Aniket Jana
+      Copyright &copy; 2023 - Present | Aniketh Jana
     </div>
   
   

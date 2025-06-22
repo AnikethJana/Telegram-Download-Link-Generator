@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Complete guide to using StreamBot features">
+        <meta name="description" content="Complete guide to using StreamBot features including video streaming">
       
       
       
@@ -49,6 +49,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -737,6 +739,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#video-streaming-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#advanced-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#video-frontend-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Frontend Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-video-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Video Frontend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#basic-usage" class="md-nav__link">
     <span class="md-ellipsis">
       Basic Usage
@@ -765,9 +809,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#download-links" class="md-nav__link">
+  <a href="#download-vs-streaming-links" class="md-nav__link">
     <span class="md-ellipsis">
-      Download Links
+      Download vs Streaming Links
     </span>
   </a>
   
@@ -891,6 +935,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#system-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#log-access" class="md-nav__link">
     <span class="md-ellipsis">
       Log Access
@@ -903,15 +956,6 @@
   <a href="#broadcasting" class="md-nav__link">
     <span class="md-ellipsis">
       Broadcasting
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#memory-monitoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      Memory Monitoring
     </span>
   </a>
   
@@ -954,6 +998,48 @@
   <a href="#health-check" class="md-nav__link">
     <span class="md-ellipsis">
       Health Check
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#video-streaming-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-video-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Video Formats
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#streaming-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Streaming Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#browser-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      Browser Compatibility
     </span>
   </a>
   
@@ -1059,9 +1145,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#integration-with-applications" class="md-nav__link">
+  <a href="#video-streaming-integration" class="md-nav__link">
     <span class="md-ellipsis">
-      Integration with Applications
+      Video Streaming Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-frontend-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Frontend Development
     </span>
   </a>
   
@@ -1739,6 +1834,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#video-streaming-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#advanced-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#video-frontend-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Frontend Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-video-frontend" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Video Frontend
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#basic-usage" class="md-nav__link">
     <span class="md-ellipsis">
       Basic Usage
@@ -1767,9 +1904,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#download-links" class="md-nav__link">
+  <a href="#download-vs-streaming-links" class="md-nav__link">
     <span class="md-ellipsis">
-      Download Links
+      Download vs Streaming Links
     </span>
   </a>
   
@@ -1893,6 +2030,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#system-statistics" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Statistics
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#log-access" class="md-nav__link">
     <span class="md-ellipsis">
       Log Access
@@ -1905,15 +2051,6 @@
   <a href="#broadcasting" class="md-nav__link">
     <span class="md-ellipsis">
       Broadcasting
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#memory-monitoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      Memory Monitoring
     </span>
   </a>
   
@@ -1956,6 +2093,48 @@
   <a href="#health-check" class="md-nav__link">
     <span class="md-ellipsis">
       Health Check
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#video-streaming-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-video-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Video Formats
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#streaming-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Streaming Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#browser-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      Browser Compatibility
     </span>
   </a>
   
@@ -2061,9 +2240,18 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#integration-with-applications" class="md-nav__link">
+  <a href="#video-streaming-integration" class="md-nav__link">
     <span class="md-ellipsis">
-      Integration with Applications
+      Video Streaming Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-frontend-development" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Frontend Development
     </span>
   </a>
   
@@ -2094,50 +2282,95 @@
 
 
 <h1 id="user-guide-overview">User Guide Overview<a class="headerlink" href="#user-guide-overview" title="Permanent link">&para;</a></h1>
-<p>StreamBot is designed to be simple yet powerful. This guide covers all features and how to use them effectively.</p>
+<p>StreamBot is designed to be simple yet powerful. This guide covers all features including the new advanced video streaming capabilities and how to use them effectively.</p>
 <h2 id="core-functionality">Core Functionality<a class="headerlink" href="#core-functionality" title="Permanent link">&para;</a></h2>
 <h3 id="file-to-link-conversion">File to Link Conversion<a class="headerlink" href="#file-to-link-conversion" title="Permanent link">&para;</a></h3>
-<p>StreamBot's primary function is converting files sent via Telegram into direct download links that can be shared with anyone.</p>
+<p>StreamBot's primary function is converting files sent via Telegram into direct download links and streaming URLs that can be shared with anyone.</p>
 <pre class="mermaid"><code>graph LR
     A[User sends file] --&gt; B[Bot processes file]
     B --&gt; C[File stored securely]
-    C --&gt; D[Download link generated]
-    D --&gt; E[Link shared with user]</code></pre>
+    C --&gt; D[Download &amp; streaming links generated]
+    D --&gt; E[Links shared with user]
+    E --&gt; F[Recipients access via browser]</code></pre>
 <h3 id="supported-file-types">Supported File Types<a class="headerlink" href="#supported-file-types" title="Permanent link">&para;</a></h3>
 <p>StreamBot supports all file types that Telegram accepts:</p>
 <ul>
 <li><strong>Documents</strong>: PDF, DOCX, TXT, ZIP, etc.</li>
 <li><strong>Images</strong>: JPG, PNG, GIF, WebP, etc.</li>
-<li><strong>Videos</strong>: MP4, AVI, MKV, etc.</li>
+<li><strong>Videos</strong>: MP4, MKV, AVI, WebM, MOV, etc. (with streaming support)</li>
 <li><strong>Audio</strong>: MP3, FLAC, OGG, etc.</li>
 <li><strong>Archives</strong>: ZIP, RAR, 7Z, etc.</li>
 <li><strong>Any other file type</strong> up to Telegram's size limits</li>
 </ul>
+<h2 id="video-streaming-features">Video Streaming Features<a class="headerlink" href="#video-streaming-features" title="Permanent link">&para;</a></h2>
+<h3 id="advanced-video-streaming">Advanced Video Streaming<a class="headerlink" href="#advanced-video-streaming" title="Permanent link">&para;</a></h3>
+<p>StreamBot now includes comprehensive video streaming capabilities:</p>
+<ul>
+<li><strong>Direct Video Streaming</strong>: Stream videos directly in browsers without downloading</li>
+<li><strong>Seeking Support</strong>: Jump to any point in the video with full range request support</li>
+<li><strong>Multiple Formats</strong>: Support for MP4, MKV, AVI, WebM, MOV, and more</li>
+<li><strong>Frontend Integration</strong>: Custom video player frontend support (defaults to Cricster)</li>
+<li><strong>Cross-Platform</strong>: Works on desktop and mobile browsers</li>
+<li><strong>Efficient Loading</strong>: Range requests for optimal video loading</li>
+</ul>
+<h3 id="video-frontend-integration">Video Frontend Integration<a class="headerlink" href="#video-frontend-integration" title="Permanent link">&para;</a></h3>
+<p>By default, StreamBot integrates with Cricster video frontend:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Video Frontend URL: https://cricster.pages.dev
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Final URL Format: {VIDEO_FRONTEND_URL}?stream={encoded_stream_url}
+</span></code></pre></div>
+<p><strong>Features of default frontend:</strong>
+- Modern video player interface
+- Seeking controls and timeline
+- Volume controls and settings
+- Fullscreen support
+- Mobile-responsive design
+- Keyboard shortcuts support</p>
+<h3 id="custom-video-frontend">Custom Video Frontend<a class="headerlink" href="#custom-video-frontend" title="Permanent link">&para;</a></h3>
+<p>You can build your own video frontend to work with StreamBot:</p>
+<div class="language-javascript highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">// Example: Extract stream URL from query parameter</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kd">const</span><span class="w"> </span><span class="nx">urlParams</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">URLSearchParams</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">search</span><span class="p">);</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kd">const</span><span class="w"> </span><span class="nx">streamUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">urlParams</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;stream&#39;</span><span class="p">);</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1">// Use the stream URL in your video player</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="kd">const</span><span class="w"> </span><span class="nx">videoElement</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;video&#39;</span><span class="p">);</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="nx">videoElement</span><span class="p">.</span><span class="nx">src</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">streamUrl</span><span class="p">;</span>
+</span></code></pre></div>
+<p><strong>URL Parameter Structure:</strong>
+- Parameter name: <code>stream</code>
+- Value: URL-encoded streaming URL
+- Example: <code>https://your-frontend.com?stream=https%3A//yourdomain.com/stream/abc123</code></p>
 <h2 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h2>
 <h3 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Find your bot</strong> on Telegram (search for your bot's username)</li>
 <li><strong>Send <code>/start</code></strong> to begin using the bot</li>
-<li><strong>Send any file</strong> to generate a download link</li>
-<li><strong>Share the link</strong> with anyone who needs access</li>
+<li><strong>Send any file</strong> to generate download and streaming links</li>
+<li><strong>Share the links</strong> with anyone who needs access</li>
 </ol>
 <h3 id="file-upload-process">File Upload Process<a class="headerlink" href="#file-upload-process" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Send a file</strong> to the bot via Telegram</li>
 <li><strong>Wait for processing</strong> (usually instant for small files)</li>
-<li><strong>Receive download link</strong> in the chat</li>
-<li><strong>Copy and share</strong> the link as needed</li>
+<li><strong>Receive links</strong> in the chat:</li>
+<li>Direct download link</li>
+<li>Streaming link (for videos)</li>
+<li>"🎬 Play Video" button (for videos with frontend configured)</li>
+<li><strong>Copy and share</strong> the links as needed</li>
 </ol>
-<h3 id="download-links">Download Links<a class="headerlink" href="#download-links" title="Permanent link">&para;</a></h3>
-<p>Generated links have the format:
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>https://yourdomain.com/dl/encoded_file_id/filename.ext
-</span></code></pre></div></p>
-<ul>
-<li>Links are <strong>permanent</strong> (unless expiration is enabled)</li>
-<li><strong>No Telegram account required</strong> to download</li>
-<li><strong>Direct downloads</strong> start immediately</li>
-<li><strong>Range requests supported</strong> for partial downloads</li>
-</ul>
+<h3 id="download-vs-streaming-links">Download vs Streaming Links<a class="headerlink" href="#download-vs-streaming-links" title="Permanent link">&para;</a></h3>
+<p><strong>Download Links:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>https://yourdomain.com/dl/encoded_file_id
+</span></code></pre></div>
+- Direct file download
+- Full file transfer
+- Works for all file types</p>
+<p><strong>Streaming Links:</strong>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>https://yourdomain.com/stream/encoded_file_id
+</span></code></pre></div>
+- Progressive video streaming
+- Seeking support
+- Range requests supported
+- Optimized for video playback</p>
 <h2 id="user-commands">User Commands<a class="headerlink" href="#user-commands" title="Permanent link">&para;</a></h2>
 <h3 id="basic-commands">Basic Commands<a class="headerlink" href="#basic-commands" title="Permanent link">&para;</a></h3>
 <table>
@@ -2232,6 +2465,7 @@
 <p>Optional link expiration for enhanced security:</p>
 <ul>
 <li><strong>Configurable expiration time</strong> (default: 24 hours)</li>
+<li><strong>Applies to both download and streaming links</strong></li>
 <li><strong>Automatic cleanup</strong> of expired links</li>
 <li><strong>Clear expiration notices</strong> in generated links</li>
 <li><strong>Can be disabled</strong> for permanent links</li>
@@ -2264,11 +2498,21 @@
 </tr>
 </tbody>
 </table>
+<h3 id="system-statistics">System Statistics<a class="headerlink" href="#system-statistics" title="Permanent link">&para;</a></h3>
+<p>Admins can view comprehensive system information:</p>
+<ul>
+<li><strong>Memory Usage</strong>: RSS, VMS, percentage</li>
+<li><strong>Active Resources</strong>: Stream count, client count</li>
+<li><strong>Bandwidth Usage</strong>: Monthly usage and limits</li>
+<li><strong>Logger Cache</strong>: Current cache status</li>
+<li><strong>Uptime</strong>: System uptime information</li>
+</ul>
 <h3 id="log-access">Log Access<a class="headerlink" href="#log-access" title="Permanent link">&para;</a></h3>
 <p>Admins can access detailed logs:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>/logs level=INFO limit=100
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>/logs level=ERROR limit=50
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>/logs filter=download
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>/logs level=INFO limit=100
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>/logs level=ERROR limit=50
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>/logs filter=download
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>/logs filter=streaming
 </span></code></pre></div>
 <p><strong>Log Levels</strong>: <code>DEBUG</code>, <code>INFO</code>, <code>WARNING</code>, <code>ERROR</code>, <code>CRITICAL</code></p>
 <h3 id="broadcasting">Broadcasting<a class="headerlink" href="#broadcasting" title="Permanent link">&para;</a></h3>
@@ -2279,14 +2523,6 @@
 <li><strong>Confirm</strong> when prompted</li>
 <li><strong>Message sent</strong> to all users</li>
 </ol>
-<h3 id="memory-monitoring">Memory Monitoring<a class="headerlink" href="#memory-monitoring" title="Permanent link">&para;</a></h3>
-<p>Track system resource usage:</p>
-<ul>
-<li><strong>Current memory usage</strong></li>
-<li><strong>Peak memory usage</strong></li>
-<li><strong>Active connections</strong></li>
-<li><strong>Garbage collection stats</strong></li>
-</ul>
 <h2 id="api-access">API Access<a class="headerlink" href="#api-access" title="Permanent link">&para;</a></h2>
 <h3 id="public-endpoints">Public Endpoints<a class="headerlink" href="#public-endpoints" title="Permanent link">&para;</a></h3>
 <p>Anyone can access these endpoints:</p>
@@ -2295,28 +2531,67 @@
 <tr>
 <th>Endpoint</th>
 <th>Description</th>
+<th>Video Support</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><code>GET /api/info</code></td>
 <td>Retrieve bot status and basic information</td>
+<td>✅ Shows video streaming status</td>
 </tr>
 <tr>
 <td><code>GET /dl/{file_id}</code></td>
 <td>Download files via generated links</td>
+<td>✅ Range requests supported</td>
+</tr>
+<tr>
+<td><code>GET /stream/{file_id}</code></td>
+<td>Stream video files</td>
+<td>✅ Full streaming with seeking</td>
 </tr>
 </tbody>
 </table>
 <h3 id="example-api-usage">Example API Usage<a class="headerlink" href="#example-api-usage" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Get bot information</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>curl<span class="w"> </span>https://yourdomain.com/api/info
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="c1"># Download a file</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://yourdomain.com/dl/encoded_file_id/filename.pdf
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Get bot information</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>curl<span class="w"> </span>https://yourdomain.com/api/info
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Download a file</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>curl<span class="w"> </span>-O<span class="w"> </span>https://yourdomain.com/dl/encoded_file_id
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># Stream a video with range request</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Range: bytes=0-1048576&quot;</span><span class="w"> </span>https://yourdomain.com/stream/encoded_file_id
 </span></code></pre></div>
 <h3 id="health-check">Health Check<a class="headerlink" href="#health-check" title="Permanent link">&para;</a></h3>
-<p>You can use the <code>/api/info</code> endpoint as a basic health check.</p>
+<p>You can use the <code>/api/info</code> endpoint as a basic health check for both download and streaming services.</p>
+<h2 id="video-streaming-usage">Video Streaming Usage<a class="headerlink" href="#video-streaming-usage" title="Permanent link">&para;</a></h2>
+<h3 id="supported-video-formats">Supported Video Formats<a class="headerlink" href="#supported-video-formats" title="Permanent link">&para;</a></h3>
+<p><strong>Container Formats:</strong>
+- MP4, MKV, AVI, WebM, MOV
+- 3GP, M4V, WMV</p>
+<p><strong>Video Codecs:</strong>
+- H.264 (AVC), H.265 (HEVC)
+- VP8, VP9, AV1
+- MPEG-4, DivX, XviD</p>
+<p><strong>Audio Codecs:</strong>
+- AAC, MP3, Opus
+- Vorbis, FLAC, AC3</p>
+<h3 id="streaming-performance">Streaming Performance<a class="headerlink" href="#streaming-performance" title="Permanent link">&para;</a></h3>
+<p><strong>Optimization Features:</strong>
+- <strong>Range Requests</strong>: Load only needed video segments
+- <strong>Efficient Buffering</strong>: Smart buffering for smooth playback
+- <strong>Seeking Support</strong>: Instant seeking to any video position
+- <strong>Progressive Loading</strong>: Start playback while downloading</p>
+<h3 id="browser-compatibility">Browser Compatibility<a class="headerlink" href="#browser-compatibility" title="Permanent link">&para;</a></h3>
+<p><strong>Desktop Browsers:</strong>
+- Chrome 80+, Firefox 75+, Safari 13+, Edge 80+</p>
+<p><strong>Mobile Browsers:</strong>
+- Chrome Mobile, Safari Mobile, Samsung Internet</p>
+<p><strong>Video Player Features:</strong>
+- Fullscreen support
+- Picture-in-picture mode
+- Keyboard shortcuts
+- Touch controls (mobile)</p>
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
 <div class="admonition question">
@@ -2357,15 +2632,26 @@
 - Contact administrator</p>
 </div>
 <div class="admonition question">
+<p class="admonition-title">Video streaming doesn't work</p>
+<p><strong>Possible causes:</strong>
+- Video format not supported
+- Frontend URL not accessible
+- Network connectivity issues
+- Browser compatibility issues</p>
+<p><strong>Solutions:</strong>
+- Try different video format
+- Check VIDEO_FRONTEND_URL configuration
+- Test in different browser
+- Use download link as fallback</p>
+</div>
+<div class="admonition question">
 <p class="admonition-title">Can't access admin features</p>
 <p><strong>Possible causes:</strong>
 - Not configured as admin
-- IP address not whitelisted
-- Invalid access token</p>
+- Invalid permissions</p>
 <p><strong>Solutions:</strong>
 - Check admin configuration
-- Verify IP whitelist
-- Update access tokens</p>
+- Verify user ID in ADMINS setting</p>
 </div>
 <h3 id="error-messages">Error Messages<a class="headerlink" href="#error-messages" title="Permanent link">&para;</a></h3>
 <table>
@@ -2399,8 +2685,13 @@
 </tr>
 <tr>
 <td>"Link expired"</td>
-<td>Download link invalid</td>
+<td>Download/streaming link invalid</td>
 <td>Generate new link</td>
+</tr>
+<tr>
+<td>"Video streaming unavailable"</td>
+<td>Frontend not configured</td>
+<td>Check VIDEO_FRONTEND_URL</td>
 </tr>
 </tbody>
 </table>
@@ -2411,7 +2702,8 @@
 <li><strong>Review error messages</strong> carefully</li>
 <li><strong>Test with different files</strong> to isolate issues</li>
 <li><strong>Contact administrators</strong> via configured support channels</li>
-<li><strong>Report bugs</strong> on GitHub Issues (if applicable)</li>
+<li><strong>Report bugs</strong> on <a href="https://github.com/AnikethJana/Telegram-Download-Link-Generator/issues">GitHub Issues</a></li>
+<li><strong>Get help</strong> on <a href="https://t.me/ajmods_bot">Telegram</a></li>
 </ol>
 <h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
 <h3 id="for-users">For Users<a class="headerlink" href="#for-users" title="Permanent link">&para;</a></h3>
@@ -2421,14 +2713,19 @@
 <li><strong>Share links responsibly</strong> and only with intended recipients</li>
 <li><strong>Monitor your usage</strong> to avoid hitting limits</li>
 <li><strong>Keep download links secure</strong> if they contain sensitive content</li>
+<li><strong>Test video streaming</strong> before sharing streaming links</li>
+<li><strong>Use appropriate video formats</strong> for better streaming performance</li>
 </ul>
 <h3 id="for-administrators">For Administrators<a class="headerlink" href="#for-administrators" title="Permanent link">&para;</a></h3>
 <ul>
 <li><strong>Set appropriate limits</strong> based on your server capacity</li>
-<li><strong>Monitor system resources</strong> regularly</li>
+<li><strong>Monitor system resources</strong> regularly using <code>/stats</code></li>
 <li><strong>Keep software updated</strong> for security and features</li>
 <li><strong>Backup configuration</strong> and database regularly</li>
 <li><strong>Review logs</strong> for unusual activity</li>
+<li><strong>Configure video frontend</strong> properly for best user experience</li>
+<li><strong>Test streaming functionality</strong> regularly</li>
+<li><strong>Monitor bandwidth usage</strong> to prevent overages</li>
 </ul>
 <h2 id="advanced-usage">Advanced Usage<a class="headerlink" href="#advanced-usage" title="Permanent link">&para;</a></h2>
 <h3 id="multiple-file-sharing">Multiple File Sharing<a class="headerlink" href="#multiple-file-sharing" title="Permanent link">&para;</a></h3>
@@ -2438,15 +2735,39 @@
 <li><strong>Upload the archive</strong> to get a single download link</li>
 <li><strong>Share the archive link</strong> instead of multiple individual links</li>
 </ol>
-<h3 id="integration-with-applications">Integration with Applications<a class="headerlink" href="#integration-with-applications" title="Permanent link">&para;</a></h3>
-<p>Use the API to integrate StreamBot with your applications:</p>
+<h3 id="video-streaming-integration">Video Streaming Integration<a class="headerlink" href="#video-streaming-integration" title="Permanent link">&para;</a></h3>
+<p>Use the streaming API to integrate StreamBot with your applications:</p>
 <ul>
-<li><strong>Automated file sharing</strong> for your services</li>
-<li><strong>Programmatic link generation</strong> via API calls</li>
-<li><strong>Status monitoring</strong> for system health</li>
-<li><strong>Log analysis</strong> for usage patterns</li>
+<li><strong>Automated video hosting</strong> for your services</li>
+<li><strong>Programmatic streaming link generation</strong> via API calls</li>
+<li><strong>Custom video player integration</strong> with your frontend</li>
+<li><strong>Status monitoring</strong> for streaming service health</li>
 </ul>
-<p>This completes the user guide overview. For specific features, see the dedicated sections in this guide. </p>
+<h3 id="custom-frontend-development">Custom Frontend Development<a class="headerlink" href="#custom-frontend-development" title="Permanent link">&para;</a></h3>
+<p>Build your own video frontend:</p>
+<div class="language-html highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="cp">&lt;!DOCTYPE html&gt;</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="p">&lt;</span><span class="nt">html</span><span class="p">&gt;</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="p">&lt;</span><span class="nt">head</span><span class="p">&gt;</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="p">&lt;</span><span class="nt">title</span><span class="p">&gt;</span>Custom Video Player<span class="p">&lt;/</span><span class="nt">title</span><span class="p">&gt;</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">&lt;/</span><span class="nt">head</span><span class="p">&gt;</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">&lt;</span><span class="nt">body</span><span class="p">&gt;</span>
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    <span class="p">&lt;</span><span class="nt">video</span> <span class="na">id</span><span class="o">=</span><span class="s">&quot;videoPlayer&quot;</span> <span class="na">controls</span> <span class="na">width</span><span class="o">=</span><span class="s">&quot;100%&quot;</span><span class="p">&gt;</span>
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>        Your browser does not support the video tag.
+</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    <span class="p">&lt;/</span><span class="nt">video</span><span class="p">&gt;</span>
+</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>
+</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>    <span class="p">&lt;</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">        </span><span class="c1">// Get stream URL from query parameter</span>
+</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">urlParams</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ow">new</span><span class="w"> </span><span class="nx">URLSearchParams</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">search</span><span class="p">);</span>
+</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">        </span><span class="kd">const</span><span class="w"> </span><span class="nx">streamUrl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">urlParams</span><span class="p">.</span><span class="nx">get</span><span class="p">(</span><span class="s1">&#39;stream&#39;</span><span class="p">);</span>
+</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nx">streamUrl</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">            </span><span class="nb">document</span><span class="p">.</span><span class="nx">getElementById</span><span class="p">(</span><span class="s1">&#39;videoPlayer&#39;</span><span class="p">).</span><span class="nx">src</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nx">streamUrl</span><span class="p">;</span>
+</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">    </span><span class="p">&lt;/</span><span class="nt">script</span><span class="p">&gt;</span>
+</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="p">&lt;/</span><span class="nt">body</span><span class="p">&gt;</span>
+</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="p">&lt;/</span><span class="nt">html</span><span class="p">&gt;</span>
+</span></code></pre></div>
+<p>This completes the comprehensive user guide overview with full video streaming capabilities. For specific features, see the dedicated sections in this guide. </p>
 
 
 
@@ -2481,7 +2802,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2023 - Present | Aniket Jana
+      Copyright &copy; 2023 - Present | Aniketh Jana
     </div>
   
   

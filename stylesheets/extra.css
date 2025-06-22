@@ -1,0 +1,31 @@
+/* Custom footer disclaimer styling */
+.md-footer-meta {
+    position: relative;
+}
+
+.md-footer-meta::after {
+    content: "Disclaimer: This documentation was automatically generated and has not been reviewed by the project author. The information contained herein may not accurately reflect the current state, features, or functionality of the actual project repository. Users should refer to the official repository and source code for authoritative information. No warranty is provided regarding the accuracy or completeness of this documentation.";
+    display: block;
+    font-size: 0.7rem;
+    color: #0f172a; /* Darker blue color */
+    line-height: 1.3;
+    margin-top: 0.8rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    font-style: italic;
+    opacity: 0.8;
+}
+
+/* Dark mode styling for the disclaimer */
+[data-md-color-scheme="slate"] .md-footer-meta::after {
+    color: #334155; /* Even darker blue for dark mode */
+    border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive adjustments */
+@media screen and (max-width: 768px) {
+    .md-footer-meta::after {
+        font-size: 0.65rem;
+        line-height: 1.2;
+    }
+} 

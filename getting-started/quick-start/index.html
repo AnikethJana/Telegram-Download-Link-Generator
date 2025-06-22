@@ -50,6 +50,8 @@
       
     
     
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -720,6 +722,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#test-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#test-api" class="md-nav__link">
     <span class="md-ellipsis">
       Test API
@@ -840,6 +851,48 @@
   <a href="#api-endpoints" class="md-nav__link">
     <span class="md-ellipsis">
       API Endpoints
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#video-streaming-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-video-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Video Formats
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#streaming-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Streaming Capabilities
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Integration
     </span>
   </a>
   
@@ -1680,6 +1733,15 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#test-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#test-api" class="md-nav__link">
     <span class="md-ellipsis">
       Test API
@@ -1811,6 +1873,48 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#video-streaming-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Video Streaming Features
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#supported-video-formats" class="md-nav__link">
+    <span class="md-ellipsis">
+      Supported Video Formats
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#streaming-capabilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Streaming Capabilities
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#frontend-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Frontend Integration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#getting-help" class="md-nav__link">
     <span class="md-ellipsis">
       Getting Help
@@ -1852,7 +1956,7 @@
 <h2 id="prerequisites-check">Prerequisites Check<a class="headerlink" href="#prerequisites-check" title="Permanent link">&para;</a></h2>
 <p>Before starting, ensure you have:</p>
 <ul class="task-list">
-<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Python 3.8+ installed</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Python 3.11+ installed</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> MongoDB running (local or cloud)</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> StreamBot repository cloned</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled checked/><span class="task-list-indicator"></span></label> Dependencies installed (<code>pip install -r requirements.txt</code>)</li>
@@ -1902,8 +2006,11 @@
 </span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>PORT=8080
 </span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>BIND_ADDRESS=127.0.0.1
 </span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a># Your Telegram user ID (get from @username_to_id_bot)
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>ADMINS=your_telegram_user_id
+</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a># Video frontend (defaults to Cricster)
+</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>VIDEO_FRONTEND_URL=https://cricster.pages.dev
+</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a>
+</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a># Your Telegram user ID (get from @username_to_id_bot)
+</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a>ADMINS=your_telegram_user_id
 </span></code></pre></div>
 <h2 id="step-3-start-streambot">Step 3: Start StreamBot<a class="headerlink" href="#step-3-start-streambot" title="Permanent link">&para;</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Activate virtual environment (if using one)</span>
@@ -1929,18 +2036,29 @@
 <h3 id="test-file-upload">Test File Upload<a class="headerlink" href="#test-file-upload" title="Permanent link">&para;</a></h3>
 <ol>
 <li>Send any file to your bot (image, document, video, etc.)</li>
-<li>The bot should respond with a download link</li>
-<li>Click the link to test the download</li>
+<li>The bot should respond with download and streaming links</li>
+<li>Click the links to test functionality</li>
+</ol>
+<h3 id="test-video-streaming">Test Video Streaming<a class="headerlink" href="#test-video-streaming" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Send a video file (MP4, MKV, etc.) to your bot</li>
+<li>You should see:</li>
+<li>Regular download link</li>
+<li>"🎬 Play Video" button (if VIDEO_FRONTEND_URL is configured)</li>
+<li>Click the "🎬 Play Video" button to test streaming</li>
+<li>Test video seeking and playback controls</li>
 </ol>
 <h3 id="test-api">Test API<a class="headerlink" href="#test-api" title="Permanent link">&para;</a></h3>
 <p>Open your browser and visit: <code>http://localhost:8080/api/info</code></p>
-<p>You should see JSON response with bot information.</p>
+<p>You should see JSON response with bot information including video streaming status.</p>
 <h2 id="step-5-verify-everything-works">Step 5: Verify Everything Works<a class="headerlink" href="#step-5-verify-everything-works" title="Permanent link">&para;</a></h2>
 <h3 id="checklist">✅ Checklist<a class="headerlink" href="#checklist" title="Permanent link">&para;</a></h3>
 <ul class="task-list">
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Bot responds to <code>/start</code> command</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Bot generates download links for files</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Download links work in browser</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Video files show "🎬 Play Video" button</li>
+<li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> Video streaming works with seeking support</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> API endpoint returns bot information</li>
 <li class="task-list-item"><label class="task-list-control"><input type="checkbox" disabled/><span class="task-list-indicator"></span></label> No error messages in console</li>
 </ul>
@@ -1969,19 +2087,31 @@
 <li>Check if <code>BASE_URL</code> is accessible</li>
 </ul>
 </div>
+<div class="admonition warning">
+<p class="admonition-title">Video streaming not working</p>
+<ul>
+<li>Check <code>VIDEO_FRONTEND_URL</code> configuration</li>
+<li>Ensure frontend URL is accessible</li>
+<li>Set to <code>false</code> to disable video frontend</li>
+<li>Test with different video formats</li>
+</ul>
+</div>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <p>Now that StreamBot is running:</p>
 <h3 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>Send files</strong> to your bot to get download links</li>
+<li><strong>Send files</strong> to your bot to get download/streaming links</li>
 <li><strong>Share links</strong> with others for easy file access</li>
 <li><strong>Use admin commands</strong> like <code>/stats</code> to monitor usage</li>
+<li><strong>Test video streaming</strong> with various video formats</li>
 </ol>
 <h3 id="advanced-configuration">Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>Enable rate limiting</strong>: Set <code>MAX_LINKS_PER_DAY=5</code> in <code>.env</code></li>
 <li><strong>Add bandwidth limits</strong>: Set <code>BANDWIDTH_LIMIT_GB=100</code></li>
 <li><strong>Force subscription</strong>: Set <code>FORCE_SUB_CHANNEL</code> to require users to join a channel</li>
+<li><strong>Multi-client setup</strong>: Add <code>ADDITIONAL_BOT_TOKENS</code> for better performance</li>
+<li><strong>Custom video frontend</strong>: Configure your own <code>VIDEO_FRONTEND_URL</code></li>
 </ol>
 <h3 id="production-deployment">Production Deployment<a class="headerlink" href="#production-deployment" title="Permanent link">&para;</a></h3>
 <p>For production use:</p>
@@ -1990,6 +2120,7 @@
 <li><strong>Use a cloud database</strong> like MongoDB Atlas</li>
 <li><strong>Deploy to a VPS</strong> or cloud platform</li>
 <li><strong>Set up monitoring</strong> and backup systems</li>
+<li><strong>Configure CDN</strong> for better video streaming performance</li>
 </ol>
 <h2 id="useful-commands">Useful Commands<a class="headerlink" href="#useful-commands" title="Permanent link">&para;</a></h2>
 <h3 id="bot-commands-telegram">Bot Commands (Telegram)<a class="headerlink" href="#bot-commands-telegram" title="Permanent link">&para;</a></h3>
@@ -2031,7 +2162,7 @@
 <tbody>
 <tr>
 <td><code>/stats</code></td>
-<td>Check system statistics</td>
+<td>Check system statistics with memory and bandwidth</td>
 <td><code>/stats</code></td>
 </tr>
 <tr>
@@ -2063,8 +2194,35 @@
 <td><code>GET /dl/{file_id}</code></td>
 <td>Download file via link</td>
 </tr>
+<tr>
+<td><code>GET /stream/{file_id}</code></td>
+<td>Stream video file</td>
+</tr>
 </tbody>
 </table>
+<h2 id="video-streaming-features">Video Streaming Features<a class="headerlink" href="#video-streaming-features" title="Permanent link">&para;</a></h2>
+<h3 id="supported-video-formats">Supported Video Formats<a class="headerlink" href="#supported-video-formats" title="Permanent link">&para;</a></h3>
+<ul>
+<li>MP4, WebM, MKV, AVI, MOV</li>
+<li>H.264, H.265, VP8, VP9 codecs</li>
+<li>Various audio codecs (AAC, MP3, Opus)</li>
+</ul>
+<h3 id="streaming-capabilities">Streaming Capabilities<a class="headerlink" href="#streaming-capabilities" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Seeking Support</strong>: Jump to any point in the video</li>
+<li><strong>Range Requests</strong>: Efficient video loading</li>
+<li><strong>Multiple Quality</strong>: Automatic quality detection</li>
+<li><strong>Cross-Platform</strong>: Works on desktop and mobile browsers</li>
+</ul>
+<h3 id="frontend-integration">Frontend Integration<a class="headerlink" href="#frontend-integration" title="Permanent link">&para;</a></h3>
+<p>By default, videos use Cricster frontend (<code>https://cricster.pages.dev</code>):</p>
+<ul>
+<li>Modern video player interface</li>
+<li>Seeking controls and timeline</li>
+<li>Volume controls</li>
+<li>Fullscreen support</li>
+<li>Mobile-responsive design</li>
+</ul>
 <h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
 <p>If you encounter issues:</p>
 <ol>
@@ -2075,17 +2233,18 @@
 <li><a href="../../user-guide/overview/">User Guide</a></li>
 <li><a href="../../user-guide/overview/#troubleshooting">Troubleshooting</a></li>
 <li><strong>Get community support</strong>:</li>
-<li><a href="https://github.com/yourusername/StreamBot/discussions">GitHub Discussions</a></li>
-<li><a href="https://github.com/yourusername/StreamBot/issues">GitHub Issues</a></li>
+<li><a href="https://github.com/AnikethJana/Telegram-Download-Link-Generator/discussions">GitHub Discussions</a></li>
+<li><a href="https://github.com/AnikethJana/Telegram-Download-Link-Generator/issues">GitHub Issues</a></li>
+<li><a href="https://t.me/ajmods_bot">Telegram Support</a></li>
 </ol>
 <h2 id="whats-next">What's Next?<a class="headerlink" href="#whats-next" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../../user-guide/overview/">User Guide</a> - Learn about all features</li>
+<li><a href="../../user-guide/overview/">User Guide</a> - Learn about all features including video streaming</li>
 <li><a href="../../deployment/overview/">Deployment Guide</a> - Deploy to production</li>
 <li><a href="../../api/overview/">API Reference</a> - Integrate with your applications</li>
 <li><a href="../../developer-guide/architecture/">Developer Guide</a> - Understand the architecture</li>
 </ul>
-<p>Congratulations! StreamBot is now running successfully. 🎉 </p>
+<p>Congratulations! StreamBot is now running successfully with full video streaming support. 🎉 </p>
 
 
 
@@ -2120,7 +2279,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2023 - Present | Aniket Jana
+      Copyright &copy; 2023 - Present | Aniketh Jana
     </div>
   
   

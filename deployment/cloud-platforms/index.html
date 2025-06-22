@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Deploy StreamBot on major cloud platforms">
+        <meta name="description" content="Deploy StreamBot on major cloud platforms with video streaming support">
       
       
       
@@ -49,6 +49,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
     <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -987,79 +989,196 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#planned-cloud-platform-guides" class="md-nav__link">
+  <a href="#platform-comparison" class="md-nav__link">
     <span class="md-ellipsis">
-      Planned Cloud Platform Guides
+      Platform Comparison
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Planned Cloud Platform Guides">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#railway-recommended-for-beginners" class="md-nav__link">
+    <span class="md-ellipsis">
+      Railway (Recommended for Beginners)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Railway (Recommended for Beginners)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#quick-deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Deploy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manual Deployment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#railway-optimization-for-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Railway Optimization for Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#heroku" class="md-nav__link">
+    <span class="md-ellipsis">
+      Heroku
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Heroku">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deployment-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment Steps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heroku-video-streaming-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Heroku Video Streaming Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#digitalocean-app-platform" class="md-nav__link">
+    <span class="md-ellipsis">
+      DigitalOcean App Platform
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DigitalOcean App Platform">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deployment-via-github" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment via GitHub
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#digitalocean-cdn-for-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      DigitalOcean CDN for Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#amazon-web-services-aws" class="md-nav__link">
     <span class="md-ellipsis">
       Amazon Web Services (AWS)
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Amazon Web Services (AWS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aws-elastic-beanstalk-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      AWS Elastic Beanstalk Deployment
+    </span>
+  </a>
+  
 </li>
         
           <li class="md-nav__item">
+  <a href="#aws-documentdb-mongodb-compatible" class="md-nav__link">
+    <span class="md-ellipsis">
+      AWS DocumentDB (MongoDB Compatible)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-cloudfront-for-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      AWS CloudFront for Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#google-cloud-platform-gcp" class="md-nav__link">
     <span class="md-ellipsis">
       Google Cloud Platform (GCP)
     </span>
   </a>
   
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#microsoft-azure" class="md-nav__link">
-    <span class="md-ellipsis">
-      Microsoft Azure
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#other-platforms" class="md-nav__link">
-    <span class="md-ellipsis">
-      Other Platforms
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-cloud-deployment-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      Quick Cloud Deployment Options
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Quick Cloud Deployment Options">
+    <nav class="md-nav" aria-label="Google Cloud Platform (GCP)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#heroku-free-tier-available" class="md-nav__link">
+  <a href="#google-cloud-run-deployment" class="md-nav__link">
     <span class="md-ellipsis">
-      Heroku (Free Tier Available)
+      Google Cloud Run Deployment
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#railway-simple-deployment" class="md-nav__link">
+  <a href="#google-cloud-cdn-for-video-streaming" class="md-nav__link">
     <span class="md-ellipsis">
-      Railway (Simple Deployment)
+      Google Cloud CDN for Video Streaming
     </span>
   </a>
   
@@ -1071,36 +1190,165 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#infrastructure-as-code" class="md-nav__link">
+  <a href="#render" class="md-nav__link">
     <span class="md-ellipsis">
-      Infrastructure as Code
+      Render
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Render">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#render-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render Deployment
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#cost-optimization-tips" class="md-nav__link">
-    <span class="md-ellipsis">
-      Cost Optimization Tips
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#need-immediate-help" class="md-nav__link">
+  <a href="#video-streaming-optimizations" class="md-nav__link">
     <span class="md-ellipsis">
-      Need Immediate Help?
+      Video Streaming Optimizations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Optimizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cdn-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      CDN Configuration
     </span>
   </a>
   
 </li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables-for-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables for Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#coming-soon-features" class="md-nav__link">
+  <a href="#cost-optimization" class="md-nav__link">
     <span class="md-ellipsis">
-      Coming Soon Features
+      Cost Optimization
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cost Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#free-tier-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Free Tier Recommendations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cost-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-and-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring and Scaling
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring and Scaling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Health Checks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-scaling-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Auto-Scaling Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-deployment-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Deployment Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Optimization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
     </span>
   </a>
   
@@ -1457,79 +1705,196 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#planned-cloud-platform-guides" class="md-nav__link">
+  <a href="#platform-comparison" class="md-nav__link">
     <span class="md-ellipsis">
-      Planned Cloud Platform Guides
+      Platform Comparison
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Planned Cloud Platform Guides">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#railway-recommended-for-beginners" class="md-nav__link">
+    <span class="md-ellipsis">
+      Railway (Recommended for Beginners)
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Railway (Recommended for Beginners)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#quick-deploy" class="md-nav__link">
+    <span class="md-ellipsis">
+      Quick Deploy
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Manual Deployment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#railway-optimization-for-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Railway Optimization for Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#heroku" class="md-nav__link">
+    <span class="md-ellipsis">
+      Heroku
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Heroku">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      Prerequisites
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deployment-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment Steps
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heroku-video-streaming-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Heroku Video Streaming Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#digitalocean-app-platform" class="md-nav__link">
+    <span class="md-ellipsis">
+      DigitalOcean App Platform
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DigitalOcean App Platform">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deployment-via-github" class="md-nav__link">
+    <span class="md-ellipsis">
+      Deployment via GitHub
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#digitalocean-cdn-for-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      DigitalOcean CDN for Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#amazon-web-services-aws" class="md-nav__link">
     <span class="md-ellipsis">
       Amazon Web Services (AWS)
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Amazon Web Services (AWS)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#aws-elastic-beanstalk-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      AWS Elastic Beanstalk Deployment
+    </span>
+  </a>
+  
 </li>
         
           <li class="md-nav__item">
+  <a href="#aws-documentdb-mongodb-compatible" class="md-nav__link">
+    <span class="md-ellipsis">
+      AWS DocumentDB (MongoDB Compatible)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#aws-cloudfront-for-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      AWS CloudFront for Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#google-cloud-platform-gcp" class="md-nav__link">
     <span class="md-ellipsis">
       Google Cloud Platform (GCP)
     </span>
   </a>
   
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#microsoft-azure" class="md-nav__link">
-    <span class="md-ellipsis">
-      Microsoft Azure
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#other-platforms" class="md-nav__link">
-    <span class="md-ellipsis">
-      Other Platforms
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-cloud-deployment-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      Quick Cloud Deployment Options
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Quick Cloud Deployment Options">
+    <nav class="md-nav" aria-label="Google Cloud Platform (GCP)">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#heroku-free-tier-available" class="md-nav__link">
+  <a href="#google-cloud-run-deployment" class="md-nav__link">
     <span class="md-ellipsis">
-      Heroku (Free Tier Available)
+      Google Cloud Run Deployment
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#railway-simple-deployment" class="md-nav__link">
+  <a href="#google-cloud-cdn-for-video-streaming" class="md-nav__link">
     <span class="md-ellipsis">
-      Railway (Simple Deployment)
+      Google Cloud CDN for Video Streaming
     </span>
   </a>
   
@@ -1541,36 +1906,165 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#infrastructure-as-code" class="md-nav__link">
+  <a href="#render" class="md-nav__link">
     <span class="md-ellipsis">
-      Infrastructure as Code
+      Render
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Render">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#render-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Render Deployment
     </span>
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#cost-optimization-tips" class="md-nav__link">
-    <span class="md-ellipsis">
-      Cost Optimization Tips
-    </span>
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#need-immediate-help" class="md-nav__link">
+  <a href="#video-streaming-optimizations" class="md-nav__link">
     <span class="md-ellipsis">
-      Need Immediate Help?
+      Video Streaming Optimizations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Video Streaming Optimizations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cdn-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      CDN Configuration
     </span>
   </a>
   
 </li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables-for-video-streaming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Variables for Video Streaming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
-  <a href="#coming-soon-features" class="md-nav__link">
+  <a href="#cost-optimization" class="md-nav__link">
     <span class="md-ellipsis">
-      Coming Soon Features
+      Cost Optimization
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cost Optimization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#free-tier-recommendations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Free Tier Recommendations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cost-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cost Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring-and-scaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Monitoring and Scaling
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Monitoring and Scaling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#health-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Health Checks
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auto-scaling-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Auto-Scaling Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-deployment-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Deployment Issues
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Optimization
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      Next Steps
     </span>
   </a>
   
@@ -1596,88 +2090,594 @@
 
 
 <h1 id="cloud-platform-deployment">Cloud Platform Deployment<a class="headerlink" href="#cloud-platform-deployment" title="Permanent link">&para;</a></h1>
-<p>🚧 <strong>Coming Soon!</strong> 🚧</p>
-<p>This section will cover deployment on major cloud platforms with detailed guides and best practices.</p>
-<h2 id="planned-cloud-platform-guides">Planned Cloud Platform Guides<a class="headerlink" href="#planned-cloud-platform-guides" title="Permanent link">&para;</a></h2>
-<h3 id="amazon-web-services-aws">Amazon Web Services (AWS)<a class="headerlink" href="#amazon-web-services-aws" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>EC2 Deployment</strong> - Virtual machine setup</li>
-<li><strong>ECS with Fargate</strong> - Containerized deployment</li>
-<li><strong>Lambda Functions</strong> - Serverless architecture</li>
-<li><strong>RDS for MongoDB</strong> - Managed database setup</li>
-<li><strong>CloudFront CDN</strong> - Global content delivery</li>
-<li><strong>Route 53</strong> - DNS management</li>
-</ul>
-<h3 id="google-cloud-platform-gcp">Google Cloud Platform (GCP)<a class="headerlink" href="#google-cloud-platform-gcp" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Compute Engine</strong> - VM-based deployment</li>
-<li><strong>Cloud Run</strong> - Serverless containers</li>
-<li><strong>Kubernetes Engine</strong> - Orchestrated deployment</li>
-<li><strong>Cloud Storage</strong> - File storage optimization</li>
-<li><strong>Cloud CDN</strong> - Content delivery network</li>
-</ul>
-<h3 id="microsoft-azure">Microsoft Azure<a class="headerlink" href="#microsoft-azure" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Virtual Machines</strong> - Traditional VM deployment</li>
-<li><strong>Container Instances</strong> - Simple container deployment</li>
-<li><strong>Kubernetes Service</strong> - Managed Kubernetes</li>
-<li><strong>Cosmos DB</strong> - MongoDB-compatible database</li>
-<li><strong>CDN</strong> - Global content distribution</li>
-</ul>
-<h3 id="other-platforms">Other Platforms<a class="headerlink" href="#other-platforms" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Heroku</strong> - Platform-as-a-Service deployment</li>
-<li><strong>Railway</strong> - Modern PaaS for developers</li>
-<li><strong>Render</strong> - Simple cloud deployment</li>
-<li><strong>DigitalOcean App Platform</strong> - Managed application platform</li>
-</ul>
-<h2 id="quick-cloud-deployment-options">Quick Cloud Deployment Options<a class="headerlink" href="#quick-cloud-deployment-options" title="Permanent link">&para;</a></h2>
-<p>While detailed guides are being prepared, here are some quick options:</p>
-<h3 id="heroku-free-tier-available">Heroku (Free Tier Available)<a class="headerlink" href="#heroku-free-tier-available" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Install Heroku CLI and deploy</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/anikethjana/Telegram-Download-Link-Generator.git
+<p>This guide covers deploying StreamBot on major cloud platforms with comprehensive instructions for each provider, including video streaming optimizations.</p>
+<h2 id="platform-comparison">Platform Comparison<a class="headerlink" href="#platform-comparison" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Ease of Use</th>
+<th>Cost</th>
+<th>Performance</th>
+<th>Video Streaming</th>
+<th>Free Tier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Railway</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>$$</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Heroku</td>
+<td>⭐⭐⭐⭐</td>
+<td>$$$</td>
+<td>⭐⭐⭐</td>
+<td>⭐⭐⭐</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>DigitalOcean</td>
+<td>⭐⭐⭐⭐</td>
+<td>$$</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>❌</td>
+</tr>
+<tr>
+<td>AWS</td>
+<td>⭐⭐⭐</td>
+<td>$</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Google Cloud</td>
+<td>⭐⭐⭐</td>
+<td>$$</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐⭐</td>
+<td>✅</td>
+</tr>
+<tr>
+<td>Render</td>
+<td>⭐⭐⭐⭐</td>
+<td>$$</td>
+<td>⭐⭐⭐⭐</td>
+<td>⭐⭐⭐⭐</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h2 id="railway-recommended-for-beginners">Railway (Recommended for Beginners)<a class="headerlink" href="#railway-recommended-for-beginners" title="Permanent link">&para;</a></h2>
+<p>Railway offers the simplest deployment process with excellent performance for video streaming.</p>
+<h3 id="quick-deploy">Quick Deploy<a class="headerlink" href="#quick-deploy" title="Permanent link">&para;</a></h3>
+<p><a href="https://railway.app/template/streambot"><img alt="Deploy on Railway" src="https://railway.app/button.svg" /></a></p>
+<h3 id="manual-deployment">Manual Deployment<a class="headerlink" href="#manual-deployment" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Create Railway Account</strong>: Sign up at <a href="https://railway.app">railway.app</a></p>
+</li>
+<li>
+<p><strong>Connect GitHub Repository</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Fork the repository first</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/AnikethJana/Telegram-Download-Link-Generator.git
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nb">cd</span><span class="w"> </span>Telegram-Download-Link-Generator
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>heroku<span class="w"> </span>create<span class="w"> </span>your-streambot-app
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">API_ID</span><span class="o">=</span>your_api_id
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">API_HASH</span><span class="o">=</span>your_api_hash
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># ... set other environment variables</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>git<span class="w"> </span>push<span class="w"> </span>heroku<span class="w"> </span>main
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Create New Project</strong> in Railway dashboard</p>
+</li>
+<li>
+<p><strong>Deploy from GitHub</strong>:</p>
+</li>
+<li>Connect your GitHub account</li>
+<li>Select the forked repository</li>
+<li>
+<p>Railway will auto-detect the Python app</p>
+</li>
+<li>
+<p><strong>Configure Environment Variables</strong>:
+   <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>API_ID=your_api_id
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>API_HASH=your_api_hash
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>BOT_TOKEN=your_bot_token
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>LOG_CHANNEL=-1001234567890
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>DATABASE_URL=${{MongoDB.DATABASE_URL}}
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>BASE_URL=https://your-app.railway.app
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>PORT=8080
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>VIDEO_FRONTEND_URL=https://cricster.pages.dev
+</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>ADMINS=your_telegram_user_id
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Add MongoDB Service</strong>:</p>
+</li>
+<li>Click "New Service" → "Database" → "MongoDB"</li>
+<li>
+<p>Railway will automatically provide <code>DATABASE_URL</code></p>
+</li>
+<li>
+<p><strong>Custom Domain</strong> (Optional):</p>
+</li>
+<li>Go to Settings → Custom Domain</li>
+<li>Add your domain and configure DNS</li>
+</ol>
+<h3 id="railway-optimization-for-video-streaming">Railway Optimization for Video Streaming<a class="headerlink" href="#railway-optimization-for-video-streaming" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a># Railway-specific optimizations
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>RAILWAY_ENVIRONMENT=production
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>PYTHONUNBUFFERED=1
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>WEB_CONCURRENCY=4
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>MAX_WORKERS=4
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a># Video streaming optimizations
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>VIDEO_CHUNK_SIZE=1048576
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>STREAM_TIMEOUT=3600
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>MAX_CONCURRENT_STREAMS=50
 </span></code></pre></div>
-<h3 id="railway-simple-deployment">Railway (Simple Deployment)<a class="headerlink" href="#railway-simple-deployment" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Connect your GitHub repo to Railway</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># Set environment variables in Railway dashboard</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="c1"># Deploy with one click</span>
+<h2 id="heroku">Heroku<a class="headerlink" href="#heroku" title="Permanent link">&para;</a></h2>
+<p>Heroku provides a robust platform with excellent addon ecosystem.</p>
+<h3 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Heroku CLI installed</li>
+<li>Git repository ready</li>
+</ul>
+<h3 id="deployment-steps">Deployment Steps<a class="headerlink" href="#deployment-steps" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Install Heroku CLI</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Windows (using Chocolatey)</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>choco<span class="w"> </span>install<span class="w"> </span>heroku-cli
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># macOS (using Homebrew)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>brew<span class="w"> </span>tap<span class="w"> </span>heroku/brew<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>brew<span class="w"> </span>install<span class="w"> </span>heroku
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Ubuntu/Debian</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>curl<span class="w"> </span>https://cli-assets.heroku.com/install.sh<span class="w"> </span><span class="p">|</span><span class="w"> </span>sh
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Login and Create App</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>heroku<span class="w"> </span>login
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>heroku<span class="w"> </span>create<span class="w"> </span>your-streambot-app
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Add MongoDB Addon</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>heroku<span class="w"> </span>addons:create<span class="w"> </span>mongolab:sandbox
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Configure Environment Variables</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">API_ID</span><span class="o">=</span>your_api_id
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">API_HASH</span><span class="o">=</span>your_api_hash
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">BOT_TOKEN</span><span class="o">=</span>your_bot_token
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">LOG_CHANNEL</span><span class="o">=</span>-1001234567890
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">BASE_URL</span><span class="o">=</span>https://your-streambot-app.herokuapp.com
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">VIDEO_FRONTEND_URL</span><span class="o">=</span>https://cricster.pages.dev
+</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">ADMINS</span><span class="o">=</span>your_telegram_user_id
+</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">PYTHON_VERSION</span><span class="o">=</span><span class="m">3</span>.11.0
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Create Procfile</strong>:
+   <div class="language-procfile highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nl">web</span><span class="p">:</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>StreamBot
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nl">worker</span><span class="p">:</span><span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>StreamBot<span class="w"> </span>--worker-mode
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Deploy</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>git<span class="w"> </span>add<span class="w"> </span>.
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;Deploy to Heroku&quot;</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>git<span class="w"> </span>push<span class="w"> </span>heroku<span class="w"> </span>main
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Scale Dynos</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>heroku<span class="w"> </span>ps:scale<span class="w"> </span><span class="nv">web</span><span class="o">=</span><span class="m">1</span><span class="w"> </span><span class="nv">worker</span><span class="o">=</span><span class="m">1</span>
+</span></code></pre></div></p>
+</li>
+</ol>
+<h3 id="heroku-video-streaming-configuration">Heroku Video Streaming Configuration<a class="headerlink" href="#heroku-video-streaming-configuration" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Configure for video streaming</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">MAX_REQUEST_SIZE</span><span class="o">=</span><span class="m">2147483648</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">STREAM_CHUNK_SIZE</span><span class="o">=</span><span class="m">1048576</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">ENABLE_RANGE_REQUESTS</span><span class="o">=</span><span class="nb">true</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>heroku<span class="w"> </span>config:set<span class="w"> </span><span class="nv">VIDEO_CACHE_TTL</span><span class="o">=</span><span class="m">3600</span>
 </span></code></pre></div>
-<h2 id="infrastructure-as-code">Infrastructure as Code<a class="headerlink" href="#infrastructure-as-code" title="Permanent link">&para;</a></h2>
-<p>Coming soon: Terraform and CloudFormation templates for:
-- Automated infrastructure provisioning
-- Multi-region deployments
-- Auto-scaling configurations
-- Monitoring and logging setup</p>
-<h2 id="cost-optimization-tips">Cost Optimization Tips<a class="headerlink" href="#cost-optimization-tips" title="Permanent link">&para;</a></h2>
-<p>While we prepare detailed guides, consider:</p>
-<ul>
-<li><strong>Free Tiers</strong>: Start with free tiers from major cloud providers</li>
-<li><strong>Spot Instances</strong>: Use spot/preemptible instances for cost savings</li>
-<li><strong>Auto-scaling</strong>: Implement auto-scaling to handle traffic spikes</li>
-<li><strong>CDN Usage</strong>: Use CDNs for global file distribution</li>
-<li><strong>Resource Monitoring</strong>: Monitor usage to optimize costs</li>
-</ul>
-<h2 id="need-immediate-help">Need Immediate Help?<a class="headerlink" href="#need-immediate-help" title="Permanent link">&para;</a></h2>
-<p>For urgent deployment needs:</p>
-<ul>
-<li>💬 Contact me on Telegram: <a href="https://t.me/ajmods_bot">@ajmods_bot</a></li>
-<li>🐛 Open an issue on <a href="https://github.com/anikethjana/Telegram-Download-Link-Generator/issues">GitHub</a></li>
-<li>📖 Check the <a href="../docker/">Docker Deployment</a> guide for container-based deployment</li>
-</ul>
-<h2 id="coming-soon-features">Coming Soon Features<a class="headerlink" href="#coming-soon-features" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>One-click deployment scripts</strong> for major platforms</li>
-<li><strong>Cost calculator</strong> for different cloud providers</li>
-<li><strong>Performance benchmarks</strong> across platforms</li>
-<li><strong>Migration guides</strong> between cloud providers</li>
-<li><strong>Monitoring and alerting</strong> setup guides</li>
-</ul>
+<h2 id="digitalocean-app-platform">DigitalOcean App Platform<a class="headerlink" href="#digitalocean-app-platform" title="Permanent link">&para;</a></h2>
+<p>DigitalOcean App Platform offers excellent performance for video streaming with competitive pricing.</p>
+<h3 id="deployment-via-github">Deployment via GitHub<a class="headerlink" href="#deployment-via-github" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Create DigitalOcean Account</strong>: Sign up at <a href="https://digitalocean.com">digitalocean.com</a></p>
+</li>
+<li>
+<p><strong>Create App</strong>:</p>
+</li>
+<li>Go to Apps → Create App</li>
+<li>Connect GitHub repository</li>
+<li>
+<p>Select your StreamBot repository</p>
+</li>
+<li>
+<p><strong>Configure Build Settings</strong>:
+   <div class="language-yaml highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># .do/app.yaml</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streambot</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">web</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="nt">source_dir</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="nt">github</span><span class="p">:</span>
+</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="nt">repo</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your-username/Telegram-Download-Link-Generator</span>
+</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="nt">branch</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span>
+</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">  </span><span class="nt">run_command</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python -m StreamBot</span>
+</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="w">  </span><span class="nt">environment_slug</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="w">  </span><span class="nt">instance_count</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="w">  </span><span class="nt">instance_size_slug</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">basic-xxs</span>
+</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">  </span><span class="nt">http_port</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8080</span>
+</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">  </span><span class="nt">routes</span><span class="p">:</span>
+</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">/</span>
+</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="nt">databases</span><span class="p">:</span>
+</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mongodb</span>
+</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="w">  </span><span class="nt">engine</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MONGODB</span>
+</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="w">  </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;5&quot;</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Environment Variables</strong>:
+   <div class="language-text highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>API_ID=${API_ID}
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>API_HASH=${API_HASH}
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>BOT_TOKEN=${BOT_TOKEN}
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>LOG_CHANNEL=${LOG_CHANNEL}
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>DATABASE_URL=${mongodb.DATABASE_URL}
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>BASE_URL=https://your-app.ondigitalocean.app
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>VIDEO_FRONTEND_URL=https://cricster.pages.dev
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>ADMINS=${ADMINS}
+</span></code></pre></div></p>
+</li>
+</ol>
+<h3 id="digitalocean-cdn-for-video-streaming">DigitalOcean CDN for Video Streaming<a class="headerlink" href="#digitalocean-cdn-for-video-streaming" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Enable CDN for better video streaming</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span>https://api.digitalocean.com/v2/cdn/endpoints<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Authorization: Bearer </span><span class="nv">$DO_API_TOKEN</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="s1">    &quot;origin&quot;: &quot;your-app.ondigitalocean.app&quot;,</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="s1">    &quot;ttl&quot;: 3600,</span>
+</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="s1">    &quot;custom_domain&quot;: &quot;cdn.yourdomain.com&quot;</span>
+</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="s1">  }&#39;</span>
+</span></code></pre></div>
+<h2 id="amazon-web-services-aws">Amazon Web Services (AWS)<a class="headerlink" href="#amazon-web-services-aws" title="Permanent link">&para;</a></h2>
+<p>AWS provides the most comprehensive cloud infrastructure with global CDN for optimal video streaming.</p>
+<h3 id="aws-elastic-beanstalk-deployment">AWS Elastic Beanstalk Deployment<a class="headerlink" href="#aws-elastic-beanstalk-deployment" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Install AWS CLI and EB CLI</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>pip<span class="w"> </span>install<span class="w"> </span>awscli<span class="w"> </span>awsebcli
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>aws<span class="w"> </span>configure
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Initialize Elastic Beanstalk</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>eb<span class="w"> </span>init<span class="w"> </span>streambot<span class="w"> </span>--platform<span class="w"> </span>python-3.11<span class="w"> </span>--region<span class="w"> </span>us-east-1
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Create Environment</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>eb<span class="w"> </span>create<span class="w"> </span>streambot-production
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Configure Environment Variables</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>eb<span class="w"> </span>setenv<span class="w"> </span><span class="nv">API_ID</span><span class="o">=</span>your_api_id<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="w">         </span><span class="nv">API_HASH</span><span class="o">=</span>your_api_hash<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">         </span><span class="nv">BOT_TOKEN</span><span class="o">=</span>your_bot_token<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">         </span><span class="nv">LOG_CHANNEL</span><span class="o">=</span>-1001234567890<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">         </span><span class="nv">DATABASE_URL</span><span class="o">=</span>mongodb://your-mongodb-url<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">         </span><span class="nv">VIDEO_FRONTEND_URL</span><span class="o">=</span>https://cricster.pages.dev<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="w">         </span><span class="nv">ADMINS</span><span class="o">=</span>your_telegram_user_id
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Deploy</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>eb<span class="w"> </span>deploy
+</span></code></pre></div></p>
+</li>
+</ol>
+<h3 id="aws-documentdb-mongodb-compatible">AWS DocumentDB (MongoDB Compatible)<a class="headerlink" href="#aws-documentdb-mongodb-compatible" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Create DocumentDB cluster</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>aws<span class="w"> </span>docdb<span class="w"> </span>create-db-cluster<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">    </span>--db-cluster-identifier<span class="w"> </span>streambot-cluster<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span>--engine<span class="w"> </span>docdb<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">    </span>--master-username<span class="w"> </span>admin<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">    </span>--master-user-password<span class="w"> </span>your-secure-password<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">    </span>--vpc-security-group-ids<span class="w"> </span>sg-xxxxxxxx
+</span></code></pre></div>
+<h3 id="aws-cloudfront-for-video-streaming">AWS CloudFront for Video Streaming<a class="headerlink" href="#aws-cloudfront-for-video-streaming" title="Permanent link">&para;</a></h3>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="p">{</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="nt">&quot;DistributionConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">    </span><span class="nt">&quot;CallerReference&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;streambot-cdn&quot;</span><span class="p">,</span>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">    </span><span class="nt">&quot;DefaultRootObject&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;index.html&quot;</span><span class="p">,</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">    </span><span class="nt">&quot;Origins&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">      </span><span class="nt">&quot;Quantity&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">      </span><span class="nt">&quot;Items&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="w">        </span><span class="p">{</span>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="w">          </span><span class="nt">&quot;Id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;streambot-origin&quot;</span><span class="p">,</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">          </span><span class="nt">&quot;DomainName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;your-app.elasticbeanstalk.com&quot;</span><span class="p">,</span>
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="w">          </span><span class="nt">&quot;CustomOriginConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="w">            </span><span class="nt">&quot;HTTPPort&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">80</span><span class="p">,</span>
+</span><span id="__span-20-13"><a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a><span class="w">            </span><span class="nt">&quot;HTTPSPort&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">443</span><span class="p">,</span>
+</span><span id="__span-20-14"><a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a><span class="w">            </span><span class="nt">&quot;OriginProtocolPolicy&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https-only&quot;</span>
+</span><span id="__span-20-15"><a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a><span class="w">          </span><span class="p">}</span>
+</span><span id="__span-20-16"><a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-20-17"><a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a><span class="w">      </span><span class="p">]</span>
+</span><span id="__span-20-18"><a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a><span class="w">    </span><span class="p">},</span>
+</span><span id="__span-20-19"><a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a><span class="w">    </span><span class="nt">&quot;DefaultCacheBehavior&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-20-20"><a id="__codelineno-20-20" name="__codelineno-20-20" href="#__codelineno-20-20"></a><span class="w">      </span><span class="nt">&quot;TargetOriginId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;streambot-origin&quot;</span><span class="p">,</span>
+</span><span id="__span-20-21"><a id="__codelineno-20-21" name="__codelineno-20-21" href="#__codelineno-20-21"></a><span class="w">      </span><span class="nt">&quot;ViewerProtocolPolicy&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;redirect-to-https&quot;</span><span class="p">,</span>
+</span><span id="__span-20-22"><a id="__codelineno-20-22" name="__codelineno-20-22" href="#__codelineno-20-22"></a><span class="w">      </span><span class="nt">&quot;CachePolicyId&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;4135ea2d-6df8-44a3-9df3-4b5a84be39ad&quot;</span><span class="p">,</span>
+</span><span id="__span-20-23"><a id="__codelineno-20-23" name="__codelineno-20-23" href="#__codelineno-20-23"></a><span class="w">      </span><span class="nt">&quot;Compress&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span>
+</span><span id="__span-20-24"><a id="__codelineno-20-24" name="__codelineno-20-24" href="#__codelineno-20-24"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-20-25"><a id="__codelineno-20-25" name="__codelineno-20-25" href="#__codelineno-20-25"></a><span class="w">  </span><span class="p">}</span>
+</span><span id="__span-20-26"><a id="__codelineno-20-26" name="__codelineno-20-26" href="#__codelineno-20-26"></a><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="google-cloud-platform-gcp">Google Cloud Platform (GCP)<a class="headerlink" href="#google-cloud-platform-gcp" title="Permanent link">&para;</a></h2>
+<p>GCP offers excellent global infrastructure with competitive pricing for video streaming.</p>
+<h3 id="google-cloud-run-deployment">Google Cloud Run Deployment<a class="headerlink" href="#google-cloud-run-deployment" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Install Google Cloud SDK</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Linux/macOS</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>curl<span class="w"> </span>https://sdk.cloud.google.com<span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># Windows</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="c1"># Download and install from cloud.google.com/sdk</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Initialize Project</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>gcloud<span class="w"> </span>auth<span class="w"> </span>login
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>gcloud<span class="w"> </span>config<span class="w"> </span><span class="nb">set</span><span class="w"> </span>project<span class="w"> </span>your-project-id
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>gcloud<span class="w"> </span>services<span class="w"> </span><span class="nb">enable</span><span class="w"> </span>run.googleapis.com
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Create Dockerfile</strong> (if not exists):
+   <div class="language-dockerfile highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="k">FROM</span><span class="w"> </span><span class="s">python:3.11-slim</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>
+</span><span id="__span-23-3"><a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="k">WORKDIR</span><span class="w"> </span><span class="s">/app</span>
+</span><span id="__span-23-4"><a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a><span class="k">COPY</span><span class="w"> </span>requirements.txt<span class="w"> </span>.
+</span><span id="__span-23-5"><a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a><span class="k">RUN</span><span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</span><span id="__span-23-6"><a id="__codelineno-23-6" name="__codelineno-23-6" href="#__codelineno-23-6"></a>
+</span><span id="__span-23-7"><a id="__codelineno-23-7" name="__codelineno-23-7" href="#__codelineno-23-7"></a><span class="k">COPY</span><span class="w"> </span>.<span class="w"> </span>.
+</span><span id="__span-23-8"><a id="__codelineno-23-8" name="__codelineno-23-8" href="#__codelineno-23-8"></a>
+</span><span id="__span-23-9"><a id="__codelineno-23-9" name="__codelineno-23-9" href="#__codelineno-23-9"></a><span class="k">CMD</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;python&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;-m&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;StreamBot&quot;</span><span class="p">]</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Build and Deploy</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>gcloud<span class="w"> </span>builds<span class="w"> </span>submit<span class="w"> </span>--tag<span class="w"> </span>gcr.io/your-project-id/streambot
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>gcloud<span class="w"> </span>run<span class="w"> </span>deploy<span class="w"> </span>streambot<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">  </span>--image<span class="w"> </span>gcr.io/your-project-id/streambot<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="w">  </span>--platform<span class="w"> </span>managed<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a><span class="w">  </span>--region<span class="w"> </span>us-central1<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="w">  </span>--allow-unauthenticated<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a><span class="w">  </span>--memory<span class="w"> </span>2Gi<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="w">  </span>--cpu<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-9"><a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="w">  </span>--max-instances<span class="w"> </span><span class="m">10</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Set Environment Variables</strong>:
+   <div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>gcloud<span class="w"> </span>run<span class="w"> </span>services<span class="w"> </span>update<span class="w"> </span>streambot<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="w">  </span>--set-env-vars<span class="o">=</span><span class="s2">&quot;API_ID=your_api_id,API_HASH=your_api_hash,BOT_TOKEN=your_bot_token,LOG_CHANNEL=-1001234567890,VIDEO_FRONTEND_URL=https://cricster.pages.dev&quot;</span>
+</span></code></pre></div></p>
+</li>
+</ol>
+<h3 id="google-cloud-cdn-for-video-streaming">Google Cloud CDN for Video Streaming<a class="headerlink" href="#google-cloud-cdn-for-video-streaming" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># Create Cloud CDN</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>gcloud<span class="w"> </span>compute<span class="w"> </span>backend-services<span class="w"> </span>create<span class="w"> </span>streambot-backend<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="w">    </span>--global<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="w">    </span>--load-balancing-scheme<span class="o">=</span>EXTERNAL
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>
+</span><span id="__span-26-6"><a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a>gcloud<span class="w"> </span>compute<span class="w"> </span>url-maps<span class="w"> </span>create<span class="w"> </span>streambot-map<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-26-7"><a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="w">    </span>--default-service<span class="w"> </span>streambot-backend
+</span><span id="__span-26-8"><a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>
+</span><span id="__span-26-9"><a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a>gcloud<span class="w"> </span>compute<span class="w"> </span>target-https-proxies<span class="w"> </span>create<span class="w"> </span>streambot-proxy<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-26-10"><a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a><span class="w">    </span>--url-map<span class="w"> </span>streambot-map<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-26-11"><a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a><span class="w">    </span>--ssl-certificates<span class="w"> </span>streambot-ssl
+</span></code></pre></div>
+<h2 id="render">Render<a class="headerlink" href="#render" title="Permanent link">&para;</a></h2>
+<p>Render provides a modern platform with automatic SSL and easy deployments.</p>
+<h3 id="render-deployment">Render Deployment<a class="headerlink" href="#render-deployment" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Connect GitHub</strong>: Link your GitHub account to Render</p>
+</li>
+<li>
+<p><strong>Create Web Service</strong>:</p>
+</li>
+<li>Select your repository</li>
+<li>Choose "Web Service"</li>
+<li>
+<p>Configure build settings:</p>
+</li>
+<li>
+<p><strong>Build Configuration</strong>:
+   <div class="language-yaml highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># render.yaml</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="nt">services</span><span class="p">:</span>
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">web</span>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streambot</span>
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a><span class="w">    </span><span class="nt">env</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span>
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a><span class="w">    </span><span class="nt">buildCommand</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pip install -r requirements.txt</span>
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="w">    </span><span class="nt">startCommand</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python -m StreamBot</span>
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="w">    </span><span class="nt">envVars</span><span class="p">:</span>
+</span><span id="__span-27-9"><a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">API_ID</span>
+</span><span id="__span-27-10"><a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a><span class="w">        </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your_api_id</span>
+</span><span id="__span-27-11"><a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">API_HASH</span>
+</span><span id="__span-27-12"><a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a><span class="w">        </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your_api_hash</span>
+</span><span id="__span-27-13"><a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">BOT_TOKEN</span>
+</span><span id="__span-27-14"><a id="__codelineno-27-14" name="__codelineno-27-14" href="#__codelineno-27-14"></a><span class="w">        </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">your_bot_token</span>
+</span><span id="__span-27-15"><a id="__codelineno-27-15" name="__codelineno-27-15" href="#__codelineno-27-15"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">LOG_CHANNEL</span>
+</span><span id="__span-27-16"><a id="__codelineno-27-16" name="__codelineno-27-16" href="#__codelineno-27-16"></a><span class="w">        </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">-1001234567890</span>
+</span><span id="__span-27-17"><a id="__codelineno-27-17" name="__codelineno-27-17" href="#__codelineno-27-17"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">VIDEO_FRONTEND_URL</span>
+</span><span id="__span-27-18"><a id="__codelineno-27-18" name="__codelineno-27-18" href="#__codelineno-27-18"></a><span class="w">        </span><span class="nt">value</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://cricster.pages.dev</span>
+</span><span id="__span-27-19"><a id="__codelineno-27-19" name="__codelineno-27-19" href="#__codelineno-27-19"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">key</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">DATABASE_URL</span>
+</span><span id="__span-27-20"><a id="__codelineno-27-20" name="__codelineno-27-20" href="#__codelineno-27-20"></a><span class="w">        </span><span class="nt">fromDatabase</span><span class="p">:</span>
+</span><span id="__span-27-21"><a id="__codelineno-27-21" name="__codelineno-27-21" href="#__codelineno-27-21"></a><span class="w">          </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streambot-db</span>
+</span><span id="__span-27-22"><a id="__codelineno-27-22" name="__codelineno-27-22" href="#__codelineno-27-22"></a><span class="w">          </span><span class="nt">property</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">connectionString</span>
+</span><span id="__span-27-23"><a id="__codelineno-27-23" name="__codelineno-27-23" href="#__codelineno-27-23"></a>
+</span><span id="__span-27-24"><a id="__codelineno-27-24" name="__codelineno-27-24" href="#__codelineno-27-24"></a><span class="nt">databases</span><span class="p">:</span>
+</span><span id="__span-27-25"><a id="__codelineno-27-25" name="__codelineno-27-25" href="#__codelineno-27-25"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streambot-db</span>
+</span><span id="__span-27-26"><a id="__codelineno-27-26" name="__codelineno-27-26" href="#__codelineno-27-26"></a><span class="w">    </span><span class="nt">databaseName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streambot</span>
+</span><span id="__span-27-27"><a id="__codelineno-27-27" name="__codelineno-27-27" href="#__codelineno-27-27"></a><span class="w">    </span><span class="nt">user</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streambot</span>
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>Auto-Deploy</strong>: Render automatically deploys on git push</p>
+</li>
+</ol>
+<h2 id="video-streaming-optimizations">Video Streaming Optimizations<a class="headerlink" href="#video-streaming-optimizations" title="Permanent link">&para;</a></h2>
+<h3 id="cdn-configuration">CDN Configuration<a class="headerlink" href="#cdn-configuration" title="Permanent link">&para;</a></h3>
+<p>For optimal video streaming performance across all platforms:</p>
+<div class="language-nginx highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Nginx configuration for video streaming</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="k">location</span><span class="w"> </span><span class="s">/stream/</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a><span class="w">    </span><span class="kn">proxy_pass</span><span class="w"> </span><span class="s">http://localhost:8080</span><span class="p">;</span>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="w">    </span><span class="kn">proxy_buffering</span><span class="w"> </span><span class="no">off</span><span class="p">;</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a><span class="w">    </span><span class="kn">proxy_request_buffering</span><span class="w"> </span><span class="no">off</span><span class="p">;</span>
+</span><span id="__span-28-6"><a id="__codelineno-28-6" name="__codelineno-28-6" href="#__codelineno-28-6"></a><span class="w">    </span><span class="kn">proxy_http_version</span><span class="w"> </span><span class="mi">1</span><span class="s">.1</span><span class="p">;</span>
+</span><span id="__span-28-7"><a id="__codelineno-28-7" name="__codelineno-28-7" href="#__codelineno-28-7"></a><span class="w">    </span><span class="kn">proxy_set_header</span><span class="w"> </span><span class="s">Connection</span><span class="w"> </span><span class="s">&quot;&quot;</span><span class="p">;</span>
+</span><span id="__span-28-8"><a id="__codelineno-28-8" name="__codelineno-28-8" href="#__codelineno-28-8"></a>
+</span><span id="__span-28-9"><a id="__codelineno-28-9" name="__codelineno-28-9" href="#__codelineno-28-9"></a><span class="w">    </span><span class="c1"># Enable range requests</span>
+</span><span id="__span-28-10"><a id="__codelineno-28-10" name="__codelineno-28-10" href="#__codelineno-28-10"></a><span class="w">    </span><span class="kn">proxy_set_header</span><span class="w"> </span><span class="s">Range</span><span class="w"> </span><span class="nv">$http_range</span><span class="p">;</span>
+</span><span id="__span-28-11"><a id="__codelineno-28-11" name="__codelineno-28-11" href="#__codelineno-28-11"></a><span class="w">    </span><span class="kn">proxy_set_header</span><span class="w"> </span><span class="s">If-Range</span><span class="w"> </span><span class="nv">$http_if_range</span><span class="p">;</span>
+</span><span id="__span-28-12"><a id="__codelineno-28-12" name="__codelineno-28-12" href="#__codelineno-28-12"></a>
+</span><span id="__span-28-13"><a id="__codelineno-28-13" name="__codelineno-28-13" href="#__codelineno-28-13"></a><span class="w">    </span><span class="c1"># Optimize for video streaming</span>
+</span><span id="__span-28-14"><a id="__codelineno-28-14" name="__codelineno-28-14" href="#__codelineno-28-14"></a><span class="w">    </span><span class="kn">proxy_cache_bypass</span><span class="w"> </span><span class="nv">$http_range</span><span class="p">;</span>
+</span><span id="__span-28-15"><a id="__codelineno-28-15" name="__codelineno-28-15" href="#__codelineno-28-15"></a><span class="w">    </span><span class="kn">proxy_no_cache</span><span class="w"> </span><span class="nv">$http_range</span><span class="p">;</span>
+</span><span id="__span-28-16"><a id="__codelineno-28-16" name="__codelineno-28-16" href="#__codelineno-28-16"></a><span class="p">}</span>
+</span></code></pre></div>
+<h3 id="environment-variables-for-video-streaming">Environment Variables for Video Streaming<a class="headerlink" href="#environment-variables-for-video-streaming" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a># Video streaming optimizations (all platforms)
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a>VIDEO_CHUNK_SIZE=1048576
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>MAX_CONCURRENT_STREAMS=50
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>STREAM_TIMEOUT=3600
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>ENABLE_RANGE_REQUESTS=true
+</span><span id="__span-29-6"><a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>VIDEO_CACHE_TTL=3600
+</span><span id="__span-29-7"><a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>CORS_ORIGINS=https://cricster.pages.dev,https://yourdomain.com
+</span></code></pre></div>
+<h2 id="cost-optimization">Cost Optimization<a class="headerlink" href="#cost-optimization" title="Permanent link">&para;</a></h2>
+<h3 id="free-tier-recommendations">Free Tier Recommendations<a class="headerlink" href="#free-tier-recommendations" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Development</strong>: Railway or Render free tier</li>
+<li><strong>Small Production</strong>: Heroku hobby tier</li>
+<li><strong>High Traffic</strong>: DigitalOcean or AWS with reserved instances</li>
+</ol>
+<h3 id="cost-monitoring">Cost Monitoring<a class="headerlink" href="#cost-monitoring" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># Set up billing alerts (AWS example)</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>aws<span class="w"> </span>budgets<span class="w"> </span>create-budget<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="w">    </span>--account-id<span class="w"> </span><span class="m">123456789012</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="w">    </span>--budget<span class="w"> </span><span class="s1">&#39;{</span>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="s1">        &quot;BudgetName&quot;: &quot;StreamBot Monthly Budget&quot;,</span>
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="s1">        &quot;BudgetLimit&quot;: {</span>
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="s1">            &quot;Amount&quot;: &quot;50&quot;,</span>
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="s1">            &quot;Unit&quot;: &quot;USD&quot;</span>
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a><span class="s1">        },</span>
+</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="s1">        &quot;TimeUnit&quot;: &quot;MONTHLY&quot;,</span>
+</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a><span class="s1">        &quot;BudgetType&quot;: &quot;COST&quot;</span>
+</span><span id="__span-30-12"><a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a><span class="s1">    }&#39;</span>
+</span></code></pre></div>
+<h2 id="monitoring-and-scaling">Monitoring and Scaling<a class="headerlink" href="#monitoring-and-scaling" title="Permanent link">&para;</a></h2>
+<h3 id="health-checks">Health Checks<a class="headerlink" href="#health-checks" title="Permanent link">&para;</a></h3>
+<p>All platforms should monitor these endpoints:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Health check endpoint</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>curl<span class="w"> </span>https://your-app.com/api/info
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># Video streaming health</span>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>curl<span class="w"> </span>-I<span class="w"> </span>https://your-app.com/stream/test
+</span></code></pre></div>
+<h3 id="auto-scaling-configuration">Auto-Scaling Configuration<a class="headerlink" href="#auto-scaling-configuration" title="Permanent link">&para;</a></h3>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># Kubernetes auto-scaling example</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">autoscaling/v2</span>
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">HorizontalPodAutoscaler</span>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="nt">metadata</span><span class="p">:</span>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a><span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streambot-hpa</span>
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a><span class="nt">spec</span><span class="p">:</span>
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a><span class="w">  </span><span class="nt">scaleTargetRef</span><span class="p">:</span>
+</span><span id="__span-32-8"><a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a><span class="w">    </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">apps/v1</span>
+</span><span id="__span-32-9"><a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a><span class="w">    </span><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Deployment</span>
+</span><span id="__span-32-10"><a id="__codelineno-32-10" name="__codelineno-32-10" href="#__codelineno-32-10"></a><span class="w">    </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">streambot</span>
+</span><span id="__span-32-11"><a id="__codelineno-32-11" name="__codelineno-32-11" href="#__codelineno-32-11"></a><span class="w">  </span><span class="nt">minReplicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2</span>
+</span><span id="__span-32-12"><a id="__codelineno-32-12" name="__codelineno-32-12" href="#__codelineno-32-12"></a><span class="w">  </span><span class="nt">maxReplicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+</span><span id="__span-32-13"><a id="__codelineno-32-13" name="__codelineno-32-13" href="#__codelineno-32-13"></a><span class="w">  </span><span class="nt">metrics</span><span class="p">:</span>
+</span><span id="__span-32-14"><a id="__codelineno-32-14" name="__codelineno-32-14" href="#__codelineno-32-14"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Resource</span>
+</span><span id="__span-32-15"><a id="__codelineno-32-15" name="__codelineno-32-15" href="#__codelineno-32-15"></a><span class="w">    </span><span class="nt">resource</span><span class="p">:</span>
+</span><span id="__span-32-16"><a id="__codelineno-32-16" name="__codelineno-32-16" href="#__codelineno-32-16"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cpu</span>
+</span><span id="__span-32-17"><a id="__codelineno-32-17" name="__codelineno-32-17" href="#__codelineno-32-17"></a><span class="w">      </span><span class="nt">target</span><span class="p">:</span>
+</span><span id="__span-32-18"><a id="__codelineno-32-18" name="__codelineno-32-18" href="#__codelineno-32-18"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Utilization</span>
+</span><span id="__span-32-19"><a id="__codelineno-32-19" name="__codelineno-32-19" href="#__codelineno-32-19"></a><span class="w">        </span><span class="nt">averageUtilization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">70</span>
+</span><span id="__span-32-20"><a id="__codelineno-32-20" name="__codelineno-32-20" href="#__codelineno-32-20"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Resource</span>
+</span><span id="__span-32-21"><a id="__codelineno-32-21" name="__codelineno-32-21" href="#__codelineno-32-21"></a><span class="w">    </span><span class="nt">resource</span><span class="p">:</span>
+</span><span id="__span-32-22"><a id="__codelineno-32-22" name="__codelineno-32-22" href="#__codelineno-32-22"></a><span class="w">      </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">memory</span>
+</span><span id="__span-32-23"><a id="__codelineno-32-23" name="__codelineno-32-23" href="#__codelineno-32-23"></a><span class="w">      </span><span class="nt">target</span><span class="p">:</span>
+</span><span id="__span-32-24"><a id="__codelineno-32-24" name="__codelineno-32-24" href="#__codelineno-32-24"></a><span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Utilization</span>
+</span><span id="__span-32-25"><a id="__codelineno-32-25" name="__codelineno-32-25" href="#__codelineno-32-25"></a><span class="w">        </span><span class="nt">averageUtilization</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">80</span>
+</span></code></pre></div>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="common-deployment-issues">Common Deployment Issues<a class="headerlink" href="#common-deployment-issues" title="Permanent link">&para;</a></h3>
+<p><strong>Build Failures</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Check Python version</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>python<span class="w"> </span>--version<span class="w">  </span><span class="c1"># Should be 3.11+</span>
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="c1"># Install dependencies locally first</span>
+</span><span id="__span-33-5"><a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</span></code></pre></div></p>
+<p><strong>Environment Variable Issues</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="c1"># Test environment variables</span>
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import os; print(os.getenv(&#39;BOT_TOKEN&#39;))&quot;</span>
+</span></code></pre></div></p>
+<p><strong>Video Streaming Issues</strong>:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="c1"># Test streaming endpoint</span>
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>curl<span class="w"> </span>-I<span class="w"> </span>https://your-app.com/stream/test
+</span><span id="__span-35-3"><a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Range: bytes=0-1023&quot;</span><span class="w"> </span>https://your-app.com/stream/test
+</span></code></pre></div></p>
+<h3 id="performance-optimization">Performance Optimization<a class="headerlink" href="#performance-optimization" title="Permanent link">&para;</a></h3>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="c1"># Add to your deployment configuration</span>
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+</span><span id="__span-36-3"><a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>
+</span><span id="__span-36-4"><a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="c1"># Optimize for cloud deployment</span>
+</span><span id="__span-36-5"><a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a><span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;CLOUD_PROVIDER&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;heroku&#39;</span><span class="p">:</span>
+</span><span id="__span-36-6"><a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a>    <span class="c1"># Heroku-specific optimizations</span>
+</span><span id="__span-36-7"><a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a>    <span class="n">MAX_WORKERS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;WEB_CONCURRENCY&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+</span><span id="__span-36-8"><a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a>    <span class="n">WORKER_TIMEOUT</span> <span class="o">=</span> <span class="mi">120</span>
+</span><span id="__span-36-9"><a id="__codelineno-36-9" name="__codelineno-36-9" href="#__codelineno-36-9"></a>
+</span><span id="__span-36-10"><a id="__codelineno-36-10" name="__codelineno-36-10" href="#__codelineno-36-10"></a><span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;CLOUD_PROVIDER&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;aws&#39;</span><span class="p">:</span>
+</span><span id="__span-36-11"><a id="__codelineno-36-11" name="__codelineno-36-11" href="#__codelineno-36-11"></a>    <span class="c1"># AWS-specific optimizations</span>
+</span><span id="__span-36-12"><a id="__codelineno-36-12" name="__codelineno-36-12" href="#__codelineno-36-12"></a>    <span class="n">MAX_WORKERS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;AWS_LAMBDA_FUNCTION_MEMORY_SIZE&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">))</span> <span class="o">//</span> <span class="mi">128</span>
+</span><span id="__span-36-13"><a id="__codelineno-36-13" name="__codelineno-36-13" href="#__codelineno-36-13"></a>
+</span><span id="__span-36-14"><a id="__codelineno-36-14" name="__codelineno-36-14" href="#__codelineno-36-14"></a><span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;CLOUD_PROVIDER&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;gcp&#39;</span><span class="p">:</span>
+</span><span id="__span-36-15"><a id="__codelineno-36-15" name="__codelineno-36-15" href="#__codelineno-36-15"></a>    <span class="c1"># GCP-specific optimizations</span>
+</span><span id="__span-36-16"><a id="__codelineno-36-16" name="__codelineno-36-16" href="#__codelineno-36-16"></a>    <span class="n">MAX_WORKERS</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;CLOUD_RUN_CPU&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span>
+</span></code></pre></div>
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>After deployment:</p>
+<ol>
+<li><strong>Configure Custom Domain</strong>: Set up your own domain for better branding</li>
+<li><strong>Enable HTTPS</strong>: Ensure SSL certificates are properly configured</li>
+<li><strong>Set Up Monitoring</strong>: Configure uptime monitoring and alerts</li>
+<li><strong>Optimize Performance</strong>: Implement CDN and caching strategies</li>
+<li><strong>Security Hardening</strong>: Follow security best practices for your platform</li>
+<li><strong>Backup Strategy</strong>: Set up automated backups for your database</li>
+</ol>
+<p>For platform-specific advanced configurations, refer to:
+- <a href="../docker/">Docker Deployment</a> for containerized deployments
+- <a href="../vps-setup/">VPS Setup</a> for self-hosted solutions
+- <a href="../security/">Security Configuration</a> for hardening your deployment</p>
 <hr />
 <p><em>These comprehensive cloud deployment guides are currently in development. Stay tuned for detailed instructions!</em> </p>
 
@@ -1714,7 +2714,7 @@
       <div class="md-copyright">
   
     <div class="md-copyright__highlight">
-      Copyright &copy; 2023 - Present | Aniket Jana
+      Copyright &copy; 2023 - Present | Aniketh Jana
     </div>
   
   
