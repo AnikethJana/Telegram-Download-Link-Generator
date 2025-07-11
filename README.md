@@ -14,15 +14,23 @@ A Telegram bot built with Python (using Pyrogram and aiohttp) that generates tem
 * **Video Frontend Integration:** Optional integration with video player frontends for enhanced viewing experience.
 * **Range Request Support:** Full support for HTTP range requests enabling video seeking and resumable downloads.
 * **Link Expiry:** Download and streaming links automatically expire after a configurable duration (default: 24 hours).
+* **Session Generator:** Secure web-based session generation for accessing private Telegram content without credential sharing.
+* **Telegram Login Widget:** Official Telegram authentication integration for secure user verification.
+* **Encrypted Session Storage:** Sessions are encrypted and securely stored using industry-standard encryption.
+* **Private Content Access:** Generate download links for files from private channels/groups that users have access to.
 * **Force Subscription:** (Optional) Requires users to join a specific channel before using the bot.
 * **Multi-Bot Architecture:** Supports load distribution across multiple worker bots for improved performance and higher throughput.
 * **Admin Broadcast:** Allows administrators to send messages to all users who have interacted with the bot.
-* **Database Integration:** Uses MongoDB to store user IDs for the broadcast feature.
+* **Database Integration:** Uses MongoDB to store user IDs for the broadcast feature and encrypted user sessions.
 * **Logs Command:** View application logs directly within the bot (admin only).
 * **Rate Limiting:** Configurable daily limit on link generation per user.
 * **Bandwidth Limiting:** Optional monthly bandwidth limit with automatic reset - when reached, users are shown a friendly message and new downloads are temporarily blocked.
 * **Environment Variable Configuration:** Easy setup using environment variables or a `.env` file.
 * **Status API:** Includes a `/api/info` endpoint to check bot status and configuration.
+
+## Session Generator
+
+The Session Generator is a secure web-based system that allows users to generate sessions for accessing private Telegram content without sharing their credentials directly with the bot.
 
 ## Requirements
 
@@ -32,6 +40,7 @@ A Telegram bot built with Python (using Pyrogram and aiohttp) that generates tem
 * Telegram Bot Token (`BOT_TOKEN`)
 * Two Telegram Channels/Groups (one public/private for logging, one optional for force subscription)
 * (Optional) Video frontend URL for enhanced video playback experience
+* **For Session Generator**: Bot domain configured with @BotFather for Telegram Login Widget
 
 ## Installation
 
@@ -45,6 +54,11 @@ A Telegram bot built with Python (using Pyrogram and aiohttp) that generates tem
     ```bash
     pip install -r requirements.txt
     ```
+    
+    **Note**: The requirements now include additional dependencies for the Session Generator:
+    - `aiohttp-jinja2` - For web template rendering
+    - `Jinja2` - Template engine for the web interface
+    - `cryptography` - For secure session encryption
 
 ## Configuration
 
@@ -96,6 +110,9 @@ MAX_LINKS_PER_DAY=5 # Maximum links a user can generate per day (0 to disable)
 # --- Bandwidth Limiting ---
 BANDWIDTH_LIMIT_GB=100 # Monthly bandwidth limit in GigaBytes (0 to disable)
 
+# --- Session Generator Access Control ---
+ALLOW_USER_LOGIN=false # Allow all users to use session generator (true) or restrict to admins only (false, default)
+
 # --- Multiple Bot Support ---
 # Space-separated list of additional bot tokens for streaming only
 ADDITIONAL_BOT_TOKENS=token1 token2 token3
@@ -128,6 +145,7 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 * **`ADMINS`**: A space-separated list of numeric Telegram User IDs who have permission to use the `/broadcast` and `/logs` commands.
 * **`MAX_LINKS_PER_DAY`**: Maximum number of links a user can generate in a 24-hour period (default: `5`). Set to `0` to disable this limit.
 * **`BANDWIDTH_LIMIT_GB`**: Monthly bandwidth limit in GigaBytes (default: `100`). Set to `0` to disable this limit.
+* **`ALLOW_USER_LOGIN`**: Controls access to the session generator feature. Set to `true` to allow all users, or `false` to restrict to administrators only (default: `false`).
 * **`ADDITIONAL_BOT_TOKENS`**: Space-separated list of additional bot tokens that will be used as worker bots for file streaming. All these bots must be administrators in the LOG_CHANNEL.
 * **`WORKER_CLIENT_PYROGRAM_WORKERS`**: Number of Pyrogram workers for each worker bot (default: `1`).
 * **`WORKER_SESSIONS_IN_MEMORY`**: Whether to store worker bot sessions in memory only, avoiding disk writes (default: `true`).
@@ -178,11 +196,14 @@ The bot will start, connect to Telegram, and launch the web server with both dow
 
 ### User Commands:
 1. **Start the Bot:** Send `/start` in a private chat with the bot.
-2. **Send Files:** Send any file (document, video, audio, photo, etc.) to the bot in the private chat.
-3. **Receive Links:** The bot will reply with a direct download link for the file.
-4. **Play Videos:** For video files, if `VIDEO_FRONTEND_URL` is configured, you'll also get a "🎬 Play Video" button for streaming playback.
-5. **Download:** Click the download link to download the file directly through your browser or download manager.
-6. **Stream Videos:** Use the streaming link or Play Video button to watch videos directly in your browser with seeking support.
+2. **Generate Session:** Send `/login` to get a link to the session generator for accessing private content.
+3. **Send Files:** Send any file (document, video, audio, photo, etc.) to the bot in the private chat.
+4. **Receive Links:** The bot will reply with a direct download link for the file.
+5. **Play Videos:** For video files, if `VIDEO_FRONTEND_URL` is configured, you'll also get a "🎬 Play Video" button for streaming playback.
+6. **Download:** Click the download link to download the file directly through your browser or download manager.
+7. **Stream Videos:** Use the streaming link or Play Video button to watch videos directly in your browser with seeking support.
+8. **Access Private Content:** After generating a session, share private channel/group post URLs to get download links.
+9. **Revoke Session:** Send `/logout` to revoke your session and invalidate all generated links.
 
 ### Admin Commands:
 
@@ -198,8 +219,52 @@ The bot will start, connect to Telegram, and launch the web server with both dow
 * **`GET /dl/{encoded_id}`**: Download endpoint with range request support for resumable downloads.
 * **`GET /stream/{encoded_id}`**: Streaming endpoint optimized for video playback with seeking support.
 
+### Session Generator
+* **`GET /session`**: Session generator web interface with Telegram Login Widget.
+* **`POST /session/auth`**: Handle Telegram authentication and session generation.
+* **`GET /session/dashboard`**: User dashboard showing session status and management options.
+
 ### Information
 * **`GET /api/info`**: Returns a JSON response with bot status, configuration details (like force-sub status, link expiry), bandwidth usage information, uptime, and total registered users.
+
+## Session Generator Setup
+
+To enable the Session Generator feature, you need to configure your bot's domain with @BotFather:
+
+### Domain Configuration
+
+1. **Contact @BotFather** in Telegram
+2. **Select your bot** from the list
+3. **Choose "Bot Settings"** → **"Domain"**
+4. **Enter your domain** (e.g., `yourdomain.com`)
+   - Do NOT include `http://` or `https://`
+   - Use the same domain as your `BASE_URL` configuration
+   - Subdomains are supported (e.g., `bot.yourdomain.com`)
+
+### Example Configuration
+
+If your `BASE_URL` is `https://yourbot.example.com`, then:
+- Set domain in @BotFather as: `yourbot.example.com`
+- Session generator will be available at: `https://yourbot.example.com/session`
+
+### Verification
+
+After configuration, users can:
+1. Run `/login` command to get the session generator link
+2. Visit the web interface and authenticate with Telegram
+3. Generate secure sessions for private content access
+4. Use `/logout` to revoke sessions anytime
+
+**Note**: The Session Generator requires HTTPS in production for security. The Telegram Login Widget will not work over HTTP except for localhost development.
+
+### Access Control
+
+By default, the session generator is restricted to administrators only. You can control access using the `ALLOW_USER_LOGIN` environment variable:
+
+- **`ALLOW_USER_LOGIN=false`** (default): Only administrators specified in the `ADMINS` environment variable can use the session generator
+- **`ALLOW_USER_LOGIN=true`**: All users can access the session generator feature
+
+This provides an additional layer of security for deployments where you want to limit access to private content functionality.
 
 ## Building a Custom Video Frontend
 

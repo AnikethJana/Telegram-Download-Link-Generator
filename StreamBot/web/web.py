@@ -26,6 +26,19 @@ logger = logging.getLogger(__name__)
 
 routes = web.RouteTableDef()
 
+# Helper function to check session generator access permissions
+def check_session_generator_access(user_id: int) -> bool:
+    """Check if user has permission to access session generator features."""
+    # If ALLOW_USER_LOGIN is True, everyone can access
+    if Var.ALLOW_USER_LOGIN:
+        return True
+    
+    # If ALLOW_USER_LOGIN is False, only admins can access
+    if Var.ADMINS and user_id in Var.ADMINS:
+        return True
+    
+    return False
+
 # Request timeout for streaming operations (2 hours max)
 STREAM_TIMEOUT = 7200  # 2 hours
 
@@ -373,25 +386,71 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
     middlewares = SecurityMiddleware.get_middlewares()
     webapp = web.Application(middlewares=middlewares)
     
+    # Setup Jinja2 templates for session generator with memory optimization
+    try:
+        import aiohttp_jinja2
+        import jinja2
+        
+        # Configure template directory
+        template_path = os.path.join(os.path.dirname(__file__), '..', 'session_generator', 'templates')
+        if not os.path.exists(template_path):
+            logger.warning(f"Template directory not found: {template_path}")
+            os.makedirs(template_path, exist_ok=True)
+        
+        # Memory-optimized Jinja2 setup for low-resource environment
+        aiohttp_jinja2.setup(
+            webapp,
+            loader=jinja2.FileSystemLoader(template_path),
+            # Enable template caching to reduce memory usage
+            enable_async=False,  # Disable async for lower memory overhead
+            cache_size=10,  # Small cache size for low memory
+            auto_reload=False,  # Disable auto-reload for production efficiency
+            undefined=jinja2.StrictUndefined  # Catch template errors early
+        )
+        logger.info(f"Jinja2 templates configured for session generator at: {template_path}")
+        
+        # Setup static files for session generator with caching
+        static_path = os.path.join(os.path.dirname(__file__), '..', 'session_generator', 'static')
+        if os.path.exists(static_path):
+            webapp.router.add_static(
+                '/session/static', 
+                static_path, 
+                name='session_static',
+                # Add cache headers for better performance
+                show_index=False,  # Security: don't show directory listings
+                follow_symlinks=False  # Security: don't follow symlinks
+            )
+            logger.info(f"Static files configured for session generator at: {static_path}")
+        
+    except ImportError:
+        logger.warning("aiohttp_jinja2 not available. Session generator templates will not work.")
+    except Exception as e:
+        logger.error(f"Error setting up templates for session generator: {e}")
+    
     webapp.add_routes(routes)
     webapp['bot_client'] = bot_instance # This is the primary client for general info like /api/info
     webapp['client_manager'] = client_manager # For download routes to get worker clients
     webapp['start_time'] = start_time # type: ignore
     logger.info("Web application routes configured with security middleware.")
     
-    # More restrictive CORS configuration
+    # Memory-optimized CORS configuration
     cors = aiohttp_cors.setup(webapp, defaults={
-        # Allow only common origins for API access
+        # Restrict CORS to essential headers only to reduce memory overhead
         "*": aiohttp_cors.ResourceOptions(
             allow_credentials=False,
             expose_headers=["Content-Length", "Content-Range"],
             allow_headers=["Range", "Content-Type"],
-            allow_methods=["GET", "HEAD", "OPTIONS"],
+            allow_methods=["GET", "HEAD", "OPTIONS", "POST"],  # Added POST for session auth
+            max_age=3600  # Cache preflight for 1 hour to reduce requests
         )
     })
+    
+    # Only add CORS to routes that need it (more memory efficient)
     for route in list(webapp.router.routes()):
-        cors.add(route)
-    logger.info("CORS configured with security restrictions.")
+        if route.method in ["GET", "POST", "OPTIONS"]:
+            cors.add(route)
+    
+    logger.info("CORS configured with memory optimization.")
     return webapp
 
 # Add these routes after the existing routes
@@ -399,3 +458,148 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
 async def stream_route(request: web.Request):
     """Route handler for video streaming."""
     return await stream_video_route(request)
+
+# --- Session Generator Routes ---
+@routes.get("/session")
+async def session_generator_route(request: web.Request):
+    """Session generator main page route."""
+    from aiohttp_jinja2 import render_template
+    
+    bot_client: Client = request.app['bot_client']
+    
+    # Get bot username for Telegram Login Widget
+    bot_username = None
+    bot_id = None
+    try:
+        if bot_client and hasattr(bot_client, 'me') and bot_client.me:
+            bot_username = bot_client.me.username
+            bot_id = bot_client.me.id
+    except Exception as e:
+        logger.warning(f"Could not get bot info for session generator: {e}")
+    
+    context = {
+        'bot_username': bot_username,
+        'bot_id': bot_id,
+        'base_url': Var.BASE_URL,
+        'app_name': 'Telegram Session Generator',
+        'allow_user_login': Var.ALLOW_USER_LOGIN,
+        'login_restricted': not Var.ALLOW_USER_LOGIN
+    }
+    
+    return render_template('session_generator/index.html', request, context)
+
+@routes.post("/session/auth")
+async def session_auth_route(request: web.Request):
+    """Handle Telegram authentication for session generation."""
+    try:
+        data = await request.json()
+        
+        # Verify Telegram authentication
+        from StreamBot.session_generator.telegram_auth import TelegramAuth
+        telegram_auth = TelegramAuth()
+        
+        if not telegram_auth.verify_telegram_auth(data):
+            return web.json_response({
+                'success': False,
+                'error': 'Invalid Telegram authentication'
+            }, status=400)
+        
+        user_id = int(data['id'])
+        
+        # Check if user has permission to use session generator
+        if not check_session_generator_access(user_id):
+            logger.info(f"Session generator web access denied for non-admin user {user_id}")
+            return web.json_response({
+                'success': False,
+                'error': 'Access to session generator is restricted to administrators only'
+            }, status=403)
+        user_info = {
+            'id': user_id,
+            'username': data.get('username'),
+            'first_name': data.get('first_name'),
+            'last_name': data.get('last_name'),
+            'photo_url': data.get('photo_url'),
+            'auth_date': int(data['auth_date'])
+        }
+        
+        # Generate user session
+        from StreamBot.session_generator.session_manager import SessionManager
+        session_manager = SessionManager()
+        
+        result = await session_manager.generate_user_session(user_id, user_info)
+        
+        if result['success']:
+            # Add user to database
+            from StreamBot.database.database import add_user
+            await add_user(user_id)
+            
+            return web.json_response({
+                'success': True,
+                'message': 'Session generated successfully!',
+                'session_active': True
+            })
+        else:
+            return web.json_response({
+                'success': False,
+                'error': result['error']
+            }, status=500)
+            
+    except Exception as e:
+        logger.error(f"Error in session authentication: {e}", exc_info=True)
+        return web.json_response({
+            'success': False,
+            'error': 'Internal server error'
+        }, status=500)
+
+@routes.get("/session/dashboard")
+async def session_dashboard_route(request: web.Request):
+    """Session generator dashboard for authenticated users."""
+    from aiohttp_jinja2 import render_template
+    
+    # For now, we'll check session via query parameter
+    # In production, you'd use proper session management
+    user_id = request.query.get('user_id')
+    if not user_id:
+        # Redirect to main page
+        raise web.HTTPFound('/session')
+    
+    try:
+        user_id = int(user_id)
+        
+        # Check if user has permission to use session generator
+        if not check_session_generator_access(user_id):
+            logger.info(f"Session generator dashboard access denied for non-admin user {user_id}")
+            # Create a simple access denied response
+            return web.Response(
+                text="Access Denied: Session generator is restricted to administrators only.",
+                status=403,
+                content_type='text/plain'
+            )
+        
+        # Get user session info
+        from StreamBot.database.user_sessions import get_user_session
+        session_info = await get_user_session(user_id)
+        
+        if not session_info or not session_info.get('is_active'):
+            # Redirect to main page if no active session
+            raise web.HTTPFound('/session')
+        
+        bot_client: Client = request.app['bot_client']
+        bot_username = getattr(bot_client.me, 'username', None) if hasattr(bot_client, 'me') else None
+        
+        context = {
+            'user_info': session_info,
+            'bot_username': bot_username,
+            'base_url': Var.BASE_URL,
+            'app_name': 'Telegram Session Generator'
+        }
+        
+        return render_template('session_generator/dashboard.html', request, context)
+        
+    except (ValueError, TypeError):
+        raise web.HTTPFound('/session')
+    except Exception as e:
+        logger.error(f"Error in session dashboard: {e}", exc_info=True)
+        raise web.HTTPFound('/session')
+
+

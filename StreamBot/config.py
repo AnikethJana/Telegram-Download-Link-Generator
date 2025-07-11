@@ -107,6 +107,9 @@ class Var:
     MAX_LINKS_PER_DAY = get_env("MAX_LINKS_PER_DAY", default=5, is_int=True)
     BANDWIDTH_LIMIT_GB = get_env("BANDWIDTH_LIMIT_GB", default=100, is_int=True)
     
+    # Session generator access control
+    ALLOW_USER_LOGIN = get_env("ALLOW_USER_LOGIN", default=False, is_bool=True)
+    
     # Basic security validation
     if PORT and (PORT < 1 or PORT > 65535):
         logger.error(f"Invalid PORT value: {PORT}. Must be between 1-65535.")

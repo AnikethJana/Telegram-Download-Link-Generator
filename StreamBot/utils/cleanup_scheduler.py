@@ -32,6 +32,9 @@ class CleanupScheduler:
         # Schedule security cleanup (every hour - rate limiter cleanup)
         self.tasks.append(asyncio.create_task(self._security_cleanup()))
         
+        # Schedule session cleanup (every 6 hours - for session generator)
+        self.tasks.append(asyncio.create_task(self._session_cleanup()))
+        
         logger.info(f"Started {len(self.tasks)} cleanup tasks")
     
     async def stop(self):
@@ -129,6 +132,27 @@ class CleanupScheduler:
             except Exception as e:
                 logger.error(f"Error in security cleanup: {e}")
                 await asyncio.sleep(900)  # Wait 15 minutes before retry
+
+    async def _session_cleanup(self):
+        """Clean up inactive sessions every 6 hours."""
+        while self.running:
+            try:
+                await asyncio.sleep(21600)  # 6 hours
+                if not self.running:
+                    break
+                
+                logger.debug("Running session cleanup...")
+                from StreamBot.database.user_sessions import cleanup_old_sessions
+                deleted_count = await cleanup_old_sessions(days_old=7)  # Keep sessions for 7 days
+                
+                if deleted_count > 0:
+                    logger.info(f"Session cleanup: removed {deleted_count} old sessions")
+                
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error in session cleanup: {e}")
+                await asyncio.sleep(1800)  # Wait 30 minutes before retry
 
 # Global instance
 cleanup_scheduler = CleanupScheduler() 

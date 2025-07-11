@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Telegram Session Generator</title>
+    <link rel="stylesheet" href="/session/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fab fa-telegram-plane"></i>
+                <h1>Session Generator</h1>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">
+                    {% if user_info.photo_url %}
+                        <img src="{{ user_info.photo_url }}" alt="User Avatar">
+                    {% else %}
+                        <i class="fas fa-user"></i>
+                    {% endif %}
+                </div>
+                <div class="user-details">
+                    <span class="user-name">{{ user_info.first_name }}{% if user_info.last_name %} {{ user_info.last_name }}{% endif %}</span>
+                    {% if user_info.username %}
+                        <span class="username">@{{ user_info.username }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="dashboard-grid">
+                <!-- Session Status Card -->
+                <div class="status-card">
+                    <div class="status-header">
+                        <h2><i class="fas fa-key"></i> Session Status</h2>
+                        {% if user_info and user_info.is_active %}
+                            <span class="status-badge status-active">
+                                <i class="fas fa-check-circle"></i> Active
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-inactive">
+                                <i class="fas fa-times-circle"></i> No Session
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {% if user_info and user_info.is_active %}
+                        <div class="session-details">
+                            <div class="session-info">
+                                <p><strong>Created:</strong> {{ user_info.created_at.strftime('%B %d, %Y at %H:%M UTC') if user_info.created_at else 'Unknown' }}</p>
+                                <p><strong>Last Used:</strong> {{ user_info.last_used.strftime('%B %d, %Y at %H:%M UTC') if user_info.last_used else 'Never' }}</p>
+                            </div>
+                            
+                            <div class="session-actions">
+                                <button class="btn btn-secondary" onclick="showRegenerateModal()">
+                                    <i class="fas fa-sync-alt"></i> Regenerate Session
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="usage-instructions">
+                            <h3><i class="fas fa-info-circle"></i> How to Use</h3>
+                            <ol>
+                                <li>Open your Telegram bot conversation</li>
+                                <li>Share any private channel/group post URL</li>
+                                <li>Receive instant download links</li>
+                                <li>Use <code>/logout</code> to revoke access anytime</li>
+                            </ol>
+                        </div>
+                    {% else %}
+                        <div class="no-session">
+                            <p>You don't have an active session yet. Generate one to start accessing private content.</p>
+                            <button class="btn btn-primary btn-large" onclick="generateSession()">
+                                <i class="fas fa-plus-circle"></i> Generate Session
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Bot Information Card -->
+                <div class="info-card">
+                    <h3><i class="fas fa-robot"></i> Bot Information</h3>
+                    <div class="bot-info">
+                        <p><strong>Bot URL:</strong> <a href="{{ base_url }}" target="_blank">{{ base_url }}</a></p>
+                        <p><strong>API Status:</strong> <span class="status-online">Online</span></p>
+                    </div>
+                    
+                    <div class="bot-commands">
+                        <h4>Available Commands:</h4>
+                        <div class="command-list">
+                            <div class="command">
+                                <code>/start</code>
+                                <span>Start using the bot</span>
+                            </div>
+                            <div class="command">
+                                <code>/login</code>
+                                <span>Get link to this session generator</span>
+                            </div>
+                            <div class="command">
+                                <code>/logout</code>
+                                <span>Revoke your session and invalidate all links</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Card -->
+                <div class="features-card">
+                    <h3><i class="fas fa-star"></i> Features</h3>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>
+                                <strong>Secure Sessions</strong>
+                                <p>End-to-end encrypted session storage</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-link"></i>
+                            <div>
+                                <strong>Direct Links</strong>
+                                <p>Generate direct download links instantly</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <strong>Temporary Access</strong>
+                                <p>Links expire automatically for security</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-mobile-alt"></i>
+                            <div>
+                                <strong>Mobile Friendly</strong>
+                                <p>Works on all devices and platforms</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <i class="fas fa-lock"></i>
+                Your session data is encrypted and secure. Use <code>/logout</code> in the bot to revoke access.
+            </p>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loading-text">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Regenerate Session Modal -->
+    <div id="regenerate-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-sync-alt"></i> Regenerate Session</h3>
+                <button class="modal-close" onclick="hideRegenerateModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Warning:</strong> Regenerating your session will:</p>
+                <ul>
+                    <li>Invalidate all existing download links</li>
+                    <li>Create a new secure session</li>
+                    <li>Require re-authentication</li>
+                </ul>
+                <p>Are you sure you want to continue?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideRegenerateModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmRegenerate()">
+                    <i class="fas fa-sync-alt"></i> Regenerate
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash messages container -->
+    <div class="flash-messages" id="flash-messages">
+        <!-- Flash messages will be added here dynamically -->
+    </div>
+
+    <script>
+        function generateSession() {
+            showLoading('Generating session...');
+            
+            fetch('/generate-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                showLoading(false);
+                
+                if (data.success) {
+                    showSuccess(data.message);
+                    // Reload page after 2 seconds to show updated status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showError('Session generation failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                showLoading(false);
+                console.error('Error:', error);
+                showError('Session generation failed. Please try again.');
+            });
+        }
+
+        function showRegenerateModal() {
+            document.getElementById('regenerate-modal').style.display = 'flex';
+        }
+
+        function hideRegenerateModal() {
+            document.getElementById('regenerate-modal').style.display = 'none';
+        }
+
+        function confirmRegenerate() {
+            hideRegenerateModal();
+            generateSession();
+        }
+
+        function showLoading(text = 'Processing...') {
+            document.getElementById('loading-text').textContent = text;
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function showSuccess(message) {
+            showFlashMessage(message, 'success');
+        }
+
+        function showError(message) {
+            showFlashMessage(message, 'error');
+        }
+
+        function showFlashMessage(message, type) {
+            const flashMessages = document.querySelector('.flash-messages') || createFlashContainer();
+            const flashDiv = document.createElement('div');
+            flashDiv.className = `flash-message flash-${type}`;
+            flashDiv.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()">&times;</button>
+            `;
+            flashMessages.appendChild(flashDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (flashDiv.parentElement) {
+                    flashDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function createFlashContainer() {
+            const container = document.createElement('div');
+            container.className = 'flash-messages';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('regenerate-modal');
+            if (event.target === modal) {
+                hideRegenerateModal();
+            }
+        });
+    </script>
+</body>
+</html> 
