@@ -315,6 +315,136 @@ def attach_handlers(app: Client):
             logger.error(f"Error getting system stats for admin {user_id}: {e}", exc_info=True)
             await message.reply_text(f"❌ Error retrieving system stats: {str(e)}", quote=True)
 
+    @app.on_message(filters.command("login") & filters.private)
+    async def login_handler(client: Client, message: Message):
+        """Handle the /login command to provide session generator web link."""
+        user_id = message.from_user.id
+        
+        # Check if user has permission to use session generator
+        if not Var.ALLOW_USER_LOGIN and (not Var.ADMINS or user_id not in Var.ADMINS):
+            await message.reply_text(
+                "🔒 **Session Generator Access Restricted**\n\n"
+                "The session generator feature is currently restricted to administrators only.\n\n"
+                "Contact the bot administrator if you need access to private content features.",
+                quote=True
+            )
+            logger.info(f"Session generator access denied for non-admin user {user_id}")
+            return
+        
+        try:
+            # Add user to database if not exists (efficient single operation)
+            await add_user(user_id)
+            
+            # Check if user already has an active session efficiently
+            from StreamBot.database.user_sessions import check_user_has_session
+            has_active_session = await check_user_has_session(user_id)
+            
+            session_generator_url = f"{Var.BASE_URL}/session"
+            
+            if has_active_session:
+                response_text = f"""✅ **You already have an active session!**
+
+Your session is currently active and ready to use for generating download links.
+
+🌐 **Session Generator**: [Click here]({session_generator_url})
+
+ℹ️ **How to use:**
+1. Visit the session generator web page
+2. Your existing session will be automatically loaded
+3. Share any Telegram file URL to get instant download links
+
+💡 **Tip**: Your session remains active until you use `/logout`"""
+
+            else:
+                response_text = f"""🔐 **Login to Session Generator**
+
+To generate download links for private files, you need to create a session through our secure web interface.
+
+🌐 **Session Generator**: [Click here]({session_generator_url})
+
+📝 **Steps:**
+1. Click the link above to open the session generator
+2. Login with Telegram using the widget on the page
+3. Your session will be automatically generated and saved
+4. Start sharing file URLs to get download links!
+
+🔒 **Security**: Your session is encrypted and securely stored. Only you can access your files."""
+
+            await message.reply_text(
+                response_text,
+                quote=True,
+                disable_web_page_preview=True
+            )
+            
+            logger.info(f"Login command used by user {user_id}")
+            
+        except Exception as e:
+            logger.error(f"Error in login command for user {user_id}: {e}", exc_info=True)
+            await message.reply_text(
+                "❌ Error processing login command. Please try again later.",
+                quote=True
+            )
+
+    @app.on_message(filters.command("logout") & filters.private)
+    async def logout_handler(client: Client, message: Message):
+        """Handle the /logout command to revoke user session."""
+        user_id = message.from_user.id
+        
+        # Check if user has permission to use session generator
+        if not Var.ALLOW_USER_LOGIN and (not Var.ADMINS or user_id not in Var.ADMINS):
+            await message.reply_text(
+                "🔒 **Session Generator Access Restricted**\n\n"
+                "The session generator feature is currently restricted to administrators only.",
+                quote=True
+            )
+            logger.info(f"Session generator logout access denied for non-admin user {user_id}")
+            return
+        
+        try:
+            from StreamBot.database.user_sessions import check_user_has_session, revoke_user_session
+            
+            # Check if user has an active session efficiently
+            has_active_session = await check_user_has_session(user_id)
+            
+            if not has_active_session:
+                await message.reply_text(
+                    "ℹ️ **No Active Session**\n\nYou don't have an active session to logout from.\n\nUse `/login` to create a new session.",
+                    quote=True
+                )
+                return
+            
+            # Revoke the user's session
+            success = await revoke_user_session(user_id)
+            
+            if success:
+                response_text = """✅ **Successfully Logged Out**
+
+Your session has been revoked and all generated download links are now invalid.
+
+🔒 **What this means:**
+• All your previous download links are now disabled
+• You cannot generate new download links until you login again
+• Your session data has been securely removed
+
+To generate download links again, use `/login` to create a new session."""
+
+                await message.reply_text(response_text, quote=True)
+                logger.info(f"User {user_id} successfully logged out - session revoked")
+                
+            else:
+                await message.reply_text(
+                    "❌ **Logout Failed**\n\nThere was an error revoking your session. Please try again or contact support.",
+                    quote=True
+                )
+                logger.error(f"Failed to revoke session for user {user_id}")
+                
+        except Exception as e:
+            logger.error(f"Error in logout command for user {user_id}: {e}", exc_info=True)
+            await message.reply_text(
+                "❌ Error processing logout command. Please try again later.",
+                quote=True
+            )
+
     @app.on_message(filters.private & filters.incoming & (
         filters.document | filters.video | filters.audio | filters.photo |
         filters.animation | filters.sticker | filters.voice

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Session Generator</title>
+    <link rel="stylesheet" href="/session/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fab fa-telegram-plane"></i>
+                <h1>Session Generator</h1>
+            </div>
+            <p class="subtitle">Generate secure sessions for private file access</p>
+        </div>
+
+        <div class="main-content">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2>Secure Authentication</h2>
+                <p>Login with your Telegram account to generate a secure session for accessing private content.</p>
+                
+                <div class="benefits">
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Access private channels/groups</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Encrypted session storage</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>No credential sharing required</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Instant download link generation</span>
+                    </div>
+                </div>
+
+                <div class="login-section">
+                    <h3>Get Started</h3>
+                    {% if login_restricted %}
+                    <div class="access-restricted">
+                        <div class="restriction-notice">
+                            <i class="fas fa-lock"></i>
+                            <h4>Access Restricted</h4>
+                            <p>The session generator is currently restricted to administrators only.</p>
+                            <p>Contact the bot administrator if you need access to private content features.</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p>Click the button below to authenticate with Telegram and generate your session.</p>
+                    {% endif %}
+                    
+                    <!-- Telegram Login Widget -->
+                    <div id="telegram-login-container"{% if login_restricted %} style="display: none;"{% endif %}>
+                        {% if bot_username %}
+                        <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                                data-telegram-login="{{ bot_username }}" 
+                                data-size="large" 
+                                data-radius="8"
+                                data-onauth="onTelegramAuth(user)" 
+                                data-request-access="write">
+                        </script>
+                        {% else %}
+                        <div class="telegram-login-placeholder">
+                            <p><i class="fas fa-exclamation-triangle"></i> Bot username not configured</p>
+                            <p>Please set up your bot's domain with @BotFather first.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="login-fallback" style="display: none;">
+                        <button class="btn btn-telegram" onclick="initTelegramLogin()">
+                            <i class="fab fa-telegram-plane"></i>
+                            Login with Telegram
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-card">
+                    <h3><i class="fas fa-question-circle"></i> How it works</h3>
+                    <ol>
+                        <li>Authenticate with Telegram using the official login widget</li>
+                        <li>Your session is generated and securely encrypted</li>
+                        <li>Share private post URLs with the bot</li>
+                        <li>Get instant download links for private content</li>
+                    </ol>
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fas fa-lock"></i> Security & Privacy</h3>
+                    <ul>
+                        <li>Sessions are encrypted using industry-standard encryption</li>
+                        <li>Only you can access content from your session</li>
+                        <li>Use <code>/logout</code> in the bot to revoke access anytime</li>
+                        <li>No sensitive data is stored in plain text</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <i class="fas fa-info-circle"></i>
+                Once authenticated, you'll receive a confirmation message in Telegram.
+            </p>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Authenticating with Telegram...</p>
+        </div>
+    </div>
+
+    <!-- Flash messages container -->
+    <div class="flash-messages" id="flash-messages">
+        <!-- Flash messages will be added here dynamically -->
+    </div>
+
+    <script src="/session/static/telegram-auth.js"></script>
+    <style>
+        /* Access restriction styles */
+        .access-restricted {
+            margin: 24px 0;
+        }
+        
+        .restriction-notice {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 1px solid #ffc107;
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(255, 193, 7, 0.2);
+        }
+        
+        .restriction-notice i {
+            font-size: 48px;
+            color: #856404;
+            margin-bottom: 16px;
+            display: block;
+        }
+        
+        .restriction-notice h4 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 12px;
+        }
+        
+        .restriction-notice p {
+            color: #856404;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        .restriction-notice p:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if Telegram widget loaded properly
+            setTimeout(function() {
+                const widget = document.querySelector('iframe[src*="telegram.org"]');
+                if (!widget) {
+                    document.querySelector('.login-fallback').style.display = 'block';
+                    document.querySelector('#telegram-login-container').style.display = 'none';
+                }
+            }, 3000);
+        });
+
+        // Global function for Telegram widget callback
+        function onTelegramAuth(user) {
+            showLoading(true);
+            
+            // Send auth data to server
+            fetch('/session/auth', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(user)
+            })
+            .then(response => response.json())
+            .then(data => {
+                showLoading(false);
+                
+                if (data.success) {
+                    // Redirect to dashboard with user ID
+                    window.location.href = `/session/dashboard?user_id=${user.id}`;
+                } else {
+                    showError('Authentication failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                showLoading(false);
+                console.error('Error:', error);
+                showError('Authentication failed. Please try again.');
+            });
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+        }
+
+        function showError(message) {
+            const flashMessages = document.querySelector('.flash-messages') || createFlashContainer();
+            const flashDiv = document.createElement('div');
+            flashDiv.className = 'flash-message flash-error';
+            flashDiv.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()">&times;</button>
+            `;
+            flashMessages.appendChild(flashDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (flashDiv.parentElement) {
+                    flashDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function createFlashContainer() {
+            const container = document.createElement('div');
+            container.className = 'flash-messages';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        // Fallback login function
+        function initTelegramLogin() {
+            showError('Please use @BotFather to set up your bot\'s domain first.');
+        }
+    </script>
+</body>
+</html> 
