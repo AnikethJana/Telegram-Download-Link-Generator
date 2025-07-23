@@ -341,42 +341,118 @@ def attach_handlers(app: Client):
             
             session_generator_url = f"{Var.BASE_URL}/session"
             
+            # Check if URL is localhost (Telegram doesn't allow localhost in inline buttons)
+            is_localhost = any(host in session_generator_url.lower() for host in ['localhost', '127.0.0.1', '0.0.0.0'])
+            
             if has_active_session:
-                response_text = f"""✅ **You already have an active session!**
+                if is_localhost:
+                    # For localhost, provide text-based URL
+                    response_text = f"""✅ **You already have an active session!**
 
 Your session is currently active and ready to use for generating download links.
 
-🌐 **Session Generator**: [Click here]({session_generator_url})
+📋 **How to use your active session:**
+1️⃣ Share any private channel/group post URL with me
+2️⃣ I'll instantly generate a download link for you
+3️⃣ Use `/logout` anytime to revoke your session
 
-ℹ️ **How to use:**
-1. Visit the session generator web page
-2. Your existing session will be automatically loaded
-3. Share any Telegram file URL to get instant download links
+💡 **Quick Access (Local Testing):**
+Open this URL in your browser to manage your session:
+`{session_generator_url}`
 
-💡 **Tip**: Your session remains active until you use `/logout`"""
+🔒 **Security Note:** Your session is encrypted and secure. Only you can access your private content."""
+                    
+                    await message.reply_text(
+                        response_text,
+                        quote=True,
+                        disable_web_page_preview=True
+                    )
+                else:
+                    # For public URLs, use inline button
+                    keyboard = InlineKeyboardMarkup([
+                        [InlineKeyboardButton("🔐 Login to Session Generator", url=session_generator_url)]
+                    ])
+                    
+                    response_text = """✅ **You already have an active session!**
+
+Your session is currently active and ready to use for generating download links.
+
+📋 **How to use your active session:**
+1. Share any private channel/group post URL with me
+2. I'll instantly generate a download link for you
+3. Use `/logout` anytime to revoke your session
+
+🔒 **Security Note:** Your session is encrypted and secure. Only you can access your private content."""
+
+                    await message.reply_text(
+                        response_text,
+                        quote=True,
+                        reply_markup=keyboard,
+                        disable_web_page_preview=True
+                    )
 
             else:
-                response_text = f"""🔐 **Login to Session Generator**
+                if is_localhost:
+                    # For localhost, provide text-based URL with special instructions
+                    response_text = f"""🔐 **Login to Session Generator**
 
-To generate download links for private files, you need to create a session through our secure web interface.
+Generate secure sessions to get download links from private Telegram channels and groups without sharing your credentials.
 
-🌐 **Session Generator**: [Click here]({session_generator_url})
+📋 **Steps to get started (Local Testing):**
+1️⃣ Copy this URL and open it in your browser:
+`{session_generator_url}`
 
-📝 **Steps:**
-1. Click the link above to open the session generator
-2. Login with Telegram using the widget on the page
-3. Your session will be automatically generated and saved
-4. Start sharing file URLs to get download links!
+2️⃣ Login with your Telegram account using the official widget
+3️⃣ Your secure session will be automatically generated
+4️⃣ Return here and share private file URLs to get download links
 
-🔒 **Security**: Your session is encrypted and securely stored. Only you can access your files."""
+✨ **What you can do:**
+• Access files from private channels you're a member of
+• Generate instant download links for any media
+• Keep your credentials completely secure
+• Revoke access anytime with `/logout`
 
-            await message.reply_text(
-                response_text,
-                quote=True,
-                disable_web_page_preview=True
-            )
+🔒 **Security Features:**
+• End-to-end encrypted session storage
+• No credentials stored on our servers
+• Automatic session expiry for security
+• Full control over your access
+
+💡 **Local Testing Note:** Since you're testing locally, click and hold the URL above, then select "Copy" to open it in your browser."""
+                    
+                    await message.reply_text(
+                        response_text,
+                        quote=True,
+                        disable_web_page_preview=True
+                    )
+                else:
+                    # For public URLs, use inline button
+                    keyboard = InlineKeyboardMarkup([
+                        [InlineKeyboardButton("🔐 Login to Session Generator", url=session_generator_url)]
+                    ])
+                    
+                    response_text = """🔐 **Login to Session Generator**
+
+Generate secure sessions to get download links from private Telegram channels and groups without sharing your credentials.
+
+📋 **Steps to get started:**
+1. Click the "🔐 Login to Session Generator" button below
+2. Login with your Telegram account using the official widget
+3. Your secure session will be automatically generated
+4. Return here and share private file URLs to get download links
+
+🔒 **Security Features:**
+• End-to-end encrypted session storage
+• No credentials stored on our servers"""
+
+                    await message.reply_text(
+                        response_text,
+                        quote=True,
+                        reply_markup=keyboard,
+                        disable_web_page_preview=True
+                    )
             
-            logger.info(f"Login command used by user {user_id}")
+            logger.info(f"Login command used by user {user_id} ({'localhost' if is_localhost else 'public'} mode)")
             
         except Exception as e:
             logger.error(f"Error in login command for user {user_id}: {e}", exc_info=True)

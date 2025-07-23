@@ -21,7 +21,23 @@ class SecurityMiddleware:
         
         # Only add CSP for HTML responses (reduces header size for downloads)
         if response.content_type and 'text/html' in response.content_type:
-            response.headers['Content-Security-Policy'] = "default-src 'self'"
+            # More permissive CSP for session generator pages
+            if request.path.startswith('/session'):
+                # Allow external resources needed for session generator
+                csp = (
+                    "default-src 'self'; "
+                    "script-src 'self' 'unsafe-inline' https://telegram.org https://cdnjs.cloudflare.com; "
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
+                    "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+                    "frame-src https://oauth.telegram.org; "
+                    "connect-src 'self'; "
+                    "img-src 'self' data: https:; "
+                )
+            else:
+                # Strict CSP for other pages
+                csp = "default-src 'self'"
+            
+            response.headers['Content-Security-Policy'] = csp
             response.headers['X-XSS-Protection'] = '1; mode=block'
             response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
         
