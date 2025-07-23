@@ -486,7 +486,7 @@ async def session_generator_route(request: web.Request):
         'login_restricted': not Var.ALLOW_USER_LOGIN
     }
     
-    return render_template('session_generator/index.html', request, context)
+    return render_template('index.html', request, context)
 
 @routes.post("/session/auth")
 async def session_auth_route(request: web.Request):
@@ -594,7 +594,7 @@ async def session_dashboard_route(request: web.Request):
             'app_name': 'Telegram Session Generator'
         }
         
-        return render_template('session_generator/dashboard.html', request, context)
+        return render_template('dashboard.html', request, context)
         
     except (ValueError, TypeError):
         raise web.HTTPFound('/session')

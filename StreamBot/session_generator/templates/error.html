@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Error {{ error_code }} - Telegram Session Generator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="/session/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -55,7 +55,7 @@
                     </p>
                     
                     <div class="error-actions">
-                        <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <a href="/session" class="btn btn-primary">
                             <i class="fas fa-home"></i> Go Home
                         </a>
                         
@@ -74,8 +74,8 @@
                     <div class="helpful-links">
                         <h3>You might be looking for:</h3>
                         <ul>
-                            <li><a href="{{ url_for('index') }}">Session Generator Home</a></li>
-                            <li><a href="{{ url_for('api_status') }}">API Status</a></li>
+                            <li><a href="/session">Session Generator Home</a></li>
+                            <li><a href="/api/info">API Status</a></li>
                             <li><a href="{{ base_url }}/api/info" target="_blank">Bot Information</a></li>
                         </ul>
                     </div>

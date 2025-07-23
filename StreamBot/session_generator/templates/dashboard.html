@@ -13,7 +13,10 @@
         <div class="header">
             <div class="logo">
                 <i class="fab fa-telegram-plane"></i>
-                <h1>Session Generator</h1>
+                <div>
+                    <h1>Session Generator</h1>
+                    <p class="subtitle">Welcome back!</p>
+                </div>
             </div>
             <div class="user-info">
                 <div class="user-avatar">
@@ -55,12 +58,6 @@
                                 <p><strong>Created:</strong> {{ user_info.created_at.strftime('%B %d, %Y at %H:%M UTC') if user_info.created_at else 'Unknown' }}</p>
                                 <p><strong>Last Used:</strong> {{ user_info.last_used.strftime('%B %d, %Y at %H:%M UTC') if user_info.last_used else 'Never' }}</p>
                             </div>
-                            
-                            <div class="session-actions">
-                                <button class="btn btn-secondary" onclick="showRegenerateModal()">
-                                    <i class="fas fa-sync-alt"></i> Regenerate Session
-                                </button>
-                            </div>
                         </div>
                         
                         <div class="usage-instructions">
@@ -84,27 +81,19 @@
 
                 <!-- Bot Information Card -->
                 <div class="info-card">
-                    <h3><i class="fas fa-robot"></i> Bot Information</h3>
-                    <div class="bot-info">
-                        <p><strong>Bot URL:</strong> <a href="{{ base_url }}" target="_blank">{{ base_url }}</a></p>
-                        <p><strong>API Status:</strong> <span class="status-online">Online</span></p>
-                    </div>
-                    
-                    <div class="bot-commands">
-                        <h4>Available Commands:</h4>
-                        <div class="command-list">
-                            <div class="command">
-                                <code>/start</code>
-                                <span>Start using the bot</span>
-                            </div>
-                            <div class="command">
-                                <code>/login</code>
-                                <span>Get link to this session generator</span>
-                            </div>
-                            <div class="command">
-                                <code>/logout</code>
-                                <span>Revoke your session and invalidate all links</span>
-                            </div>
+                    <h3><i class="fas fa-robot"></i> Bot Commands</h3>
+                    <div class="command-list">
+                        <div class="command">
+                            <code>/start</code>
+                            <span>Start using the bot</span>
+                        </div>
+                        <div class="command">
+                            <code>/login</code>
+                            <span>Get link to this session generator</span>
+                        </div>
+                        <div class="command">
+                            <code>/logout</code>
+                            <span>Revoke your session and invalidate all links</span>
                         </div>
                     </div>
                 </div>
@@ -162,31 +151,6 @@
         </div>
     </div>
 
-    <!-- Regenerate Session Modal -->
-    <div id="regenerate-modal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-sync-alt"></i> Regenerate Session</h3>
-                <button class="modal-close" onclick="hideRegenerateModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p><strong>Warning:</strong> Regenerating your session will:</p>
-                <ul>
-                    <li>Invalidate all existing download links</li>
-                    <li>Create a new secure session</li>
-                    <li>Require re-authentication</li>
-                </ul>
-                <p>Are you sure you want to continue?</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="hideRegenerateModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmRegenerate()">
-                    <i class="fas fa-sync-alt"></i> Regenerate
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Flash messages container -->
     <div class="flash-messages" id="flash-messages">
         <!-- Flash messages will be added here dynamically -->
@@ -196,7 +160,7 @@
         function generateSession() {
             showLoading('Generating session...');
             
-            fetch('/generate-session', {
+            fetch('/session/auth', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -204,7 +168,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                showLoading(false);
+                hideLoading();
                 
                 if (data.success) {
                     showSuccess(data.message);
@@ -217,28 +181,19 @@
                 }
             })
             .catch(error => {
-                showLoading(false);
+                hideLoading();
                 console.error('Error:', error);
                 showError('Session generation failed. Please try again.');
             });
         }
 
-        function showRegenerateModal() {
-            document.getElementById('regenerate-modal').style.display = 'flex';
-        }
-
-        function hideRegenerateModal() {
-            document.getElementById('regenerate-modal').style.display = 'none';
-        }
-
-        function confirmRegenerate() {
-            hideRegenerateModal();
-            generateSession();
-        }
-
         function showLoading(text = 'Processing...') {
             document.getElementById('loading-text').textContent = text;
             document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
         }
 
         function showSuccess(message) {
@@ -273,14 +228,173 @@
             document.body.appendChild(container);
             return container;
         }
-
-        // Close modal when clicking outside
-        window.addEventListener('click', function(event) {
-            const modal = document.getElementById('regenerate-modal');
-            if (event.target === modal) {
-                hideRegenerateModal();
-            }
-        });
     </script>
+
+    <style>
+        /* Dashboard specific styles */
+        .header {
+            padding: 20px 24px;
+        }
+        
+        .header .logo {
+            justify-content: flex-start;
+            flex: 1;
+        }
+        
+        .header .logo div {
+            text-align: left;
+        }
+        
+        .header .logo h1 {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        
+        .header .logo .subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+            margin: 0;
+        }
+        
+        .user-info {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .session-details {
+            margin-bottom: 20px;
+        }
+        
+        .session-info p {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #5a6c7d;
+        }
+        
+        .usage-instructions {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            border: 1px solid #e6e9ff;
+        }
+        
+        .usage-instructions h3 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #2c3e50;
+        }
+        
+        .usage-instructions ol {
+            margin-left: 16px;
+            font-size: 12px;
+            color: #5a6c7d;
+        }
+        
+        .usage-instructions li {
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+        
+        .no-session {
+            text-align: center;
+            padding: 24px 16px;
+        }
+        
+        .no-session p {
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #5a6c7d;
+        }
+        
+        .command-list {
+            margin-top: 12px;
+        }
+        
+        .command {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e6e9ff;
+            font-size: 12px;
+        }
+        
+        .command:last-child {
+            border-bottom: none;
+        }
+        
+        .command code {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        
+        .command span {
+            color: #5a6c7d;
+            font-size: 11px;
+        }
+        
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .feature-item i {
+            font-size: 14px;
+            color: #667eea;
+            margin-top: 2px;
+            min-width: 14px;
+        }
+        
+        .feature-item strong {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+        
+        .feature-item p {
+            color: #5a6c7d;
+            font-size: 11px;
+            margin: 0;
+            line-height: 1.3;
+        }
+        
+        /* Responsive adjustments for dashboard */
+        @media (max-width: 640px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            
+            .header .logo {
+                justify-content: center;
+            }
+            
+            .header .logo div {
+                text-align: center;
+            }
+            
+            .user-info {
+                order: -1;
+            }
+        }
+    </style>
 </body>
 </html> 
