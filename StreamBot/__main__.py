@@ -29,6 +29,11 @@ logging.basicConfig(
 
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 logging.getLogger("aiohttp.access").setLevel(logging.WARNING)
+# Reduce noise: log only errors for session-related modules
+logging.getLogger("StreamBot.session_generator").setLevel(logging.ERROR)
+logging.getLogger("StreamBot.session_generator.session_manager").setLevel(logging.ERROR)
+logging.getLogger("StreamBot.session_generator.telegram_auth").setLevel(logging.ERROR)
+logging.getLogger("StreamBot.web.web").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 # --- Global variable for start time ---
