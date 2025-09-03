@@ -159,7 +159,10 @@ You can now:
 • Get direct download links for private content
 • Use `/logout` to remove your session anytime
 
-**Privacy:** Your session is encrypted and only used to access content you share with me."""
+**Privacy:** Your session is encrypted and only used to access content you share with me.
+
+⚠️ **Important Reminder:**
+Using session-based access with newer accounts, downloading large files continuously, abusing the service, or sharing access with others who spam downloads may result in your Telegram account being banned. Please use responsibly and avoid excessive usage patterns that could trigger Telegram's anti-abuse systems."""
                     
                     try:
                         await primary_client.send_message(

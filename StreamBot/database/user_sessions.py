@@ -42,6 +42,14 @@ async def store_user_session(user_id: int, session_string: str, user_info: Dict[
                 logger.warning(f"Invalid session_string for user {user_id}")
                 return False
 
+            # Debug log user_info to understand the structure
+            logger.debug(f"Storing session for user {user_id}, user_info: {user_info}")
+            
+            # Validate user_info structure
+            if not user_info or not isinstance(user_info, dict):
+                logger.warning(f"Invalid or missing user_info for user {user_id}: {user_info}")
+                user_info = {}
+
             # Encrypt session string
             encrypted_session = _cipher.encrypt(session_string.encode('utf-8'))
 
@@ -50,8 +58,8 @@ async def store_user_session(user_id: int, session_string: str, user_info: Dict[
                 '_id': user_id,
                 'encrypted_session': encrypted_session,
                 'user_info': {
-                    'first_name': user_info.get('first_name', '')[:50],  # Limit length to save space
-                    'username': user_info.get('username', '')[:32],  # Limit length to save space
+                    'first_name': (user_info.get('first_name') or '')[:50],  # Safe handling of None values
+                    'username': (user_info.get('username') or '')[:32],  # Safe handling of None values
                     'auth_date': user_info.get('auth_date')
                 },
                 'created_at': datetime.datetime.utcnow(),

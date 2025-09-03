@@ -2,11 +2,14 @@ FROM python:3.11-bullseye AS builder
 
 WORKDIR /opt/app
 
+# Install build dependencies in a single layer
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libffi-dev \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/* /var/tmp/*
 
 RUN python -m venv /opt/venv
 
@@ -20,19 +23,27 @@ RUN pip install --no-cache-dir -r requirements.txt
 FROM python:3.11-slim-bullseye
 WORKDIR /app
 
-RUN groupadd -r appuser && useradd --no-log-init -r -g appuser appuser
+# Create non-root user and set up directories
+RUN groupadd -r appuser && useradd --no-log-init -r -g appuser appuser \
+    && mkdir -p /app \
+    && chown -R appuser:appuser /app
 
+# Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
 
-COPY StreamBot/ ./StreamBot/
+# Copy application code
+COPY --chown=appuser:appuser StreamBot/ ./StreamBot/
 
-ENV PATH="/opt/venv/bin:$PATH"
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PORT=8080 
+# Set environment variables for Python optimization
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONHASHSEED=random \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PORT=8080
 
-RUN chown -R appuser:appuser /app
-
+# Switch to non-root user
 USER appuser
 
 EXPOSE ${PORT}

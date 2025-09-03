@@ -419,7 +419,10 @@ Generate secure sessions to get download links from private Telegram channels an
 • Automatic session expiry for security
 • Full control over your access
 
-💡 **Local Testing Note:** Since you're testing locally, click and hold the URL above, then select "Copy" to open it in your browser."""
+💡 **Local Testing Note:** Since you're testing locally, click and hold the URL above, then select "Copy" to open it in your browser.
+
+⚠️ **Important Caution:**
+Using session-based access with newer accounts, downloading large files continuously, abusing the service, or sharing access with others who spam downloads may result in your Telegram account being banned. Please use responsibly and avoid excessive usage patterns that could trigger Telegram's anti-abuse systems."""
                     
                     await message.reply_text(
                         response_text,
@@ -444,7 +447,10 @@ Generate secure sessions to get download links from private Telegram channels an
 
 🔒 **Security Features:**
 • End-to-end encrypted session storage
-• No credentials stored on our servers"""
+• No credentials stored on our servers
+
+⚠️ **Important Caution:**
+Using session-based access with newer accounts, downloading large files continuously, abusing the service, or sharing access with others who spam downloads may result in your Telegram account being banned. Please use responsibly and avoid excessive usage patterns that could trigger Telegram's anti-abuse systems."""
 
                     await message.reply_text(
                         response_text,
