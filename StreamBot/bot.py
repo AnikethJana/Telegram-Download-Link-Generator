@@ -12,6 +12,7 @@ from .utils.utils import get_file_attr, humanbytes, encode_message_id, is_video_
 from .security.rate_limiter import bot_rate_limiter
 from .utils.bandwidth import is_bandwidth_limit_exceeded, get_current_bandwidth_usage
 from .utils.smart_logger import SmartRateLimitedLogger
+from .link_handler import get_message_from_link
 
 logger = logging.getLogger(__name__)
 # TgDlBot instance will be created and managed by ClientManager in __main__.py
@@ -520,6 +521,109 @@ To generate download links again, use `/login` to create a new session."""
                 "❌ Error processing logout command. Please try again later.",
                 quote=True
             )
+
+    @app.on_message(filters.private & filters.text & filters.regex(r'https?://t\.me/.*'))
+    async def link_handler(client: Client, message: Message):
+        """Handle incoming Telegram message links."""
+        user_id = message.from_user.id
+        
+        # Basic checks (rate limit, bandwidth, force sub)
+        if user_id not in Var.ADMINS:
+            if Var.MAX_LINKS_PER_DAY > 0:
+                can_generate = await bot_rate_limiter.check_and_record_link_generation(user_id)
+                if not can_generate:
+                    _, wait_time_seconds = await bot_rate_limiter.get_user_link_count_and_wait_time(user_id)
+                    wait_hours = wait_time_seconds / 3600
+                    wait_minutes = (wait_time_seconds % 3600) / 60
+
+                    if wait_time_seconds > 0:
+                        reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT.format(
+                            max_links=Var.MAX_LINKS_PER_DAY,
+                            wait_hours=wait_hours,
+                            wait_minutes=wait_minutes
+                        )
+                    else:
+                        reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT_NO_WAIT.format(max_links=Var.MAX_LINKS_PER_DAY)
+
+                    await message.reply_text(reply_text, quote=True)
+                    return
+            else:
+                await bot_rate_limiter.check_and_record_link_generation(user_id)
+
+        if await is_bandwidth_limit_exceeded():
+            await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
+            return
+
+        if not await check_force_sub(client, message):
+            return
+
+        processing_msg = await message.reply_text("⏳ Accessing your private content and generating download link...", quote=True)
+        
+        result = await get_message_from_link(user_id, message.text)
+
+        if isinstance(result, str):
+            # An error occurred
+            await processing_msg.edit_text(f"❌ **Error:** {result}")
+            return
+
+        # result is a tuple (message, user_client)
+        target_message, user_client = result
+        
+        try:
+            # Get file attributes from the message
+            _file_id, file_name, file_size, file_mime_type, _file_unique_id = get_file_attr(target_message)
+            file_size_str = humanbytes(file_size)
+
+            if not file_name:
+                await processing_msg.edit_text("❌ **Error:** Could not determine file information.")
+                return
+
+            # Create a virtual message ID for user session files
+            # Using a combination that won't conflict with real message IDs
+            virtual_msg_id = f"user_{user_id}_{target_message.chat.id}_{target_message.id}"
+            
+            # Store the user session file info in the existing streaming system
+            if not hasattr(client, 'user_session_files'):
+                client.user_session_files = {}
+            
+            client.user_session_files[virtual_msg_id] = {
+                'user_id': user_id,
+                'chat_id': target_message.chat.id,
+                'message_id': target_message.id,
+                'file_name': file_name,
+                'file_size': file_size,
+                'file_mime_type': file_mime_type,
+                'created_at': asyncio.get_event_loop().time()
+            }
+
+            # Generate download link using the same structure as forwarded files
+            encoded_msg_id = encode_message_id(virtual_msg_id)
+            download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
+            
+            is_video = is_video_file(file_mime_type)
+            reply_markup = None
+            if is_video and Var.VIDEO_FRONTEND_URL:
+                import urllib.parse
+                encoded_stream_uri = urllib.parse.quote(download_link)
+                video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
+                reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("🎬 Play Video", url=video_play_url)]])
+
+            await processing_msg.edit_text(
+                f"✅ **Download Link Generated!**\n\n"
+                f"**File Name:** `{file_name}`\n"
+                f"**File Size:** {file_size_str}\n\n"
+                f"**Link:** {download_link}\n\n"
+                f"⏳ **Expires:** In approximately 24 hours.\n\n"
+                f"🔒 This link uses your personal session to access the private content.",
+                reply_markup=reply_markup,
+                disable_web_page_preview=True
+            )
+            logger.info(f"User stream link generated for user {user_id} from URL: {message.text}")
+
+        except Exception as e:
+            logger.error(f"Error generating user stream link for user {user_id}: {e}", exc_info=True)
+            await processing_msg.edit_text("❌ **Error:** An unexpected error occurred while processing your request.")
+
 
     @app.on_message(filters.private & filters.incoming & (
         filters.document | filters.video | filters.audio | filters.photo |

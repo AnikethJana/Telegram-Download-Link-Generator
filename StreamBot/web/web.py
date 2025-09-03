@@ -7,10 +7,11 @@ import os
 import math
 from aiohttp import web
 import aiohttp_cors
+import jinja2
 from pyrogram import Client
 from pyrogram.errors import FloodWait, FileIdInvalid, RPCError
 from pyrogram.types import Message, User
-
+import aiohttp_jinja2
 from StreamBot.config import Var
 # Ensure decode_message_id is imported from utils
 from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id, get_media_message
@@ -21,10 +22,16 @@ from StreamBot.security.middleware import SecurityMiddleware
 from StreamBot.security.validator import validate_range_header, sanitize_filename, get_client_ip
 from StreamBot.utils.custom_dl import ByteStreamer
 from .streaming import stream_video_route
+from ..utils.stream_cleanup import stream_tracker, tracked_stream_response
+from ..utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
+from ..utils.exceptions import NoClientsAvailableError
+from ..session_generator.interactive_login import interactive_login_manager
 
 logger = logging.getLogger(__name__)
 
 routes = web.RouteTableDef()
+
+# User session streaming is now integrated into the main download route
 
 # Helper function to check session generator access permissions
 def generate_session_token(user_id: int) -> str:
@@ -72,7 +79,7 @@ async def cleanup_expired_tokens():
             await asyncio.sleep(300)  # Clean up every 5 minutes
 
             if hasattr(generate_session_token, '_token_store'):
-                current_time = int(time.time())
+                current_time = int(datetime.datetime.now().timestamp())
                 expired_tokens = [
                     token for token, data in generate_session_token._token_store.items()
                     if current_time > int(data['expires_at'])
@@ -177,17 +184,53 @@ async def download_route(request: web.Request):
         raise web.HTTPServiceUnavailable(text="Service temporarily unavailable due to bandwidth limits.")
 
     try:
-        # Add timeout to prevent hanging requests - increased for large file support
-        streamer_client = await asyncio.wait_for(
-            client_manager.get_streaming_client(),
-            timeout=60  # Increased from 30 to 60 seconds for large file handling
-        )
-        if not streamer_client or not streamer_client.is_connected:
-            logger.error(f"Failed to obtain a connected streaming client for message_id {message_id}")
-            raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again shortly.")
+        # Check if this is a user session file (virtual message ID)
+        if isinstance(message_id, str) and message_id.startswith('user_'):
+            # Handle user session file - anyone with the link can download
+            # This is intentional: users can share their generated links with others
+            bot_client = request.app['bot_client']
+            if not hasattr(bot_client, 'user_session_files') or message_id not in bot_client.user_session_files:
+                raise web.HTTPNotFound(text="File not found or expired.")
+            
+            session_info = bot_client.user_session_files[message_id]
+            
+            # Check if expired (24 hours)
+            current_time = asyncio.get_event_loop().time()
+            if current_time - session_info['created_at'] > 86400:
+                del bot_client.user_session_files[message_id]
+                raise web.HTTPGone(text="Download link has expired.")
+            
+            # Get user's client for streaming
+            from StreamBot.link_handler import user_session_streamer
+            user_client = await user_session_streamer.get_user_client(session_info['user_id'])
+            if not user_client:
+                raise web.HTTPUnauthorized(text="User session expired. Please login again.")
+            
+            # Get the actual message from user's session
+            media_msg = await user_client.get_messages(
+                chat_id=session_info['chat_id'], 
+                message_ids=session_info['message_id']
+            )
+            if not media_msg or not media_msg.media:
+                raise web.HTTPNotFound(text="File not found or no longer available.")
+            
+            # Use user's client for streaming
+            streamer_client = user_client
+            logger.debug(f"Using user session client for streaming user file: {message_id}")
+            
+        else:
+            # Handle regular forwarded file
+            # Add timeout to prevent hanging requests - increased for large file support
+            streamer_client = await asyncio.wait_for(
+                client_manager.get_streaming_client(),
+                timeout=60  # Increased from 30 to 60 seconds for large file handling
+            )
+            if not streamer_client or not streamer_client.is_connected:
+                logger.error(f"Failed to obtain a connected streaming client for message_id {message_id}")
+                raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again shortly.")
 
-        logger.debug(f"Using client @{streamer_client.me.username} for streaming message_id {message_id}")
-        media_msg = await get_media_message(streamer_client, message_id)
+            logger.debug(f"Using client @{streamer_client.me.username} for streaming message_id {message_id}")
+            media_msg = await get_media_message(streamer_client, message_id)
     except asyncio.TimeoutError:
         logger.error(f"Timeout getting streaming client for message_id {message_id}")
         raise web.HTTPServiceUnavailable(text="Service temporarily unavailable.")
@@ -461,75 +504,51 @@ async def api_info_route(request: web.Request):
 # --- Setup Web App ---
 async def setup_webapp(bot_instance: Client, client_manager, start_time: datetime.datetime):
     # Create app with security middleware
-    middlewares = SecurityMiddleware.get_middlewares()
-    webapp = web.Application(middlewares=middlewares)
+    app = web.Application(middlewares=SecurityMiddleware.get_middlewares())
+
+    # Store bot instance and client manager
+    app['bot_client'] = bot_instance
+    app['client_manager'] = client_manager
+    app['bot_start_time'] = start_time
     
-    # Setup Jinja2 templates for session generator with memory optimization
-    try:
-        import aiohttp_jinja2
-        import jinja2
-        
-        # Configure template directory
-        template_path = os.path.join(os.path.dirname(__file__), '..', 'session_generator', 'templates')
-        if not os.path.exists(template_path):
-            logger.warning(f"Template directory not found: {template_path}")
-            os.makedirs(template_path, exist_ok=True)
-        
-        # Memory-optimized Jinja2 setup for low-resource environment
-        aiohttp_jinja2.setup(
-            webapp,
-            loader=jinja2.FileSystemLoader(template_path),
-            # Enable template caching to reduce memory usage
-            enable_async=False,  # Disable async for lower memory overhead
-            cache_size=10,  # Small cache size for low memory
-            auto_reload=False,  # Disable auto-reload for production efficiency
-            undefined=jinja2.StrictUndefined  # Catch template errors early
-        )
-        logger.info(f"Jinja2 templates configured for session generator at: {template_path}")
-        
-        # Setup static files for session generator with caching
-        static_path = os.path.join(os.path.dirname(__file__), '..', 'session_generator', 'static')
-        if os.path.exists(static_path):
-            webapp.router.add_static(
-                '/session/static', 
-                static_path, 
-                name='session_static',
-                # Add cache headers for better performance
-                show_index=False,  # Security: don't show directory listings
-                follow_symlinks=False  # Security: don't follow symlinks
-            )
-            logger.info(f"Static files configured for session generator at: {static_path}")
-        
-    except ImportError:
-        logger.warning("aiohttp_jinja2 not available. Session generator templates will not work.")
-    except Exception as e:
-        logger.error(f"Error setting up templates for session generator: {e}")
+    # Add routes
+    app.add_routes(routes)
     
-    webapp.add_routes(routes)
-    webapp['bot_client'] = bot_instance # This is the primary client for general info like /api/info
-    webapp['client_manager'] = client_manager # For download routes to get worker clients
-    webapp['start_time'] = start_time # type: ignore
-    logger.info("Web application routes configured with security middleware.")
-    
-    # Memory-optimized CORS configuration
-    cors = aiohttp_cors.setup(webapp, defaults={
-        # Restrict CORS to essential headers only to reduce memory overhead
-        "*": aiohttp_cors.ResourceOptions(
-            allow_credentials=False,
-            expose_headers=["Content-Length", "Content-Range"],
-            allow_headers=["Range", "Content-Type"],
-            allow_methods=["GET", "HEAD", "OPTIONS", "POST"],  # Added POST for session auth
-            max_age=3600  # Cache preflight for 1 hour to reduce requests
-        )
-    })
-    
-    # Only add CORS to routes that need it (more memory efficient)
-    for route in list(webapp.router.routes()):
-        if route.method in ["GET", "POST", "OPTIONS"]:
+    # Configure CORS
+    if Var.CORS_ALLOWED_ORIGINS:
+        logger.info(f"CORS enabled for origins: {Var.CORS_ALLOWED_ORIGINS}")
+        cors = aiohttp_cors.setup(app, defaults={
+            origin: aiohttp_cors.ResourceOptions(
+                allow_credentials=True,
+                expose_headers="*",
+                allow_headers="*",
+                allow_methods=["GET", "POST", "OPTIONS"],
+            ) for origin in Var.CORS_ALLOWED_ORIGINS
+        })
+        for route in list(app.router.routes()):
             cors.add(route)
+    else:
+        logger.warning("CORS_ALLOWED_ORIGINS is not set. The Telegram login widget may not work on external domains.")
+
+    # Setup Jinja2 templates
+    template_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../session_generator/templates")
+    aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(template_path))
+
+    # Setup static files for session generator with caching
+    static_path = os.path.join(os.path.dirname(__file__), '..', 'session_generator', 'static')
+    if os.path.exists(static_path):
+        app.router.add_static(
+            '/session/static', 
+            static_path, 
+            name='session_static',
+            # Add cache headers for better performance
+            show_index=False,  # Security: don't show directory listings
+            follow_symlinks=False  # Security: don't follow symlinks
+        )
+        logger.info(f"Static files configured for session generator at: {static_path}")
     
-    logger.info("CORS configured with memory optimization.")
-    return webapp
+    logger.info("Web application routes configured with security middleware.")
+    return app
 
 # Add these routes after the existing routes
 @routes.get("/stream/{encoded_id_str}")
@@ -566,9 +585,101 @@ async def session_generator_route(request: web.Request):
     
     return render_template('index.html', request, context)
 
+@routes.get("/session/login")
+async def session_login_route(request: web.Request):
+    """Route to display the interactive login form."""
+    from aiohttp_jinja2 import render_template
+    
+    token = request.query.get('token')
+    user_id = await validate_session_token(token)
+    
+    if not user_id:
+        return web.HTTPFound('/session?error=invalid_token')
+        
+    context = {
+        'token': token,
+        'user_id': user_id
+    }
+    return render_template('login.html', request, context)
+
+@routes.post("/session/send_code")
+async def session_send_code_route(request: web.Request):
+    """Handle phone number submission and send verification code."""
+    data = await request.json()
+    token = data.get('token')
+    phone_number = data.get('phone_number')
+    
+    user_id = await validate_session_token(token)
+    if not user_id:
+        return web.json_response({'status': 'error', 'message': 'Invalid or expired session.'}, status=401)
+        
+    result = await interactive_login_manager.start_login(user_id, phone_number)
+    return web.json_response(result)
+
+@routes.post("/session/submit_code")
+async def session_submit_code_route(request: web.Request):
+    """Handle verification code submission."""
+    data = await request.json()
+    token = data.get('token')
+    phone_number = data.get('phone_number')
+    phone_code_hash = data.get('phone_code_hash')
+    code = data.get('code')
+
+    user_id = await validate_session_token(token)
+    if not user_id:
+        return web.json_response({'status': 'error', 'message': 'Invalid or expired session.'}, status=401)
+        
+    result = await interactive_login_manager.submit_code(user_id, phone_number, phone_code_hash, code)
+    
+    if result.get('status') == 'success':
+        # SECURITY: Verify that the logged-in user matches the widget user
+        logged_in_user_info = result.get('user_info')
+        if not logged_in_user_info or logged_in_user_info.get('id') != user_id:
+            await interactive_login_manager.cleanup_client(user_id)
+            return web.json_response({
+                'status': 'error', 
+                'message': 'Account mismatch. The logged-in account does not match the widget account.'
+            }, status=400)
+
+        # Store the session and clean up
+        from StreamBot.database.user_sessions import store_user_session
+        await store_user_session(user_id, result['session_string'], logged_in_user_info)
+        await interactive_login_manager.cleanup_client(user_id)
+
+    return web.json_response(result)
+
+@routes.post("/session/submit_password")
+async def session_submit_password_route(request: web.Request):
+    """Handle 2FA password submission."""
+    data = await request.json()
+    token = data.get('token')
+    password = data.get('password')
+
+    user_id = await validate_session_token(token)
+    if not user_id:
+        return web.json_response({'status': 'error', 'message': 'Invalid or expired session.'}, status=401)
+
+    result = await interactive_login_manager.submit_password(user_id, password)
+    
+    if result.get('status') == 'success':
+        # SECURITY: Verify that the logged-in user matches the widget user
+        logged_in_user_info = result.get('user_info')
+        if not logged_in_user_info or logged_in_user_info.get('id') != user_id:
+            await interactive_login_manager.cleanup_client(user_id)
+            return web.json_response({
+                'status': 'error', 
+                'message': 'Account mismatch. The logged-in account does not match the widget account.'
+            }, status=400)
+            
+        from StreamBot.database.user_sessions import store_user_session
+        await store_user_session(user_id, result['session_string'], logged_in_user_info)
+        await interactive_login_manager.cleanup_client(user_id)
+
+    return web.json_response(result)
+
 @routes.post("/session/auth")
 async def session_auth_route(request: web.Request):
-    """Handle Telegram authentication for session generation."""
+    """Handle Telegram authentication and redirect to interactive login."""
     try:
         data = await request.json()
         
@@ -589,65 +700,22 @@ async def session_auth_route(request: web.Request):
             logger.info(f"Session generator web access denied for non-admin user {user_id}")
             return web.json_response({
                 'success': False,
-                'error': 'Access to session generator is restricted to administrators only'
+                'error': 'Access to the session generator is restricted to administrators.'
             }, status=403)
-        user_info = {
-            'id': user_id,
-            'username': data.get('username'),
-            'first_name': data.get('first_name'),
-            'last_name': data.get('last_name'),
-            'photo_url': data.get('photo_url'),
-            'auth_date': int(data['auth_date'])
-        }
-        
-        # Generate user session
-        from StreamBot.session_generator.session_manager import SessionManager
-        session_manager = SessionManager()
-        
-        result = await session_manager.generate_user_session(user_id, user_info)
-        
-        if result['success']:
-            # Add user to database
-            from StreamBot.database.database import add_user
-            await add_user(user_id)
-
-            # Generate session token for the dashboard
-            session_token = generate_session_token(user_id)
-
-            response_data = {
-                'success': True,
-                'message': 'Session generated successfully!',
-                'session_active': True,
-                'session_token': session_token,
-                'redirect_url': f'/session/dashboard?token={session_token}'
-            }
-
-            response = web.json_response(response_data)
-
-            # Set session cookie with Secure and SameSite attributes
-            # Use Secure when running over HTTPS (BASE_URL starts with https)
-            is_secure = str(Var.BASE_URL).lower().startswith('https://')
-            response.set_cookie(
-                'session_token',
-                session_token,
-                httponly=True,
-                secure=is_secure,
-                max_age=3600,
-                samesite='Lax'
-            )
-
-            return response
-        else:
-            return web.json_response({
-                'success': False,
-                'error': result['error']
-            }, status=500)
             
+        # Generate a temporary token and redirect to the login form
+        session_token = generate_session_token(user_id)
+        
+        return web.json_response({
+            'success': True,
+            'redirect_url': f'/session/login?token={session_token}'
+        })
+
     except Exception as e:
-        logger.error(f"Error in session authentication: {e}", exc_info=True)
+        logger.error(f"Error in session auth route: {e}", exc_info=True)
         return web.json_response({
             'success': False,
-            'error': 'Internal server error'
+            'error': 'An internal server error occurred.'
         }, status=500)
 
 @routes.get("/session/dashboard")

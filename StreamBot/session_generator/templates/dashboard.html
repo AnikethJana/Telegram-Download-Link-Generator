@@ -75,9 +75,9 @@
                     {% else %}
                         <div class="no-session">
                             <p>You don't have an active session yet. Generate one to start accessing private content.</p>
-                            <button class="btn btn-primary btn-large" onclick="generateSession()">
+                            <a href="/session" class="btn btn-primary btn-large">
                                 <i class="fas fa-plus-circle"></i> Generate Session
-                            </button>
+                            </a>
                         </div>
                     {% endif %}
                 </div>
@@ -187,7 +187,9 @@
             .then(data => {
                 hideLoading();
                 
-                if (data.success) {
+                if (data.success && data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else if (data.success) {
                     showSuccess(data.message);
                     // Reload page after 2 seconds to show updated status
                     setTimeout(() => {

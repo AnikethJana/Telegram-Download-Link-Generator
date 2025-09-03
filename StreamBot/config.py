@@ -87,6 +87,10 @@ class Var:
     PORT = get_env("PORT", 8080, is_int=True)
     BIND_ADDRESS = get_env("BIND_ADDRESS", "0.0.0.0")
     
+    # CORS configuration
+    _cors_origins_str = get_env("CORS_ALLOWED_ORIGINS", default="")
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in _cors_origins_str.split(',') if origin.strip()]
+    
     # Video streaming frontend configuration
     _video_frontend_url = get_env("VIDEO_FRONTEND_URL", default="https://cricster.pages.dev")
     VIDEO_FRONTEND_URL = None if _video_frontend_url and _video_frontend_url.lower() == "false" else _video_frontend_url

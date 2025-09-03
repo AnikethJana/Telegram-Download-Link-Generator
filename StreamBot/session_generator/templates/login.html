@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Telegram Session Generator</title>
+    <link rel="stylesheet" href="/session/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fab fa-telegram-plane"></i>
+                <h1>Session Generator</h1>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div id="login-form">
+                <div class="feature-card">
+                    <h2>Interactive Login</h2>
+                    <p>Enter your Telegram details to generate a secure session.</p>
+
+                    <form id="phone-form">
+                        <input type="hidden" id="token" value="{{ token }}">
+                        <div class="form-group">
+                            <label for="phone_number">Phone Number (with country code)</label>
+                            <input type="text" id="phone_number" placeholder="+12223334444" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Code</button>
+                    </form>
+
+                    <form id="code-form" style="display: none;">
+                        <input type="hidden" id="phone_code_hash">
+                        <div class="form-group">
+                            <label for="code">Verification Code</label>
+                            <input type="text" id="code" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Code</button>
+                    </form>
+
+                    <form id="password-form" style="display: none;">
+                        <div class="form-group">
+                            <label for="password">Two-Factor Authentication Password</label>
+                            <input type="password" id="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Password</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <p><i class="fas fa-lock"></i> Your credentials are not stored. They are used only to generate the session string.</p>
+        </div>
+    </div>
+
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loading-text">Processing...</p>
+        </div>
+    </div>
+    <div class="flash-messages" id="flash-messages"></div>
+
+    <script>
+        const phoneForm = document.getElementById('phone-form');
+        const codeForm = document.getElementById('code-form');
+        const passwordForm = document.getElementById('password-form');
+        const token = document.getElementById('token').value;
+        let phoneNumber;
+
+        phoneForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading('Sending code...');
+            phoneNumber = document.getElementById('phone_number').value;
+            
+            const response = await fetch('/session/send_code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, phone_number: phoneNumber })
+            });
+            const data = await response.json();
+            hideLoading();
+
+            if (data.status === 'code_sent') {
+                showSuccess(data.message);
+                document.getElementById('phone_code_hash').value = data.phone_code_hash;
+                phoneForm.style.display = 'none';
+                codeForm.style.display = 'block';
+            } else {
+                showError(data.message);
+            }
+        });
+
+        codeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading('Verifying code...');
+            const code = document.getElementById('code').value;
+            const phone_code_hash = document.getElementById('phone_code_hash').value;
+
+            const response = await fetch('/session/submit_code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, phone_number: phoneNumber, phone_code_hash, code })
+            });
+            const data = await response.json();
+            hideLoading();
+
+            if (data.status === 'success') {
+                showSuccess('Session generated successfully! Redirecting...');
+                setTimeout(() => window.location.href = '/session/dashboard', 2000);
+            } else if (data.status === '2fa_needed') {
+                showSuccess(data.message);
+                codeForm.style.display = 'none';
+                passwordForm.style.display = 'block';
+            } else {
+                showError(data.message);
+            }
+        });
+
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            showLoading('Verifying password...');
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/session/submit_password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, password })
+            });
+            const data = await response.json();
+            hideLoading();
+
+            if (data.status === 'success') {
+                showSuccess('Session generated successfully! Redirecting...');
+                setTimeout(() => window.location.href = '/session/dashboard', 2000);
+            } else {
+                showError(data.message);
+            }
+        });
+
+        function showLoading(text) {
+            document.getElementById('loading-text').textContent = text;
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        function showFlashMessage(message, type) {
+            const container = document.getElementById('flash-messages');
+            const div = document.createElement('div');
+            div.className = `flash-message flash-${type}`;
+            div.innerHTML = `<span>${message}</span><button onclick="this.parentElement.remove()">&times;</button>`;
+            container.appendChild(div);
+            setTimeout(() => div.remove(), 5000);
+        }
+
+        function showSuccess(message) {
+            showFlashMessage(message, 'success');
+        }
+
+        function showError(message) {
+            showFlashMessage(message, 'error');
+        }
+    </script>
+</body>
+</html>

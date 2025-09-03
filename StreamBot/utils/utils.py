@@ -206,7 +206,7 @@ def encode_message_id(message_id: int) -> str:
         logger.error(f"Error encoding message ID {message_id}: {e}", exc_info=True)
         return str(message_id)
 
-def decode_message_id(encoded_id_str: str) -> int | None:
+def decode_message_id(encoded_id_str: str) -> int | str | None:
     """Decode an encoded ID string back to a message ID."""
     try:
         # Input validation
@@ -239,15 +239,25 @@ def decode_message_id(encoded_id_str: str) -> int | None:
 
         original_message_id = transformed_id // key
 
-        # Verify the decoded ID is reasonable
-        if original_message_id <= 0 or original_message_id > 2**63:  # Reasonable bounds
-            logger.warning(f"Decoded message ID out of reasonable bounds: {original_message_id}")
-            return None
+        # Check if this could be a string (user session file)
+        try:
+            # Try to convert back to string to see if it was originally a string
+            potential_string = str(original_message_id)
+            if potential_string.startswith('user_'):
+                return transformed_id_str  # Return the original string
+        except:
+            pass
 
-        # Verify the encoded ID
-        if (original_message_id * key) != transformed_id:
-            logger.warning(f"Encoded ID verification failed for {encoded_id_str[:50]}...")
-            return None
+        # Verify the decoded ID is reasonable for numeric IDs
+        if isinstance(original_message_id, int):
+            if original_message_id <= 0 or original_message_id > 2**63:  # Reasonable bounds
+                logger.warning(f"Decoded message ID out of reasonable bounds: {original_message_id}")
+                return None
+
+            # Verify the encoded ID
+            if (original_message_id * key) != transformed_id:
+                logger.warning(f"Encoded ID verification failed for {encoded_id_str[:50]}...")
+                return None
 
         return original_message_id
     except (binascii.Error, ValueError, UnicodeDecodeError) as e:
