@@ -21,15 +21,46 @@
             <div id="login-form">
                 <div class="feature-card">
                     <h2>Interactive Login</h2>
-                    <p>Enter your Telegram details to generate a secure session.</p>
+                    <p>Enter your Telegram API credentials and phone number to generate a secure session.</p>
+                    <p><small><i class="fas fa-info-circle"></i> Get your API credentials from <a href="https://my.telegram.org/apps" target="_blank">my.telegram.org/apps</a></small></p>
 
-                    <form id="phone-form">
+                    <form id="credentials-form">
                         <input type="hidden" id="token" value="{{ token }}">
+                        
+                        <div class="form-group">
+                            <label for="api_id">API ID</label>
+                            <input type="number" id="api_id" placeholder="12345678" required>
+                            <small>Your API ID from my.telegram.org/apps</small>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="api_hash">API Hash</label>
+                            <input type="text" id="api_hash" placeholder="abcdef1234567890abcdef1234567890" required>
+                            <small>Your 32-character API Hash</small>
+                        </div>
+                        
                         <div class="form-group">
                             <label for="phone_number">Phone Number (with country code)</label>
                             <input type="text" id="phone_number" placeholder="+12223334444" required>
+                            <small>Include country code (e.g., +1 for US)</small>
                         </div>
-                        <button type="submit" class="btn btn-primary">Send Code</button>
+                        
+                        <div class="form-group" style="margin-top: 20px;">
+                            <h4>Optional: Webshare Proxy</h4>
+                            <small>If you're in a region where Telegram is blocked, you can use a free Webshare proxy</small>
+                            
+                            <div class="form-group">
+                                <label for="proxy_username">Proxy Username (optional)</label>
+                                <input type="text" id="proxy_username" placeholder="webshare_user">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="proxy_password">Proxy Password (optional)</label>
+                                <input type="password" id="proxy_password" placeholder="webshare_pass">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Send Verification Code</button>
                     </form>
 
                     <form id="code-form" style="display: none;">
@@ -65,37 +96,81 @@
     <div class="flash-messages" id="flash-messages"></div>
 
     <script>
-        const phoneForm = document.getElementById('phone-form');
+        const credentialsForm = document.getElementById('credentials-form');
         const codeForm = document.getElementById('code-form');
         const passwordForm = document.getElementById('password-form');
         const token = document.getElementById('token').value;
-        let phoneNumber;
+        let phoneNumber, apiId, apiHash, proxyUsername, proxyPassword;
 
-        phoneForm.addEventListener('submit', async (e) => {
+        credentialsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            showLoading('Sending code...');
-            phoneNumber = (document.getElementById('phone_number').value || '').trim();
-            // Normalize client-side to reduce format errors (keep leading + and digits)
+            showLoading('Sending verification code...');
+            
+            // Get form values
+            apiId = parseInt(document.getElementById('api_id').value);
+            apiHash = document.getElementById('api_hash').value.trim();
+            phoneNumber = document.getElementById('phone_number').value.trim();
+            proxyUsername = document.getElementById('proxy_username').value.trim() || null;
+            proxyPassword = document.getElementById('proxy_password').value.trim() || null;
+            
+            // Basic validation
+            if (!apiId || apiId < 1000) {
+                showError('Please enter a valid API ID (should be 6-8 digits)');
+                hideLoading();
+                return;
+            }
+            
+            if (!apiHash || apiHash.length !== 32) {
+                showError('Please enter a valid API Hash (should be exactly 32 characters)');
+                hideLoading();
+                return;
+            }
+            
+            // Normalize phone number
             if (phoneNumber) {
                 const cleaned = phoneNumber.replace(/[^\d+]/g, '');
                 phoneNumber = cleaned.startsWith('+') ? '+' + cleaned.replace(/\+/g, '') : cleaned;
             }
             
-            const response = await fetch('/session/send_code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, phone_number: phoneNumber })
-            });
-            const data = await response.json();
-            hideLoading();
+            if (!phoneNumber || !phoneNumber.startsWith('+') || phoneNumber.length < 8) {
+                showError('Please enter a valid phone number with country code (e.g., +1234567890)');
+                hideLoading();
+                return;
+            }
+            
+            try {
+                const requestData = {
+                    token,
+                    api_id: apiId,
+                    api_hash: apiHash,
+                    phone_number: phoneNumber
+                };
+                
+                if (proxyUsername && proxyPassword) {
+                    requestData.proxy_username = proxyUsername;
+                    requestData.proxy_password = proxyPassword;
+                }
+                
+                const response = await fetch('/session/send_code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const data = await response.json();
+                hideLoading();
 
-            if (data.status === 'code_sent') {
-                showSuccess(data.message);
-                document.getElementById('phone_code_hash').value = data.phone_code_hash;
-                phoneForm.style.display = 'none';
-                codeForm.style.display = 'block';
-            } else {
-                showError(data.message);
+                if (data.status === 'code_sent') {
+                    showSuccess(data.message);
+                    document.getElementById('phone_code_hash').value = data.phone_code_hash;
+                    credentialsForm.style.display = 'none';
+                    codeForm.style.display = 'block';
+                } else {
+                    showError(data.message);
+                }
+            } catch (err) {
+                hideLoading();
+                showError('Network error. Please check your connection and try again.');
             }
         });
 
@@ -105,13 +180,29 @@
             const code = (document.getElementById('code').value || '').trim();
             const phone_code_hash = document.getElementById('phone_code_hash').value;
 
-            const response = await fetch('/session/submit_code', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, phone_number: phoneNumber, phone_code_hash, code })
-            });
-            const data = await response.json();
-            hideLoading();
+            const ctrl = new AbortController();
+            const tId = setTimeout(() => ctrl.abort(), 35000);
+            let data;
+            try {
+                const response = await fetch('/session/submit_code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, phone_number: phoneNumber, phone_code_hash, code }),
+                    signal: ctrl.signal
+                });
+                data = await response.json();
+            } catch (err) {
+                hideLoading();
+                if (err.name === 'AbortError') {
+                    showError('Verification timed out. Please try again.');
+                } else {
+                    showError('Network error. Please try again.');
+                }
+                return;
+            } finally {
+                clearTimeout(tId);
+                hideLoading();
+            }
 
             if (data.status === 'success') {
                 showSuccess('Session generated successfully! Redirecting...');
@@ -136,13 +227,29 @@
             showLoading('Verifying password...');
             const password = document.getElementById('password').value;
 
-            const response = await fetch('/session/submit_password', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, password })
-            });
-            const data = await response.json();
-            hideLoading();
+            const ctrl = new AbortController();
+            const tId = setTimeout(() => ctrl.abort(), 35000);
+            let data;
+            try {
+                const response = await fetch('/session/submit_password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token, password }),
+                    signal: ctrl.signal
+                });
+                data = await response.json();
+            } catch (err) {
+                hideLoading();
+                if (err.name === 'AbortError') {
+                    showError('2FA timed out. Please try again.');
+                } else {
+                    showError('Network error. Please try again.');
+                }
+                return;
+            } finally {
+                clearTimeout(tId);
+                hideLoading();
+            }
 
             if (data.status === 'success') {
                 showSuccess('Session generated successfully! Redirecting...');
