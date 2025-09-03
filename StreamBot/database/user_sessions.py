@@ -12,6 +12,10 @@ logger = logging.getLogger(__name__)
 # User sessions collection with optimized settings
 user_sessions = database['user_sessions']
 
+# Global lock for thread safety
+import asyncio
+_session_lock = asyncio.Lock()
+
 # Encryption key for session strings (derived from LOG_CHANNEL for consistency)
 def get_encryption_key() -> bytes:
     """Generate a consistent encryption key from LOG_CHANNEL."""
@@ -26,86 +30,88 @@ def get_encryption_key() -> bytes:
 _cipher = Fernet(get_encryption_key())
 
 async def store_user_session(user_id: int, session_string: str, user_info: Dict[str, Any]) -> bool:
-    """Store encrypted user session in database with memory optimization."""
-    try:
-        # Input validation
-        if not isinstance(user_id, int) or user_id <= 0:
-            logger.warning(f"Invalid user_id for session storage: {user_id}")
+    """Store encrypted user session in database with thread safety."""
+    async with _session_lock:
+        try:
+            # Input validation
+            if not isinstance(user_id, int) or user_id <= 0:
+                logger.warning(f"Invalid user_id for session storage: {user_id}")
+                return False
+
+            if not session_string or not isinstance(session_string, str):
+                logger.warning(f"Invalid session_string for user {user_id}")
+                return False
+
+            # Encrypt session string
+            encrypted_session = _cipher.encrypt(session_string.encode('utf-8'))
+
+            # Prepare document with minimal data to save memory
+            session_doc = {
+                '_id': user_id,
+                'encrypted_session': encrypted_session,
+                'user_info': {
+                    'first_name': user_info.get('first_name', '')[:50],  # Limit length to save space
+                    'username': user_info.get('username', '')[:32],  # Limit length to save space
+                    'auth_date': user_info.get('auth_date')
+                },
+                'created_at': datetime.datetime.utcnow(),
+                'last_used': datetime.datetime.utcnow(),
+                'is_active': True
+            }
+
+            # Store in database (upsert) with write concern optimization
+            result = user_sessions.replace_one(
+                {'_id': user_id},
+                session_doc,
+                upsert=True
+            )
+
+            logger.info(f"User session stored for user {user_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error storing session for user {user_id}: {e}", exc_info=True)
             return False
-        
-        if not session_string or not isinstance(session_string, str):
-            logger.warning(f"Invalid session_string for user {user_id}")
-            return False
-        
-        # Encrypt session string
-        encrypted_session = _cipher.encrypt(session_string.encode('utf-8'))
-        
-        # Prepare document with minimal data to save memory
-        session_doc = {
-            '_id': user_id,
-            'encrypted_session': encrypted_session,
-            'user_info': {
-                'first_name': user_info.get('first_name', '')[:50],  # Limit length to save space
-                'username': user_info.get('username', '')[:32],  # Limit length to save space
-                'auth_date': user_info.get('auth_date')
-            },
-            'created_at': datetime.datetime.utcnow(),
-            'last_used': datetime.datetime.utcnow(),
-            'is_active': True
-        }
-        
-        # Store in database (upsert) with write concern optimization
-        result = user_sessions.replace_one(
-            {'_id': user_id},
-            session_doc,
-            upsert=True
-        )
-        
-        logger.info(f"User session stored for user {user_id}")
-        return True
-        
-    except Exception as e:
-        logger.error(f"Error storing session for user {user_id}: {e}", exc_info=True)
-        return False
 
 async def get_user_session(user_id: int) -> Optional[str]:
-    """Retrieve and decrypt user session from database with memory optimization."""
-    try:
-        # Input validation
-        if not isinstance(user_id, int) or user_id <= 0:
-            logger.warning(f"Invalid user_id for session retrieval: {user_id}")
+    """Retrieve and decrypt user session from database with thread safety."""
+    async with _session_lock:
+        try:
+            # Input validation
+            if not isinstance(user_id, int) or user_id <= 0:
+                logger.warning(f"Invalid user_id for session retrieval: {user_id}")
+                return None
+
+            # Find session with minimal projection to save memory
+            session_doc = user_sessions.find_one(
+                {'_id': user_id, 'is_active': True},
+                {'encrypted_session': 1, '_id': 1}  # Only get what we need
+            )
+
+            if not session_doc:
+                logger.debug(f"No active session found for user {user_id}")
+                return None
+
+            # Decrypt session string
+            encrypted_session = session_doc.get('encrypted_session')
+            if not encrypted_session:
+                logger.warning(f"Session document for user {user_id} missing encrypted_session")
+                return None
+
+            decrypted_session = _cipher.decrypt(encrypted_session).decode('utf-8')
+
+            # Update last_used timestamp efficiently (separate operation)
+            user_sessions.update_one(
+                {'_id': user_id},
+                {'$set': {'last_used': datetime.datetime.utcnow()}}
+            )
+
+            logger.debug(f"Session retrieved for user {user_id}")
+            return decrypted_session
+
+        except Exception as e:
+            logger.error(f"Error retrieving session for user {user_id}: {e}", exc_info=True)
             return None
-        
-        # Find session with minimal projection to save memory
-        session_doc = user_sessions.find_one(
-            {'_id': user_id, 'is_active': True},
-            {'encrypted_session': 1, '_id': 1}  # Only get what we need
-        )
-        
-        if not session_doc:
-            logger.debug(f"No active session found for user {user_id}")
-            return None
-        
-        # Decrypt session string
-        encrypted_session = session_doc.get('encrypted_session')
-        if not encrypted_session:
-            logger.warning(f"Session document for user {user_id} missing encrypted_session")
-            return None
-        
-        decrypted_session = _cipher.decrypt(encrypted_session).decode('utf-8')
-        
-        # Update last_used timestamp efficiently (separate operation)
-        user_sessions.update_one(
-            {'_id': user_id},
-            {'$set': {'last_used': datetime.datetime.utcnow()}}
-        )
-        
-        logger.debug(f"Session retrieved for user {user_id}")
-        return decrypted_session
-        
-    except Exception as e:
-        logger.error(f"Error retrieving session for user {user_id}: {e}", exc_info=True)
-        return None
 
 async def delete_user_session(user_id: int) -> bool:
     """Delete user session from database efficiently."""
@@ -139,23 +145,24 @@ async def delete_user_session(user_id: int) -> bool:
         return False
 
 async def check_user_has_session(user_id: int) -> bool:
-    """Check if user has an active session efficiently."""
-    try:
-        # Input validation
-        if not isinstance(user_id, int) or user_id <= 0:
+    """Check if user has an active session efficiently with thread safety."""
+    async with _session_lock:
+        try:
+            # Input validation
+            if not isinstance(user_id, int) or user_id <= 0:
+                return False
+
+            # Check for active session with minimal projection
+            session_doc = user_sessions.find_one(
+                {'_id': user_id, 'is_active': True},
+                {'_id': 1}  # Only return _id field for efficiency
+            )
+
+            return session_doc is not None
+
+        except Exception as e:
+            logger.error(f"Error checking session for user {user_id}: {e}", exc_info=True)
             return False
-        
-        # Check for active session with minimal projection
-        session_doc = user_sessions.find_one(
-            {'_id': user_id, 'is_active': True},
-            {'_id': 1}  # Only return _id field for efficiency
-        )
-        
-        return session_doc is not None
-        
-    except Exception as e:
-        logger.error(f"Error checking session for user {user_id}: {e}", exc_info=True)
-        return False
 
 async def get_user_session_info(user_id: int) -> Optional[Dict[str, Any]]:
     """Get user session metadata (without decrypting session string) efficiently."""
