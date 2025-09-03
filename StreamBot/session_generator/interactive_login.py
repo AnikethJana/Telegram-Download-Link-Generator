@@ -4,7 +4,7 @@ import logging
 from typing import Dict, Optional
 from pyrogram import Client
 from pyrogram.errors import (
-    ApiIdInvalid, ApiHashInvalid, PhoneNumberInvalid, PhoneCodeInvalid,
+    ApiIdInvalid, PhoneNumberInvalid, PhoneCodeInvalid,
     SessionPasswordNeeded, FloodWait, PhoneCodeExpired, UserNotParticipant
 )
 from ..config import Var

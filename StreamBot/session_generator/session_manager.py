@@ -4,7 +4,7 @@ import logging
 from typing import Optional, Dict, Any
 from pyrogram import Client
 from pyrogram.errors import (
-    ApiIdInvalid, ApiHashInvalid, PhoneNumberInvalid,
+    ApiIdInvalid, PhoneNumberInvalid,
     SessionPasswordNeeded, FloodWait, AuthKeyUnregistered
 )
 from StreamBot.config import Var
