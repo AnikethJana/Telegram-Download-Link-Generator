@@ -7,6 +7,17 @@
     <link rel="stylesheet" href="/session/static/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        #api_id:focus {
+            border-color: #0056b3 !important;
+            box-shadow: 0 4px 12px rgba(0,123,255,0.3) !important;
+            transform: translateY(-1px);
+        }
+        #api_id:hover {
+            border-color: #0069d9;
+            box-shadow: 0 3px 10px rgba(0,123,255,0.2);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -29,7 +40,7 @@
                         
                         <div class="form-group">
                             <label for="api_id">API ID</label>
-                            <input type="number" id="api_id" placeholder="12345678" required>
+                            <input type="number" id="api_id" placeholder="12345678" required style="border: 2px solid #007bff; border-radius: 8px; padding: 12px; font-size: 16px; transition: all 0.3s ease; background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%); box-shadow: 0 2px 8px rgba(0,123,255,0.1);">
                             <small>Your API ID from my.telegram.org/apps</small>
                         </div>
                         
