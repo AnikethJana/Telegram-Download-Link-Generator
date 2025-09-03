@@ -31,6 +31,14 @@ logger = logging.getLogger(__name__)
 
 routes = web.RouteTableDef()
 
+# Favicon route to prevent 404 errors
+@routes.get("/favicon.ico")
+async def favicon_route(request: web.Request):
+    """Serve a simple favicon to prevent 404 errors."""
+    # Return a simple transparent 1x1 PNG as ICO
+    favicon_data = b'\x00\x00\x01\x00\x01\x00\x01\x01\x00\x00\x00\x00\x00\x00(\x00\x00\x00\x16\x00\x00\x00(\x00\x00\x00\x01\x00\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x00\x00\x00\x00\x00\x00\x00'
+    return web.Response(body=favicon_data, content_type='image/x-icon')
+
 # User session streaming is now integrated into the main download route
 
 # Helper function to check session generator access permissions
