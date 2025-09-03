@@ -190,10 +190,20 @@ def get_id_encoder_key():
         return 961748927  # Fallback prime number
     return key
 
-def encode_message_id(message_id: int) -> str:
-    """Encode a message ID for use in URLs."""
+def encode_message_id(message_id) -> str:
+    """Encode a message ID (int or str) for use in URLs."""
     try:
-        # Input validation
+        # Handle string virtual message IDs (user session files)
+        if isinstance(message_id, str):
+            if message_id.startswith('user_'):
+                # Directly encode string virtual message IDs
+                encoded_bytes = base64.urlsafe_b64encode(message_id.encode('utf-8'))
+                return encoded_bytes.decode('utf-8').rstrip("=")
+            else:
+                logger.warning(f"Unknown string message_id format: {message_id}")
+                return message_id
+        
+        # Handle integer message IDs (regular messages)
         if not isinstance(message_id, int) or message_id <= 0:
             logger.warning(f"Invalid message_id for encoding: {message_id}")
             return str(message_id)
@@ -226,30 +236,27 @@ def decode_message_id(encoded_id_str: str) -> int | str | None:
             logger.warning(f"Invalid characters in encoded ID: {encoded_id_str[:50]}...")
             return None
         
-        key = get_id_encoder_key()
+        # Try to decode as base64
         padding = "=" * (-len(encoded_id_str) % 4)
         decoded_bytes = base64.urlsafe_b64decode((encoded_id_str + padding).encode('utf-8'))
-        transformed_id_str = decoded_bytes.decode('utf-8')
+        decoded_str = decoded_bytes.decode('utf-8')
 
-        transformed_id = int(transformed_id_str)
-
-        if transformed_id % key != 0:
-            logger.warning(f"Invalid encoded ID (key mismatch): {encoded_id_str[:50]}...")
-            return None
-
-        original_message_id = transformed_id // key
-
-        # Check if this could be a string (user session file)
+        # Check if this is a virtual user session file ID
+        if decoded_str.startswith('user_'):
+            return decoded_str  # Return the virtual message ID string
+        
+        # Handle regular integer message IDs
         try:
-            # Try to convert back to string to see if it was originally a string
-            potential_string = str(original_message_id)
-            if potential_string.startswith('user_'):
-                return transformed_id_str  # Return the original string
-        except:
-            pass
+            transformed_id = int(decoded_str)
+            key = get_id_encoder_key()
+            
+            if transformed_id % key != 0:
+                logger.warning(f"Invalid encoded ID (key mismatch): {encoded_id_str[:50]}...")
+                return None
 
-        # Verify the decoded ID is reasonable for numeric IDs
-        if isinstance(original_message_id, int):
+            original_message_id = transformed_id // key
+
+            # Verify the decoded ID is reasonable for numeric IDs
             if original_message_id <= 0 or original_message_id > 2**63:  # Reasonable bounds
                 logger.warning(f"Decoded message ID out of reasonable bounds: {original_message_id}")
                 return None
@@ -259,7 +266,12 @@ def decode_message_id(encoded_id_str: str) -> int | str | None:
                 logger.warning(f"Encoded ID verification failed for {encoded_id_str[:50]}...")
                 return None
 
-        return original_message_id
+            return original_message_id
+            
+        except ValueError:
+            logger.warning(f"Could not parse decoded string as integer: {decoded_str[:50]}...")
+            return None
+            
     except (binascii.Error, ValueError, UnicodeDecodeError) as e:
         logger.warning(f"Error decoding ID '{encoded_id_str[:50]}...': {e}")
         return None
