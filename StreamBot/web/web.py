@@ -137,13 +137,11 @@ async def download_route(request: web.Request):
         logger.error(f"Error getting file properties for message {message_id}: {e}", exc_info=True)
         raise web.HTTPInternalServerError(text="Failed to get file details.")
 
-    # Extract file information from FileId object
-    file_size = getattr(file_id, 'file_size', 0)
-    file_name = getattr(file_id, 'file_name', None)
-    file_mime_type = getattr(file_id, 'mime_type', None)
+    # Extract file information using get_file_attr (proper filename handling)
+    file_id_str, file_name, file_size, file_mime_type, file_unique_id = get_file_attr(media_msg)
 
-    # Generate fallback filename if needed
     if not file_name:
+        logger.warning(f"No filename could be determined for message {message_id}")
         file_name = f"file_{message_id}"
 
     # Sanitize filename for security
