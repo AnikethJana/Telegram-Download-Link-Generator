@@ -32,6 +32,9 @@
                         <span class="username">@{{ user_info.username }}</span>
                     {% endif %}
                 </div>
+                <button id="logout-btn" class="btn btn-secondary" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
             </div>
         </div>
 
@@ -157,14 +160,28 @@
     </div>
 
     <script>
+        // Check for session token and add to requests
+        function getAuthHeaders() {
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            const sessionToken = localStorage.getItem('session_token') ||
+                                document.cookie.split(';').find(c => c.trim().startsWith('session_token='))?.split('=')[1];
+
+            if (sessionToken) {
+                headers['X-Session-Token'] = sessionToken;
+            }
+
+            return headers;
+        }
+
         function generateSession() {
             showLoading('Generating session...');
-            
+
             fetch('/session/auth', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+                headers: getAuthHeaders()
             })
             .then(response => response.json())
             .then(data => {
@@ -228,6 +245,25 @@
             document.body.appendChild(container);
             return container;
         }
+
+        function logout() {
+            // Clear session token
+            localStorage.removeItem('session_token');
+
+            // Clear session cookie
+            document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+
+            // Redirect to home
+            window.location.href = '/session';
+        }
+
+        // Add logout button handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logout);
+            }
+        });
     </script>
 
     <style>

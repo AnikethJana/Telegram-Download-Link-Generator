@@ -13,36 +13,58 @@ from StreamBot.database.user_sessions import store_user_session
 logger = logging.getLogger(__name__)
 
 class SessionManager:
-    """Manages Pyrogram session generation for users with memory optimization."""
-    
+    """Manages Pyrogram session generation for users with memory optimization and thread safety."""
+
     def __init__(self):
         self.api_id = Var.API_ID
         self.api_hash = Var.API_HASH
-        # Remove temp_clients dict to save memory - we'll create and destroy immediately
+        self._lock = asyncio.Lock()  # Thread safety for concurrent session generation
+        self._active_sessions = set()  # Track active session generation to prevent duplicates
         
     async def generate_user_session(self, user_id: int, user_info: Dict[str, Any]) -> Dict[str, Any]:
         """
         Generate a Pyrogram session for the user using the bot's API credentials.
-        Optimized for low memory usage.
+        Thread-safe with race condition prevention.
         """
+        async with self._lock:
+            # Prevent concurrent session generation for the same user
+            if user_id in self._active_sessions:
+                logger.warning(f"Session generation already in progress for user {user_id}")
+                return {
+                    'success': False,
+                    'error': 'Session generation already in progress'
+                }
+
+            self._active_sessions.add(user_id)
+
         try:
             logger.info(f"Starting session generation for user {user_id}")
-            
+
+            # Check if user already has an active session
+            from StreamBot.database.user_sessions import check_user_has_session
+            has_session = await check_user_has_session(user_id)
+            if has_session:
+                logger.info(f"User {user_id} already has an active session")
+                return {
+                    'success': False,
+                    'error': 'User already has an active session'
+                }
+
             # Use a simple session name with timestamp for uniqueness
             session_name = f"user_{user_id}_{int(asyncio.get_event_loop().time())}"
-            
+
             session_string = await self._create_bot_session_for_user(user_id, session_name)
-            
+
             if session_string:
                 # Store the session in database
                 success = await store_user_session(user_id, session_string, user_info)
-                
+
                 if success:
                     logger.info(f"Session successfully generated and stored for user {user_id}")
-                    
+
                     # Send notification without blocking
                     asyncio.create_task(self.notify_bot_about_new_session(user_id, user_info))
-                    
+
                     return {
                         'success': True,
                         'message': 'Session generated successfully',
@@ -60,13 +82,17 @@ class SessionManager:
                     'success': False,
                     'error': 'Failed to generate session'
                 }
-                
+
         except Exception as e:
             logger.error(f"Error in session generation for user {user_id}: {e}", exc_info=True)
             return {
                 'success': False,
                 'error': f'Session generation failed: {str(e)}'
             }
+        finally:
+            # Always remove from active sessions set
+            async with self._lock:
+                self._active_sessions.discard(user_id)
     
     async def _create_bot_session_for_user(self, user_id: int, session_name: str) -> Optional[str]:
         """

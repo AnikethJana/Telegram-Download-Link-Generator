@@ -27,6 +27,86 @@ logger = logging.getLogger(__name__)
 routes = web.RouteTableDef()
 
 # Helper function to check session generator access permissions
+def generate_session_token(user_id: int) -> str:
+    """Generate a secure session token for user authentication."""
+    import secrets
+    import hashlib
+    import time
+
+    # Create a unique token with timestamp and random data
+    timestamp = str(int(time.time()))
+    random_data = secrets.token_hex(16)
+    token_data = f"{user_id}:{timestamp}:{random_data}"
+
+    # Hash the token for security
+    token_hash = hashlib.sha256(token_data.encode()).hexdigest()
+
+    # Store token mapping (in production, use Redis or database)
+    # For now, we'll store in a simple in-memory dict
+    if not hasattr(generate_session_token, '_token_store'):
+        generate_session_token._token_store = {}
+        # Start cleanup task for expired tokens
+        asyncio.create_task(cleanup_expired_tokens())
+
+    # Clean up expired tokens before adding new one
+    current_time = int(time.time())
+    expired_tokens = [
+        token for token, data in generate_session_token._token_store.items()
+        if current_time > int(data['expires_at'])
+    ]
+    for token in expired_tokens:
+        del generate_session_token._token_store[token]
+
+    generate_session_token._token_store[token_hash] = {
+        'user_id': user_id,
+        'created_at': timestamp,
+        'expires_at': str(int(time.time()) + 3600)  # 1 hour expiry
+    }
+
+    return token_hash
+
+async def cleanup_expired_tokens():
+    """Periodically clean up expired session tokens."""
+    while True:
+        try:
+            await asyncio.sleep(300)  # Clean up every 5 minutes
+
+            if hasattr(generate_session_token, '_token_store'):
+                current_time = int(time.time())
+                expired_tokens = [
+                    token for token, data in generate_session_token._token_store.items()
+                    if current_time > int(data['expires_at'])
+                ]
+                for token in expired_tokens:
+                    del generate_session_token._token_store[token]
+
+                if expired_tokens:
+                    logger.debug(f"Cleaned up {len(expired_tokens)} expired session tokens")
+
+        except Exception as e:
+            logger.error(f"Error cleaning up expired tokens: {e}")
+            await asyncio.sleep(60)  # Wait a minute before retrying
+
+async def validate_session_token(token: str) -> int | None:
+    """Validate session token and return user_id if valid."""
+    import time
+
+    if not hasattr(generate_session_token, '_token_store'):
+        return None
+
+    token_data = generate_session_token._token_store.get(token)
+    if not token_data:
+        return None
+
+    # Check if token has expired
+    current_time = int(time.time())
+    if current_time > int(token_data['expires_at']):
+        # Remove expired token
+        del generate_session_token._token_store[token]
+        return None
+
+    return token_data['user_id']
+
 def check_session_generator_access(user_id: int) -> bool:
     """Check if user has permission to access session generator features."""
     # If ALLOW_USER_LOGIN is True, everyone can access
@@ -530,12 +610,24 @@ async def session_auth_route(request: web.Request):
             # Add user to database
             from StreamBot.database.database import add_user
             await add_user(user_id)
-            
-            return web.json_response({
+
+            # Generate session token for the dashboard
+            session_token = generate_session_token(user_id)
+
+            response_data = {
                 'success': True,
                 'message': 'Session generated successfully!',
-                'session_active': True
-            })
+                'session_active': True,
+                'session_token': session_token,
+                'redirect_url': f'/session/dashboard?token={session_token}'
+            }
+
+            response = web.json_response(response_data)
+
+            # Set session cookie
+            response.set_cookie('session_token', session_token, httponly=True, secure=False, max_age=3600)
+
+            return response
         else:
             return web.json_response({
                 'success': False,
@@ -551,50 +643,71 @@ async def session_auth_route(request: web.Request):
 
 @routes.get("/session/dashboard")
 async def session_dashboard_route(request: web.Request):
-    """Session generator dashboard for authenticated users."""
+    """Session generator dashboard for authenticated users with proper session management."""
     from aiohttp_jinja2 import render_template
-    
-    # For now, we'll check session via query parameter
-    # In production, you'd use proper session management
-    user_id = request.query.get('user_id')
-    if not user_id:
-        # Redirect to main page
-        raise web.HTTPFound('/session')
-    
+
+    # Check for session token in cookies or headers, fallback to query parameter
+    session_token = request.cookies.get('session_token') or request.headers.get('X-Session-Token')
+    user_id_param = request.query.get('user_id')
+
+    user_id = None
+
     try:
-        user_id = int(user_id)
-        
+        if session_token:
+            # Validate session token
+            user_id = await validate_session_token(session_token)
+        elif user_id_param:
+            user_id = int(user_id_param)
+
+        if not user_id:
+            logger.warning("No valid session token or user_id provided")
+            raise web.HTTPFound('/session')
+
         # Check if user has permission to use session generator
         if not check_session_generator_access(user_id):
             logger.info(f"Session generator dashboard access denied for non-admin user {user_id}")
-            # Create a simple access denied response
             return web.Response(
                 text="Access Denied: Session generator is restricted to administrators only.",
                 status=403,
                 content_type='text/plain'
             )
-        
+
         # Get user session info
-        from StreamBot.database.user_sessions import get_user_session
-        session_info = await get_user_session(user_id)
-        
-        if not session_info or not session_info.get('is_active'):
-            # Redirect to main page if no active session
+        from StreamBot.database.user_sessions import get_user_session_info
+        user_info = await get_user_session_info(user_id)
+
+        if not user_info:
+            logger.warning(f"No session info found for user {user_id}")
             raise web.HTTPFound('/session')
-        
-        bot_client: Client = request.app['bot_client']
-        bot_username = getattr(bot_client.me, 'username', None) if hasattr(bot_client, 'me') else None
-        
+
+        # Generate new session token for this session
+        new_session_token = generate_session_token(user_id)
+
+        bot_client: Client = request.app.get('bot_client')
+        bot_username = getattr(bot_client.me, 'username', None) if bot_client and hasattr(bot_client, 'me') else None
+
         context = {
-            'user_info': session_info,
+            'user_info': user_info,
             'bot_username': bot_username,
             'base_url': Var.BASE_URL,
-            'app_name': 'Telegram Session Generator'
+            'app_name': 'Telegram Session Generator',
+            'session_token': new_session_token
         }
-        
-        return render_template('dashboard.html', request, context)
-        
+
+        response = render_template('dashboard.html', request, context)
+
+        # Set session cookie for proper session management
+        if hasattr(response, 'set_cookie'):
+            response.set_cookie('session_token', new_session_token, httponly=True, secure=False, max_age=3600)
+        else:
+            # If render_template doesn't return a response object, create one
+            response = web.Response(text=response, content_type='text/html')
+            response.set_cookie('session_token', new_session_token, httponly=True, secure=False, max_age=3600)
+
+        return response
+
     except (ValueError, TypeError):
+        logger.warning(f"Invalid user_id format: {user_id_param}")
         raise web.HTTPFound('/session')
     except Exception as e:
         logger.error(f"Error in session dashboard: {e}", exc_info=True)

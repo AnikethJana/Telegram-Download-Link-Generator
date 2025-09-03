@@ -123,25 +123,9 @@ def get_file_attr(message: Message):
 
     # Generate fallback file name
     if not file_name:
-        # Use descriptive names based on media type instead of complex IDs
-        if isinstance(media, Photo):
-            base_name = f"photo_{message.id}"
-        elif isinstance(media, Video):
-            base_name = f"video_{message.id}"
-        elif isinstance(media, Audio):
-            base_name = f"audio_{message.id}"
-        elif isinstance(media, Voice):
-            base_name = f"voice_{message.id}"
-        elif isinstance(media, Animation):
-            base_name = f"animation_{message.id}"
-        elif isinstance(media, Sticker):
-            base_name = f"sticker_{message.id}"
-        elif isinstance(media, Document):
-            base_name = f"document_{message.id}"
-        else:
-            base_name = f"file_{message.id}"
+        # Use original logic that was working before - file IDs contain useful info
+        base_name = file_unique_id or file_id or f"media_{message.id}"
 
-        # Try to guess extension from MIME type first
         guessed_extension = mimetypes.guess_extension(mime_type) if mime_type else None
         if guessed_extension:
             file_name = f"{base_name}{guessed_extension}"

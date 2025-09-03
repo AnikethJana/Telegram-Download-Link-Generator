@@ -260,13 +260,20 @@
             })
             .then(data => {
                 showLoading(false);
-                
+
                 if (data.success) {
                     updateLoadingText('Authentication successful! Redirecting...');
                     showLoading(true);
-                    // Redirect to dashboard with user ID
+
+                    // Store session token if provided
+                    if (data.session_token) {
+                        localStorage.setItem('session_token', data.session_token);
+                    }
+
+                    // Redirect to dashboard - prefer token-based URL over user_id
+                    const redirectUrl = data.redirect_url || `/session/dashboard?user_id=${user.id}`;
                     setTimeout(() => {
-                        window.location.href = `/session/dashboard?user_id=${user.id}`;
+                        window.location.href = redirectUrl;
                     }, 1000);
                 } else {
                     showError('Authentication failed: ' + (data.error || 'Unknown error'));
