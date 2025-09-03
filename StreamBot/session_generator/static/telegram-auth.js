@@ -19,18 +19,49 @@ function initializeSessionGenerator() {
 }
 
 function checkTelegramWidgetLoading() {
-    // Check if Telegram widget loaded successfully
+    // Check if Telegram widget loaded successfully in a safe way
     let checkCount = 0;
     const maxChecks = 10;
-    
+
+    const isTrustedTelegramUrl = (urlStr) => {
+        try {
+            const url = new URL(urlStr);
+            if (url.protocol !== 'https:') return false;
+            const host = url.hostname.toLowerCase();
+            // Allow exact telegram domains only
+            const trustedHosts = new Set([
+                'telegram.org',
+                'www.telegram.org',
+                'oauth.telegram.org',
+                't.me',
+                'www.t.me'
+            ]);
+            if (trustedHosts.has(host)) return true;
+            // Also allow subdomains that end with .telegram.org (e.g., oauth.telegram.org)
+            return host.endsWith('.telegram.org');
+        } catch (_) {
+            return false;
+        }
+    };
+
+    const getTelegramWidgetIframe = () => {
+        const iframes = document.querySelectorAll('iframe');
+        for (const frame of iframes) {
+            if (frame.src && isTrustedTelegramUrl(frame.src)) {
+                return frame;
+            }
+        }
+        return null;
+    };
+
     const checkInterval = setInterval(() => {
         checkCount++;
-        
-        const widget = document.querySelector('iframe[src*="telegram.org"]');
+
+        const widget = getTelegramWidgetIframe();
         const fallback = document.querySelector('.login-fallback');
         const placeholder = document.querySelector('.telegram-login-placeholder');
-        
-        if (widget && widget.src.includes('telegram.org')) {
+
+        if (widget) {
             // Widget loaded successfully
             clearInterval(checkInterval);
             console.log('Telegram login widget loaded successfully');

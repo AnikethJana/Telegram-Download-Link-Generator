@@ -624,8 +624,17 @@ async def session_auth_route(request: web.Request):
 
             response = web.json_response(response_data)
 
-            # Set session cookie
-            response.set_cookie('session_token', session_token, httponly=True, secure=False, max_age=3600)
+            # Set session cookie with Secure and SameSite attributes
+            # Use Secure when running over HTTPS (BASE_URL starts with https)
+            is_secure = str(Var.BASE_URL).lower().startswith('https://')
+            response.set_cookie(
+                'session_token',
+                session_token,
+                httponly=True,
+                secure=is_secure,
+                max_age=3600,
+                samesite='Lax'
+            )
 
             return response
         else:
@@ -698,11 +707,13 @@ async def session_dashboard_route(request: web.Request):
 
         # Set session cookie for proper session management
         if hasattr(response, 'set_cookie'):
-            response.set_cookie('session_token', new_session_token, httponly=True, secure=False, max_age=3600)
+            is_secure = str(Var.BASE_URL).lower().startswith('https://')
+            response.set_cookie('session_token', new_session_token, httponly=True, secure=is_secure, max_age=3600, samesite='Lax')
         else:
             # If render_template doesn't return a response object, create one
             response = web.Response(text=response, content_type='text/html')
-            response.set_cookie('session_token', new_session_token, httponly=True, secure=False, max_age=3600)
+            is_secure = str(Var.BASE_URL).lower().startswith('https://')
+            response.set_cookie('session_token', new_session_token, httponly=True, secure=is_secure, max_age=3600, samesite='Lax')
 
         return response
 

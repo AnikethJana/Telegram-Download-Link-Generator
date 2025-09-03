@@ -23,14 +23,14 @@ class SecurityMiddleware:
         if response.content_type and 'text/html' in response.content_type:
             # More permissive CSP for session generator pages
             if request.path.startswith('/session'):
-                # Allow external resources needed for session generator
+                # Allow external resources needed for session generator (Telegram Login Widget)
                 csp = (
                     "default-src 'self'; "
-                    "script-src 'self' 'unsafe-inline' https://telegram.org https://cdnjs.cloudflare.com; "
+                    "script-src 'self' 'unsafe-inline' https://telegram.org https://oauth.telegram.org https://cdnjs.cloudflare.com; "
                     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; "
                     "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
-                    "frame-src https://oauth.telegram.org; "
-                    "connect-src 'self'; "
+                    "frame-src https://oauth.telegram.org https://telegram.org https://t.me; "
+                    "connect-src 'self' https://oauth.telegram.org; "
                     "img-src 'self' data: https:; "
                 )
             else:
