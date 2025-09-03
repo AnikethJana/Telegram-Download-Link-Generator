@@ -74,7 +74,12 @@
         phoneForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             showLoading('Sending code...');
-            phoneNumber = document.getElementById('phone_number').value;
+            phoneNumber = (document.getElementById('phone_number').value || '').trim();
+            // Normalize client-side to reduce format errors (keep leading + and digits)
+            if (phoneNumber) {
+                const cleaned = phoneNumber.replace(/[^\d+]/g, '');
+                phoneNumber = cleaned.startsWith('+') ? '+' + cleaned.replace(/\+/g, '') : cleaned;
+            }
             
             const response = await fetch('/session/send_code', {
                 method: 'POST',
@@ -97,7 +102,7 @@
         codeForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             showLoading('Verifying code...');
-            const code = document.getElementById('code').value;
+            const code = (document.getElementById('code').value || '').trim();
             const phone_code_hash = document.getElementById('phone_code_hash').value;
 
             const response = await fetch('/session/submit_code', {
