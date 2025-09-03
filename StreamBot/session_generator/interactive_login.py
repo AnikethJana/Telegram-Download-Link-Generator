@@ -73,8 +73,12 @@ class InteractiveLoginManager:
             session_string = await client.export_session_string()
             me = await client.get_me()
             user_info = {
-                'id': me.id, 'first_name': me.first_name, 'last_name': me.last_name, 'username': me.username
+                'id': me.id, 
+                'first_name': me.first_name or '', 
+                'last_name': me.last_name or '', 
+                'username': me.username or ''
             }
+            logger.debug(f"Interactive login successful for user {user_id}, user_info: {user_info}")
             return {'status': 'success', 'session_string': session_string, 'user_info': user_info}
 
         except PhoneCodeInvalid:
@@ -100,8 +104,12 @@ class InteractiveLoginManager:
             session_string = await client.export_session_string()
             me = await client.get_me()
             user_info = {
-                'id': me.id, 'first_name': me.first_name, 'last_name': me.last_name, 'username': me.username
+                'id': me.id, 
+                'first_name': me.first_name or '', 
+                'last_name': me.last_name or '', 
+                'username': me.username or ''
             }
+            logger.debug(f"Interactive login with 2FA successful for user {user_id}, user_info: {user_info}")
             return {'status': 'success', 'session_string': session_string, 'user_info': user_info}
 
         except Exception as e:

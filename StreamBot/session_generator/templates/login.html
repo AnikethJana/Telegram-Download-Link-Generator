@@ -110,7 +110,7 @@
 
             if (data.status === 'success') {
                 showSuccess('Session generated successfully! Redirecting...');
-                setTimeout(() => window.location.href = '/session/dashboard', 2000);
+                setTimeout(() => window.location.href = '/session/success', 2000);
             } else if (data.status === '2fa_needed') {
                 showSuccess(data.message);
                 codeForm.style.display = 'none';
@@ -135,7 +135,7 @@
 
             if (data.status === 'success') {
                 showSuccess('Session generated successfully! Redirecting...');
-                setTimeout(() => window.location.href = '/session/dashboard', 2000);
+                setTimeout(() => window.location.href = '/session/success', 2000);
             } else {
                 showError(data.message);
             }

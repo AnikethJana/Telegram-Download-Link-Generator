@@ -42,7 +42,18 @@ Dockerfile
 .env
 *.env
 
-# Other
-*.md # READMEs, etc., if not needed in the final image for some reason
+# Development and documentation files
+*.md # READMEs, etc., if not needed in the final image
 .git/
 .gitignore
+docs/
+
+# Cache directories
+.cache/
+__pycache__/
+.pytest_cache/
+
+# Editor backups
+*~
+*.bak
+*.orig

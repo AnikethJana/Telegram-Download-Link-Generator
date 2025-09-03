@@ -264,6 +264,62 @@ body {
     margin-bottom: 20px;
 }
 
+/* Form Styling */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.form-group input[type="text"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e6e9ff;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    background: #ffffff;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="password"]:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    background: #fafbff;
+}
+
+.form-group input[type="text"]::placeholder,
+.form-group input[type="password"]::placeholder {
+    color: #a0a6b8;
+    font-weight: 400;
+}
+
+.form-group input[type="text"]:hover,
+.form-group input[type="password"]:hover {
+    border-color: #b8c5ea;
+}
+
+.form-group input[type="text"]:invalid,
+.form-group input[type="password"]:invalid {
+    border-color: #e74c3c;
+}
+
+.form-group input[type="text"]:valid,
+.form-group input[type="password"]:valid {
+    border-color: #27ae60;
+}
+
 /* Telegram Login Container */
 #telegram-login-container {
     margin: 20px 0;

@@ -233,12 +233,12 @@ async def download_route(request: web.Request):
                 client_manager.get_streaming_client(),
                 timeout=60  # Increased from 30 to 60 seconds for large file handling
             )
-            if not streamer_client or not streamer_client.is_connected:
+            if not streamer_client or not getattr(streamer_client, "is_connected", False):
                 logger.error(f"Failed to obtain a connected streaming client for message_id {message_id}")
-                raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again shortly.")
+            raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again shortly.")
 
-            logger.debug(f"Using client @{streamer_client.me.username} for streaming message_id {message_id}")
-            media_msg = await get_media_message(streamer_client, message_id)
+        logger.debug(f"Using client @{streamer_client.me.username} for streaming message_id {message_id}")
+        media_msg = await get_media_message(streamer_client, message_id)
     except asyncio.TimeoutError:
         logger.error(f"Timeout getting streaming client for message_id {message_id}")
         raise web.HTTPServiceUnavailable(text="Service temporarily unavailable.")
@@ -546,10 +546,9 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
     static_path = os.path.join(os.path.dirname(__file__), '..', 'session_generator', 'static')
     if os.path.exists(static_path):
         app.router.add_static(
-            '/session/static', 
-            static_path, 
+            '/session/static',
+            static_path,
             name='session_static',
-            # Add cache headers for better performance
             show_index=False,  # Security: don't show directory listings
             follow_symlinks=False  # Security: don't follow symlinks
         )
@@ -651,8 +650,15 @@ async def session_submit_code_route(request: web.Request):
 
         # Store the session and clean up
         from StreamBot.database.user_sessions import store_user_session
-        await store_user_session(user_id, result['session_string'], logged_in_user_info)
+        session_stored = await store_user_session(user_id, result['session_string'], logged_in_user_info)
         await interactive_login_manager.cleanup_client(user_id)
+        
+        if not session_stored:
+            logger.error(f"Failed to store session for user {user_id}")
+            return web.json_response({
+                'status': 'error', 
+                'message': 'Failed to store session. Please try again.'
+            }, status=500)
 
     return web.json_response(result)
 
@@ -680,8 +686,15 @@ async def session_submit_password_route(request: web.Request):
             }, status=400)
             
         from StreamBot.database.user_sessions import store_user_session
-        await store_user_session(user_id, result['session_string'], logged_in_user_info)
+        session_stored = await store_user_session(user_id, result['session_string'], logged_in_user_info)
         await interactive_login_manager.cleanup_client(user_id)
+        
+        if not session_stored:
+            logger.error(f"Failed to store session for user {user_id}")
+            return web.json_response({
+                'status': 'error', 
+                'message': 'Failed to store session. Please try again.'
+            }, status=500)
 
     return web.json_response(result)
 
@@ -715,16 +728,63 @@ async def session_auth_route(request: web.Request):
         session_token = generate_session_token(user_id)
         
         return web.json_response({
-            'success': True,
+                'success': True,
             'redirect_url': f'/session/login?token={session_token}'
         })
-
+            
     except Exception as e:
         logger.error(f"Error in session auth route: {e}", exc_info=True)
         return web.json_response({
             'success': False,
             'error': 'An internal server error occurred.'
         }, status=500)
+
+@routes.get("/session/success")
+async def session_success_route(request: web.Request):
+    """Session generation success page route."""
+    from aiohttp_jinja2 import render_template
+    from StreamBot.database.user_sessions import get_user_session_info
+    
+    try:
+        # Get user_id from query params or session token
+        user_id_param = request.query.get('user_id')
+        session_token = request.headers.get('X-Session-Token') or request.cookies.get('session_token')
+        
+        user_id = None
+        if session_token:
+            user_id = await validate_session_token(session_token)
+        elif user_id_param:
+            try:
+                user_id = int(user_id_param)
+            except (ValueError, TypeError):
+                pass
+        
+        if not user_id:
+            logger.warning("No valid session token or user_id provided for success page")
+            return web.HTTPFound('/session')
+        
+        # Get user session info from database
+        user_info = await get_user_session_info(user_id)
+        if not user_info:
+            logger.warning(f"No session info found for user {user_id} on success page")
+            return web.HTTPFound('/session')
+        
+        # Get bot username for the success page
+        bot_client = request.app['bot_client']
+        bot_username = bot_client.me.username if bot_client and bot_client.me else 'unknown'
+        
+        return render_template('success.html', request, {
+            'user_info': user_info,
+            'base_url': Var.BASE_URL,
+            'bot_username': bot_username
+        })
+        
+    except (ValueError, TypeError):
+        logger.warning(f"Invalid user_id format: {user_id_param}")
+        return web.HTTPFound('/session')
+    except Exception as e:
+        logger.error(f"Error in session success page: {e}", exc_info=True)
+        return web.HTTPFound('/session')
 
 @routes.get("/session/dashboard")
 async def session_dashboard_route(request: web.Request):
@@ -746,7 +806,7 @@ async def session_dashboard_route(request: web.Request):
 
         if not user_id:
             logger.warning("No valid session token or user_id provided")
-            raise web.HTTPFound('/session')
+            return web.HTTPFound('/session')
 
         # Check if user has permission to use session generator
         if not check_session_generator_access(user_id):
@@ -763,7 +823,7 @@ async def session_dashboard_route(request: web.Request):
 
         if not user_info:
             logger.warning(f"No session info found for user {user_id}")
-            raise web.HTTPFound('/session')
+            return web.HTTPFound('/session')
 
         # Generate new session token for this session
         new_session_token = generate_session_token(user_id)
@@ -795,9 +855,9 @@ async def session_dashboard_route(request: web.Request):
 
     except (ValueError, TypeError):
         logger.warning(f"Invalid user_id format: {user_id_param}")
-        raise web.HTTPFound('/session')
+        return web.HTTPFound('/session')
     except Exception as e:
         logger.error(f"Error in session dashboard: {e}", exc_info=True)
-        raise web.HTTPFound('/session')
+        return web.HTTPFound('/session')
 
 
