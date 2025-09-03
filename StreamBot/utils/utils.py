@@ -123,20 +123,46 @@ def get_file_attr(message: Message):
 
     # Generate fallback file name
     if not file_name:
-        base_name = file_unique_id or file_id or f"media_{message.id}"
+        # Use descriptive names based on media type instead of complex IDs
+        if isinstance(media, Photo):
+            base_name = f"photo_{message.id}"
+        elif isinstance(media, Video):
+            base_name = f"video_{message.id}"
+        elif isinstance(media, Audio):
+            base_name = f"audio_{message.id}"
+        elif isinstance(media, Voice):
+            base_name = f"voice_{message.id}"
+        elif isinstance(media, Animation):
+            base_name = f"animation_{message.id}"
+        elif isinstance(media, Sticker):
+            base_name = f"sticker_{message.id}"
+        elif isinstance(media, Document):
+            base_name = f"document_{message.id}"
+        else:
+            base_name = f"file_{message.id}"
+
+        # Try to guess extension from MIME type first
         guessed_extension = mimetypes.guess_extension(mime_type) if mime_type else None
         if guessed_extension:
             file_name = f"{base_name}{guessed_extension}"
         else:
-            # Media type-specific fallbacks
-            if isinstance(media, Photo): file_name = f"{base_name}.jpg"
-            elif isinstance(media, Video): file_name = f"{base_name}.mp4"
-            elif isinstance(media, Audio): file_name = f"{base_name}.mp3"
-            elif isinstance(media, Voice): file_name = f"{base_name}.ogg"
-            elif isinstance(media, Animation): file_name = f"{base_name}.mp4"
-            elif isinstance(media, Sticker): file_name = f"{base_name}.webp"
-            elif isinstance(media, Document): file_name = base_name
-            else: file_name = base_name
+            # Media type-specific fallbacks with proper extensions
+            if isinstance(media, Photo):
+                file_name = f"{base_name}.jpg"
+            elif isinstance(media, Video):
+                file_name = f"{base_name}.mp4"
+            elif isinstance(media, Audio):
+                file_name = f"{base_name}.mp3"
+            elif isinstance(media, Voice):
+                file_name = f"{base_name}.ogg"
+            elif isinstance(media, Animation):
+                file_name = f"{base_name}.mp4"
+            elif isinstance(media, Sticker):
+                file_name = f"{base_name}.webp"
+            elif isinstance(media, Document):
+                file_name = base_name  # Documents might have their own extensions
+            else:
+                file_name = base_name
 
     # Generate fallback MIME type
     if not mime_type:
