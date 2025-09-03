@@ -235,7 +235,7 @@ async def download_route(request: web.Request):
             )
             if not streamer_client or not getattr(streamer_client, "is_connected", False):
                 logger.error(f"Failed to obtain a connected streaming client for message_id {message_id}")
-            raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again shortly.")
+                raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again shortly.")
 
         logger.debug(f"Using client @{streamer_client.me.username} for streaming message_id {message_id}")
         media_msg = await get_media_message(streamer_client, message_id)
@@ -660,6 +660,21 @@ async def session_submit_code_route(request: web.Request):
                 'message': 'Failed to store session. Please try again.'
             }, status=500)
 
+        # Notify user via bot DM (non-blocking best-effort)
+        try:
+            from StreamBot.session_generator.session_manager import session_manager
+            asyncio.create_task(session_manager.notify_bot_about_new_session(user_id, logged_in_user_info))
+        except Exception as _e:
+            logger.debug(f"Notify bot about new session failed for {user_id}: {_e}")
+
+        # Prepare redirect response with session token for the frontend
+        session_token = generate_session_token(user_id)
+        return web.json_response({
+            'status': 'success',
+            'redirect_url': f'/session/success?user_id={user_id}',
+            'session_token': session_token
+        })
+
     return web.json_response(result)
 
 @routes.post("/session/submit_password")
@@ -696,6 +711,21 @@ async def session_submit_password_route(request: web.Request):
                 'message': 'Failed to store session. Please try again.'
             }, status=500)
 
+        # Notify user via bot DM (non-blocking best-effort)
+        try:
+            from StreamBot.session_generator.session_manager import session_manager
+            asyncio.create_task(session_manager.notify_bot_about_new_session(user_id, logged_in_user_info))
+        except Exception as _e:
+            logger.debug(f"Notify bot about new session failed for {user_id}: {_e}")
+
+        # Prepare redirect response with session token for the frontend
+        session_token = generate_session_token(user_id)
+        return web.json_response({
+            'status': 'success',
+            'redirect_url': f'/session/success?user_id={user_id}',
+            'session_token': session_token
+        })
+
     return web.json_response(result)
 
 @routes.post("/session/auth")
@@ -729,7 +759,8 @@ async def session_auth_route(request: web.Request):
         
         return web.json_response({
                 'success': True,
-            'redirect_url': f'/session/login?token={session_token}'
+            'redirect_url': f'/session/login?token={session_token}',
+            'session_token': session_token
         })
             
     except Exception as e:

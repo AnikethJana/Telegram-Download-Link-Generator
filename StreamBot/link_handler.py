@@ -108,17 +108,18 @@ def parse_message_link(link: str) -> Optional[Tuple[str | int, int]]:
     Parses a Telegram message link and extracts the chat ID and message ID.
     Handles both public (t.me/username/123) and private (t.me/c/12345/678) links.
     """
-    # Regex for public channels/supergroups: t.me/channel_name/message_id
-    public_match = re.match(r"https?://t\.me/(\w+)/(\d+)", link)
-    if public_match:
-        channel_name, message_id = public_match.groups()
-        return f"@{channel_name}", int(message_id)
-
+    # IMPORTANT: Check private links FIRST to avoid matching "/c/" as a public username
     # Regex for private channels/supergroups: t.me/c/channel_id/message_id
     private_match = re.match(r"https?://t\.me/c/(\d+)/(\d+)", link)
     if private_match:
         channel_id, message_id = private_match.groups()
         # Private channel IDs need to be prefixed with -100
         return int(f"-100{channel_id}"), int(message_id)
+
+    # Regex for public channels/supergroups: t.me/channel_name/message_id
+    public_match = re.match(r"https?://t\.me/(\w+)/(\d+)", link)
+    if public_match:
+        channel_name, message_id = public_match.groups()
+        return f"@{channel_name}", int(message_id)
 
     return None

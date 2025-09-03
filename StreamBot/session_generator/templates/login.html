@@ -110,7 +110,13 @@
 
             if (data.status === 'success') {
                 showSuccess('Session generated successfully! Redirecting...');
-                setTimeout(() => window.location.href = '/session/success', 2000);
+                // Store session token if provided and set cookie for server-side validation
+                if (data.session_token) {
+                    try { localStorage.setItem('session_token', data.session_token); } catch (_) {}
+                    document.cookie = `session_token=${data.session_token}; path=/; SameSite=Lax`;
+                }
+                const redirectUrl = data.redirect_url || '/session/success';
+                setTimeout(() => window.location.href = redirectUrl, 1000);
             } else if (data.status === '2fa_needed') {
                 showSuccess(data.message);
                 codeForm.style.display = 'none';
@@ -135,7 +141,13 @@
 
             if (data.status === 'success') {
                 showSuccess('Session generated successfully! Redirecting...');
-                setTimeout(() => window.location.href = '/session/success', 2000);
+                // Store session token if provided and set cookie for server-side validation
+                if (data.session_token) {
+                    try { localStorage.setItem('session_token', data.session_token); } catch (_) {}
+                    document.cookie = `session_token=${data.session_token}; path=/; SameSite=Lax`;
+                }
+                const redirectUrl = data.redirect_url || '/session/success';
+                setTimeout(() => window.location.href = redirectUrl, 1000);
             } else {
                 showError(data.message);
             }
