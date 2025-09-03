@@ -123,6 +123,8 @@ class Var:
         logger.warning(f"WORKERS value {WORKERS} outside recommended range 1-32. Adjusting to safe value.")
         WORKERS = min(max(WORKERS, 1), 8)  # Clamp to 1-8 for low resources
     
+
+    
     # --- Text Messages ---
     # Function to calculate human-readable duration
     @staticmethod

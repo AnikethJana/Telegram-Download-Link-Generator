@@ -611,17 +611,36 @@ async def session_login_route(request: web.Request):
 
 @routes.post("/session/send_code")
 async def session_send_code_route(request: web.Request):
-    """Handle phone number submission and send verification code."""
+    """Handle API credentials and phone number submission to send verification code."""
     data = await request.json()
     token = data.get('token')
+    api_id = data.get('api_id')
+    api_hash = data.get('api_hash')
     phone_number = data.get('phone_number')
+    proxy_username = data.get('proxy_username')
+    proxy_password = data.get('proxy_password')
     
     user_id = await validate_session_token(token)
     if not user_id:
         return web.json_response({'status': 'error', 'message': 'Invalid or expired session.'}, status=401)
-        
-    result = await interactive_login_manager.start_login(user_id, phone_number)
-    return web.json_response(result)
+    
+    # Validate input
+    if not api_id or not api_hash or not phone_number:
+        return web.json_response({'status': 'error', 'message': 'API ID, API Hash, and phone number are required.'}, status=400)
+    
+    try:
+        api_id = int(api_id)
+    except (ValueError, TypeError):
+        return web.json_response({'status': 'error', 'message': 'Invalid API ID format.'}, status=400)
+    
+    try:
+        result = await interactive_login_manager.start_login(
+            user_id, api_id, api_hash, phone_number, proxy_username, proxy_password
+        )
+        return web.json_response(result)
+    except Exception as e:
+        logger.error(f"Error in send_code route: {e}")
+        return web.json_response({'status': 'error', 'message': 'An error occurred. Please try again.'}, status=500)
 
 @routes.post("/session/submit_code")
 async def session_submit_code_route(request: web.Request):
@@ -636,7 +655,17 @@ async def session_submit_code_route(request: web.Request):
     if not user_id:
         return web.json_response({'status': 'error', 'message': 'Invalid or expired session.'}, status=401)
         
-    result = await interactive_login_manager.submit_code(user_id, phone_number, phone_code_hash, code)
+    try:
+        result = await asyncio.wait_for(
+            interactive_login_manager.submit_code(user_id, phone_number, phone_code_hash, code),
+            timeout=35
+        )
+    except asyncio.TimeoutError:
+        try:
+            await interactive_login_manager.cleanup_client(user_id)
+        except Exception:
+            pass
+        return web.json_response({'status': 'timeout', 'message': 'Verification timed out. Please request a new code.'}, status=504)
     
     if result.get('status') == 'success':
         # SECURITY: Verify that the logged-in user matches the widget user
@@ -688,7 +717,17 @@ async def session_submit_password_route(request: web.Request):
     if not user_id:
         return web.json_response({'status': 'error', 'message': 'Invalid or expired session.'}, status=401)
 
-    result = await interactive_login_manager.submit_password(user_id, password)
+    try:
+        result = await asyncio.wait_for(
+            interactive_login_manager.submit_password(user_id, password),
+            timeout=35
+        )
+    except asyncio.TimeoutError:
+        try:
+            await interactive_login_manager.cleanup_client(user_id)
+        except Exception:
+            pass
+        return web.json_response({'status': 'timeout', 'message': '2FA verification timed out. Please request a new code.'}, status=504)
     
     if result.get('status') == 'success':
         # SECURITY: Verify that the logged-in user matches the widget user

@@ -11,8 +11,9 @@ try:
     from pyrogram.errors import PhoneNumberBanned  # Pyrogram >= 2.3.x
 except Exception:  # Fallback if class name differs
     PhoneNumberBanned = type("PhoneNumberBanned", (Exception,), {})
-from ..config import Var
 from ..database.user_sessions import store_user_session
+from ..utils.secure_storage import secure_storage
+from ..utils.webshare_proxy import webshare_proxy
 
 logger = logging.getLogger(__name__)
 
@@ -20,81 +21,83 @@ class InteractiveLoginManager:
     """Manages interactive Pyrogram session generation for multiple users."""
 
     def __init__(self):
-        self.api_id = Var.API_ID
-        self.api_hash = Var.API_HASH
         # Use a dictionary to manage client instances for each user's login attempt
         self.clients: Dict[int, Client] = {}
         self._lock = asyncio.Lock()
         # Track login state for timeouts and cleanup
         self.login_state: Dict[int, Dict[str, any]] = {}
+        
+        logger.info("InteractiveLoginManager initialized for user credential-based sessions")
+    
+    def _create_client(self, name: str, api_id: int, api_hash: str, 
+                      proxy_username: str = None, proxy_password: str = None) -> Client:
+        """Create Pyrogram client with user's API credentials and optional Webshare proxy."""
+        client_kwargs = {
+            'name': name,
+            'api_id': api_id,
+            'api_hash': api_hash,
+            'in_memory': True
+        }
+        
+        # Add Webshare proxy if credentials provided
+        if proxy_username and proxy_password:
+            proxy_config = webshare_proxy.get_proxy_config(proxy_username, proxy_password)
+            if proxy_config:
+                client_kwargs['proxy'] = proxy_config
+        
+        return Client(**client_kwargs)
 
-    async def start_login(self, user_id: int, phone_number: str) -> Dict[str, any]:
-        """Initiate the login process for a user."""
+    async def start_login(self, user_id: int, api_id: int, api_hash: str, 
+                         phone_number: str, proxy_username: str = None, proxy_password: str = None) -> Dict[str, any]:
+        """Initiate the login process with user's API credentials."""
         async with self._lock:
             if user_id in self.clients:
                 return {'status': 'error', 'message': 'Login process already started.'}
 
-            try:
-                # Sanitize phone number: keep leading '+' and digits, strip spaces/hyphens/parentheses
-                if phone_number:
-                    cleaned = ''.join(ch for ch in phone_number.strip() if ch.isdigit() or ch == '+')
-                    # Ensure only one '+' at start
-                    if '+' in cleaned:
-                        cleaned = '+' + cleaned.replace('+', '')
-                    phone_number = cleaned
+        try:
+            # Store credentials securely
+            secure_storage.store_credentials(user_id, api_id, api_hash, phone_number)
+            
+            # Create client with user's credentials
+            client = self._create_client(f"user_{user_id}", api_id, api_hash, proxy_username, proxy_password)
+            self.clients[user_id] = client
 
-                client = Client(
-                    name=f"user_{user_id}_{phone_number}",
-                    api_id=self.api_id,
-                    api_hash=self.api_hash,
-                    in_memory=True  # Use in-memory storage for session generation
-                )
-                self.clients[user_id] = client
+            await client.connect()
+            
+            # Send verification code
+            sent_code_info = await client.send_code(phone_number)
+            
+            # Record login state
+            self.login_state[user_id] = {
+                'started_at': asyncio.get_event_loop().time(),
+                'completed': False,
+                'phone_number': phone_number
+            }
+            asyncio.create_task(self._watch_timeout(user_id))
 
-                await client.connect()
-                # Apply 30s timeout to the server-side code dispatch call itself
-                try:
-                    sent_code_info = await asyncio.wait_for(client.send_code(phone_number), timeout=30)
-                except asyncio.TimeoutError:
-                    await self.cleanup_client(user_id)
-                    return {'status': 'timeout', 'message': 'No response from Telegram while sending code. Please try again.'}
-                
-                # Record login state and start timeout watcher (30s)
-                self.login_state[user_id] = {
-                    'started_at': asyncio.get_event_loop().time(),
-                    'timeout_secs': 30,
-                    'completed': False,
-                    'proxy_used': False,
-                    'phone_number': phone_number
-                }
-                asyncio.create_task(self._watch_timeout(user_id))
+            logger.info(f"Verification code sent to user {user_id}")
+            return {
+                'status': 'code_sent',
+                'message': 'Verification code has been sent to your phone.',
+                'phone_code_hash': sent_code_info.phone_code_hash
+            }
 
-                return {
-                    'status': 'code_sent',
-                    'message': 'Verification code has been sent.',
-                    'phone_code_hash': sent_code_info.phone_code_hash
-                }
-
-            except FloodWait as e:
-                await self.cleanup_client(user_id)
-                return {'status': 'error', 'message': f"Flood wait: Please wait {e.value} seconds."}
-            except PhoneNumberBanned:
-                await self.cleanup_client(user_id)
-                return {
-                    'status': 'error',
-                    'message': (
-                        'Login was rejected for this number. This can happen due to temporary restrictions '
-                        'or security filters. Please verify the number format (+countrycodeXXXXXXXXXX) and '
-                        'try again later.'
-                    )
-                }
-            except PhoneNumberInvalid:
-                await self.cleanup_client(user_id)
-                return {'status': 'error', 'message': 'The phone number is invalid.'}
-            except Exception as e:
-                logger.error(f"Error starting login for user {user_id}: {e}", exc_info=True)
-                await self.cleanup_client(user_id)
-                return {'status': 'error', 'message': 'An unexpected error occurred.'}
+        except FloodWait as e:
+            await self.cleanup_client(user_id)
+            return {'status': 'error', 'message': f'Rate limited. Please wait {e.value} seconds.'}
+        except PhoneNumberBanned:
+            await self.cleanup_client(user_id)
+            return {'status': 'error', 'message': 'This phone number is restricted. Please try a different number.'}
+        except PhoneNumberInvalid:
+            await self.cleanup_client(user_id)
+            return {'status': 'error', 'message': 'Invalid phone number. Please include country code (+1234567890).'}
+        except ApiIdInvalid:
+            await self.cleanup_client(user_id)
+            return {'status': 'error', 'message': 'Invalid API credentials. Please check your API ID and Hash.'}
+        except Exception as e:
+            logger.error(f"Login error for user {user_id}: {e}")
+            await self.cleanup_client(user_id)
+            return {'status': 'error', 'message': 'An error occurred. Please try again.'}
 
     async def submit_code(self, user_id: int, phone_number: str, phone_code_hash: str, code: str) -> Dict[str, any]:
         """Submit the verification code received by the user."""
@@ -103,15 +106,6 @@ class InteractiveLoginManager:
             return {'status': 'error', 'message': 'Login process not found. Please start over.'}
 
         try:
-            # Enforce 30s timeout window
-            state = self.login_state.get(user_id)
-            if state:
-                started = state.get('started_at', 0.0)
-                timeout_secs = state.get('timeout_secs', 30)
-                if asyncio.get_event_loop().time() - started > timeout_secs:
-                    await self.cleanup_client(user_id)
-                    self.login_state.pop(user_id, None)
-                    return {'status': 'timeout', 'message': 'Code session timed out. Please request a new code.'}
 
             signed_in_user = await client.sign_in(phone_number, phone_code_hash, code)
             
@@ -127,9 +121,9 @@ class InteractiveLoginManager:
                 'last_name': me.last_name or '', 
                 'username': me.username or ''
             }
-            logger.debug(f"Interactive login successful for user {user_id}, user_info: {user_info}")
             # Mark completed
-            self.login_state.pop(user_id, None)
+            if user_id in self.login_state:
+                self.login_state[user_id]['completed'] = True
             return {'status': 'success', 'session_string': session_string, 'user_info': user_info}
 
         except PhoneCodeInvalid:
@@ -151,15 +145,6 @@ class InteractiveLoginManager:
             return {'status': 'error', 'message': 'Login process not found. Please start over.'}
 
         try:
-            # Enforce 30s timeout window for 2FA as well
-            state = self.login_state.get(user_id)
-            if state:
-                started = state.get('started_at', 0.0)
-                timeout_secs = state.get('timeout_secs', 30)
-                if asyncio.get_event_loop().time() - started > timeout_secs:
-                    await self.cleanup_client(user_id)
-                    self.login_state.pop(user_id, None)
-                    return {'status': 'timeout', 'message': '2FA session timed out. Please request a new code.'}
 
             await client.check_password(password)
             session_string = await client.export_session_string()
@@ -170,9 +155,9 @@ class InteractiveLoginManager:
                 'last_name': me.last_name or '', 
                 'username': me.username or ''
             }
-            logger.debug(f"Interactive login with 2FA successful for user {user_id}, user_info: {user_info}")
-            # Mark completed
-            self.login_state.pop(user_id, None)
+            # Mark completed  
+            if user_id in self.login_state:
+                self.login_state[user_id]['completed'] = True
             return {'status': 'success', 'session_string': session_string, 'user_info': user_info}
 
         except Exception as e:
@@ -199,16 +184,11 @@ class InteractiveLoginManager:
     async def _watch_timeout(self, user_id: int):
         """Background watcher to auto-cleanup stale login sessions after timeout."""
         try:
+            await asyncio.sleep(300)  # 5 minutes timeout
             state = self.login_state.get(user_id)
-            if not state:
-                return
-            timeout_secs = state.get('timeout_secs', 30)
-            await asyncio.sleep(timeout_secs + 1)
-            # If still not completed, cleanup
-            state_after = self.login_state.get(user_id)
-            if state_after is not None:
+            if state and not state.get('completed', False):
                 await self.cleanup_client(user_id)
-                logger.debug(f"Login session timed out for user {user_id}; cleaned up.")
+                logger.info(f"Login session timed out for user {user_id}")
         except Exception as e:
             logger.debug(f"Timeout watcher error for user {user_id}: {e}")
 
