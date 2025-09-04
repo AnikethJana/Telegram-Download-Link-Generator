@@ -679,7 +679,20 @@
                 infoList.forEach(([label, value]) => {
                     const item = document.createElement('div');
                     item.className = 'session-item';
-                    item.innerHTML = `<i class="fas fa-circle-info"></i><span><strong>${label}:</strong> ${value}</span>`;
+
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-circle-info';
+
+                    const span = document.createElement('span');
+                    
+                    const strong = document.createElement('strong');
+                    strong.textContent = `${label}: `;
+                    
+                    span.appendChild(strong);
+                    span.appendChild(document.createTextNode(value));
+                    
+                    item.appendChild(icon);
+                    item.appendChild(span);
                     details.appendChild(item);
                 });
                 const profileCard = document.querySelector('.profile-card');

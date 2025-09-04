@@ -166,12 +166,8 @@
                 'Content-Type': 'application/json',
             };
 
-            const sessionToken = localStorage.getItem('session_token') ||
-                                document.cookie.split(';').find(c => c.trim().startsWith('session_token='))?.split('=')[1];
-
-            if (sessionToken) {
-                headers['X-Session-Token'] = sessionToken;
-            }
+            // No longer need to add X-Session-Token header from client-side.
+            // The browser will automatically send the HttpOnly session_token cookie.
 
             return headers;
         }
@@ -249,14 +245,8 @@
         }
 
         function logout() {
-            // Clear session token
-            localStorage.removeItem('session_token');
-
-            // Clear session cookie
-            document.cookie = 'session_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-
-            // Redirect to home
-            window.location.href = '/session';
+            // Navigate to server-side logout to revoke and clear cookies efficiently
+            window.location.href = '/session/logout';
         }
 
         // Add logout button handler

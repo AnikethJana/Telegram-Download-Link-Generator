@@ -279,7 +279,7 @@
 
                     // Store session token if provided
                     if (data.session_token) {
-                        localStorage.setItem('session_token', data.session_token);
+                        // localStorage.setItem('session_token', data.session_token); // Removed for security
                     }
 
                     // Redirect to dashboard - prefer token-based URL over user_id
