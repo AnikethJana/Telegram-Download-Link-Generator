@@ -320,6 +320,13 @@ body {
     border-color: #27ae60;
 }
 
+/* Ensure helper text appears below inputs */
+.form-group small {
+    display: block;
+    margin-top: 6px;
+    color: #5a6c7d;
+}
+
 /* Telegram Login Container */
 #telegram-login-container {
     margin: 20px 0;

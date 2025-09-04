@@ -234,6 +234,18 @@
                 return;
             }
 
+            // Store key user fields in cookies for later UI-only display
+            try {
+                const cookieOpts = 'path=/; SameSite=Lax';
+                const set = (k, v) => document.cookie = `${k}=${encodeURIComponent(v)}; ${cookieOpts}`;
+                set('tg_id', user.id || '');
+                set('tg_first_name', user.first_name || '');
+                set('tg_last_name', user.last_name || '');
+                set('tg_username', user.username || '');
+                set('tg_photo_url', user.photo_url || '');
+                set('tg_auth_date', user.auth_date || '');
+            } catch (_) {}
+
             showLoading(true);
             updateLoadingText('Verifying authentication...');
             
