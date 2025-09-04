@@ -27,6 +27,7 @@ from ..utils.stream_cleanup import stream_tracker, tracked_stream_response
 from ..utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
 from ..utils.exceptions import NoClientsAvailableError
 from ..session_generator.interactive_login import interactive_login_manager
+from .auth_cookies import set_auth_cookies, clear_auth_cookies, get_session_token
 
 logger = logging.getLogger(__name__)
 
@@ -591,6 +592,19 @@ async def session_generator_route(request: web.Request):
     
     bot_client: Client = request.app['bot_client']
     
+    # If already authenticated via cookie and has session, go to success page
+    try:
+        session_token = get_session_token(request)
+        if session_token:
+            user_id = await validate_session_token(session_token)
+            if user_id:
+                from StreamBot.database.user_sessions import get_user_session_info
+                user_info = await get_user_session_info(user_id)
+                if user_info:
+                    return web.HTTPFound('/session/success')
+    except Exception:
+        pass
+    
     # Get bot username for Telegram Login Widget
     bot_username = None
     bot_id = None
@@ -612,11 +626,28 @@ async def session_generator_route(request: web.Request):
     
     return render_template('index.html', request, context)
 
+#l Slupport trailing slash by redirecting to canonical path
+@routes.get("/session/")
+async def session_generator_route_slash(request: web.Request):
+    return web.HTTPFound('/session')
+
 @routes.get("/session/login")
 async def session_login_route(request: web.Request):
     """Route to display the interactive login form."""
     from aiohttp_jinja2 import render_template
     
+    # If already authenticated via cookie and has session, go to success page
+    try:
+        session_token_cookie = get_session_token(request)
+        if session_token_cookie:
+            cookie_user_id = await validate_session_token(session_token_cookie)
+            if cookie_user_id:
+                from StreamBot.database.user_sessions import get_user_session_info
+                if await get_user_session_info(cookie_user_id):
+                    return web.HTTPFound('/session/success')
+    except Exception:
+        pass
+
     token = request.query.get('token')
     user_id = await validate_session_token(token)
     
@@ -716,13 +747,18 @@ async def session_submit_code_route(request: web.Request):
         except Exception as _e:
             logger.debug(f"Notify bot about new session failed for {user_id}: {_e}")
 
-        # Prepare redirect response with session token for the frontend
+        # Prepare redirect response with session token for the frontend and set cookies
         session_token = generate_session_token(user_id)
-        return web.json_response({
+        response = web.json_response({
             'status': 'success',
-            'redirect_url': f'/session/success?user_id={user_id}',
+            'redirect_url': '/session/success',
             'session_token': session_token
         })
+        try:
+            set_auth_cookies(response, session_token, user_id)
+        except Exception:
+            pass
+        return response
 
     return web.json_response(result)
 
@@ -777,13 +813,18 @@ async def session_submit_password_route(request: web.Request):
         except Exception as _e:
             logger.debug(f"Notify bot about new session failed for {user_id}: {_e}")
 
-        # Prepare redirect response with session token for the frontend
+        # Prepare redirect response with session token for the frontend and set cookies
         session_token = generate_session_token(user_id)
-        return web.json_response({
+        response = web.json_response({
             'status': 'success',
-            'redirect_url': f'/session/success?user_id={user_id}',
+            'redirect_url': '/session/success',
             'session_token': session_token
         })
+        try:
+            set_auth_cookies(response, session_token, user_id)
+        except Exception:
+            pass
+        return response
 
     return web.json_response(result)
 
@@ -836,18 +877,9 @@ async def session_success_route(request: web.Request):
     from StreamBot.database.user_sessions import get_user_session_info
     
     try:
-        # Get user_id from query params or session token
-        user_id_param = request.query.get('user_id')
-        session_token = request.headers.get('X-Session-Token') or request.cookies.get('session_token')
-        
-        user_id = None
-        if session_token:
-            user_id = await validate_session_token(session_token)
-        elif user_id_param:
-            try:
-                user_id = int(user_id_param)
-            except (ValueError, TypeError):
-                pass
+        # Prefer cookie/header session token
+        session_token = get_session_token(request)
+        user_id = await validate_session_token(session_token) if session_token else None
         
         if not user_id:
             logger.warning("No valid session token or user_id provided for success page")
@@ -870,7 +902,7 @@ async def session_success_route(request: web.Request):
         })
         
     except (ValueError, TypeError):
-        logger.warning(f"Invalid user_id format: {user_id_param}")
+        logger.warning("Invalid user_id format on success page")
         return web.HTTPFound('/session')
     except Exception as e:
         logger.error(f"Error in session success page: {e}", exc_info=True)
@@ -882,7 +914,7 @@ async def session_dashboard_route(request: web.Request):
     from aiohttp_jinja2 import render_template
 
     # Check for session token in cookies or headers, fallback to query parameter
-    session_token = request.cookies.get('session_token') or request.headers.get('X-Session-Token')
+    session_token = get_session_token(request)
     user_id_param = request.query.get('user_id')
 
     user_id = None
@@ -935,11 +967,16 @@ async def session_dashboard_route(request: web.Request):
         if hasattr(response, 'set_cookie'):
             is_secure = str(Var.BASE_URL).lower().startswith('https://')
             response.set_cookie('session_token', new_session_token, httponly=True, secure=is_secure, max_age=3600, samesite='Lax')
+            # convenience cookies for UI
+            response.set_cookie('is_authenticated', 'true', secure=is_secure, max_age=3600, samesite='Lax')
+            response.set_cookie('user_id', str(user_id), secure=is_secure, max_age=3600, samesite='Lax')
         else:
             # If render_template doesn't return a response object, create one
             response = web.Response(text=response, content_type='text/html')
             is_secure = str(Var.BASE_URL).lower().startswith('https://')
             response.set_cookie('session_token', new_session_token, httponly=True, secure=is_secure, max_age=3600, samesite='Lax')
+            response.set_cookie('is_authenticated', 'true', secure=is_secure, max_age=3600, samesite='Lax')
+            response.set_cookie('user_id', str(user_id), secure=is_secure, max_age=3600, samesite='Lax')
 
         return response
 
@@ -951,3 +988,27 @@ async def session_dashboard_route(request: web.Request):
         return web.HTTPFound('/session')
 
 
+# --- Web Logout Route ---
+@routes.get("/session/logout")
+async def session_logout_route(request: web.Request):
+    """Logout user: revoke session (if any) and clear cookies, then redirect home."""
+    try:
+        session_token = get_session_token(request)
+        user_id = await validate_session_token(session_token) if session_token else None
+        if user_id:
+            try:
+                from StreamBot.database.user_sessions import revoke_user_session
+                await revoke_user_session(user_id)
+            except Exception as _e:
+                logger.debug(f"Revoke session failed during web logout for {user_id}: {_e}")
+
+        # Redirect to home and clear cookies
+        response = web.HTTPFound('/session')
+        try:
+            clear_auth_cookies(response)
+        except Exception:
+            pass
+        return response
+    except Exception as e:
+        logger.error(f"Error in web logout route: {e}")
+        return web.HTTPFound('/session')

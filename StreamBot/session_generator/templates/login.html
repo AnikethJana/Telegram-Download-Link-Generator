@@ -57,18 +57,22 @@
                         </div>
                         
                         <div class="form-group" style="margin-top: 20px;">
-                            <h4>Optional: Webshare Proxy</h4>
-                            <small>If you're in a region where Telegram is blocked, you can use a free Webshare proxy</small>
-                            
-                            <div class="form-group">
-                                <label for="proxy_username">Proxy Username (optional)</label>
-                                <input type="text" id="proxy_username" placeholder="webshare_user">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="proxy_password">Proxy Password (optional)</label>
-                                <input type="password" id="proxy_password" placeholder="webshare_pass">
-                            </div>
+                            <details id="webshare-details">
+                                <summary style="cursor: pointer; font-weight: 600;">
+                                    Webshare Proxy (Optional)
+                                </summary>
+                                <div style="margin-top: 12px;">
+                                    <small>If you're in a region where Telegram is blocked, you can use a Webshare proxy.</small>
+                                    <div class="form-group" style="margin-top: 10px;">
+                                        <label for="proxy_username">Proxy Username</label>
+                                        <input type="text" id="proxy_username" placeholder="webshare_user">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="proxy_password">Proxy Password</label>
+                                        <input type="password" id="proxy_password" placeholder="webshare_pass">
+                                    </div>
+                                </div>
+                            </details>
                         </div>
                         
                         <button type="submit" class="btn btn-primary">Send Verification Code</button>
@@ -157,7 +161,7 @@
                     phone_number: phoneNumber
                 };
                 
-                if (proxyUsername && proxyPassword) {
+                if (document.getElementById('webshare-details').open && proxyUsername && proxyPassword) {
                     requestData.proxy_username = proxyUsername;
                     requestData.proxy_password = proxyPassword;
                 }
@@ -219,7 +223,6 @@
                 showSuccess('Session generated successfully! Redirecting...');
                 // Store session token if provided and set cookie for server-side validation
                 if (data.session_token) {
-                    try { localStorage.setItem('session_token', data.session_token); } catch (_) {}
                     document.cookie = `session_token=${data.session_token}; path=/; SameSite=Lax`;
                 }
                 const redirectUrl = data.redirect_url || '/session/success';
@@ -266,7 +269,6 @@
                 showSuccess('Session generated successfully! Redirecting...');
                 // Store session token if provided and set cookie for server-side validation
                 if (data.session_token) {
-                    try { localStorage.setItem('session_token', data.session_token); } catch (_) {}
                     document.cookie = `session_token=${data.session_token}; path=/; SameSite=Lax`;
                 }
                 const redirectUrl = data.redirect_url || '/session/success';
