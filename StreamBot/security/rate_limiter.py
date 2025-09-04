@@ -22,7 +22,7 @@ class WebRateLimiter:
         async with self._lock:
             current_time = time.time()
             
-            # Auto-cleanup every 10 minutes
+            # Auto-cleanup every 10 minutes (consolidated interval)
             if current_time - self.last_cleanup > 600:
                 await self._cleanup()
                 self.last_cleanup = current_time
@@ -68,6 +68,79 @@ class WebRateLimiter:
     async def cleanup_old_entries(self):
         """Explicit cleanup method for scheduled tasks."""
         await self._cleanup()
+
+
+class InvalidRequestGuard:
+    """Lightweight guard against repeated invalid requests from the same IP.
+    
+    Consolidated with rate limiting system to reduce redundancy.
+    """
+    
+    def __init__(self, max_invalid_per_minute: int = 20, block_duration_seconds: int = 120):
+        self.max_invalid_per_minute = max_invalid_per_minute
+        self.block_duration_seconds = block_duration_seconds
+        self._ip_stats: Dict[str, Dict[str, float | int]] = {}
+        self._last_cleanup = 0.0
+        # Use same cleanup interval as WebRateLimiter (10 minutes)
+        self._cleanup_interval = 600
+
+    def _now(self) -> float:
+        return time.time()
+
+    def _cleanup(self) -> None:
+        # Periodic cleanup to keep memory bounded - consolidated interval
+        now = self._now()
+        if now - self._last_cleanup < self._cleanup_interval:
+            return
+        self._last_cleanup = now
+        to_delete = []
+        for ip, stats in self._ip_stats.items():
+            blocked_until = stats.get('blocked_until', 0) or 0
+            window_start = stats.get('window_start', 0) or 0
+            # Drop entries that are long past any relevance
+            if now - max(blocked_until, window_start) > 900:  # 15 minutes idle
+                to_delete.append(ip)
+        for ip in to_delete:
+            self._ip_stats.pop(ip, None)
+
+    def is_blocked(self, ip: str) -> bool:
+        if not ip:
+            return False
+        self._cleanup()
+        now = self._now()
+        stats = self._ip_stats.get(ip)
+        if not stats:
+            return False
+        blocked_until = stats.get('blocked_until', 0) or 0
+        return now < float(blocked_until)
+
+    def record_invalid(self, ip: str) -> None:
+        if not ip:
+            return
+        self._cleanup()
+        now = self._now()
+        stats = self._ip_stats.get(ip)
+        if not stats:
+            stats = {'count': 0, 'window_start': now, 'blocked_until': 0}
+            self._ip_stats[ip] = stats
+
+        window_start = float(stats.get('window_start', now))
+        if now - window_start > 60:
+            # Reset window
+            stats['count'] = 0
+            stats['window_start'] = now
+
+        stats['count'] = int(stats.get('count', 0)) + 1
+
+        if stats['count'] >= self.max_invalid_per_minute:
+            stats['blocked_until'] = now + self.block_duration_seconds
+            # Reset counter to avoid repeated logging
+            stats['count'] = 0
+            stats['window_start'] = now
+            try:
+                logger.warning(f"InvalidRequestGuard: Blocking IP {ip} for {self.block_duration_seconds}s due to repeated invalid requests")
+            except Exception:
+                pass
 
 
 class BotRateLimiter:
@@ -130,6 +203,7 @@ class BotRateLimiter:
 # Global instances - initialized with default values from config
 web_rate_limiter = WebRateLimiter()
 bot_rate_limiter = BotRateLimiter()
+invalid_request_guard = InvalidRequestGuard()
 
 # Function to initialize with config values
 def initialize_rate_limiters(max_links_per_day: int):
@@ -138,11 +212,12 @@ def initialize_rate_limiters(max_links_per_day: int):
     bot_rate_limiter = BotRateLimiter(max_links_per_day)
     logger.info(f"Rate limiters initialized with max_links_per_day={max_links_per_day}")
 
-# Cleanup function for scheduler
+# Cleanup function for scheduler - consolidated cleanup
 async def cleanup_rate_limiters():
-    """Periodic cleanup of rate limiter data."""
+    """Periodic cleanup of all rate limiter data."""
     try:
         await web_rate_limiter.cleanup_old_entries()
+        # InvalidRequestGuard cleanup is automatic, no need to call explicitly
         logger.debug("Rate limiter cleanup completed")
     except Exception as e:
         logger.error(f"Error in rate limiter cleanup: {e}") 

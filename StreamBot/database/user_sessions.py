@@ -122,35 +122,27 @@ async def get_user_session(user_id: int) -> Optional[str]:
             return None
 
 async def delete_user_session(user_id: int) -> bool:
-    """Delete user session from database efficiently."""
+    """Hard delete user session from database."""
     try:
         # Input validation
         if not isinstance(user_id, int) or user_id <= 0:
             logger.warning(f"Invalid user_id for session deletion: {user_id}")
             return False
-        
-        # Mark session as inactive instead of deleting for audit trail
-        result = user_sessions.update_one(
-            {'_id': user_id},
-            {
-                '$set': {
-                    'is_active': False,
-                    'deleted_at': datetime.datetime.utcnow()
-                },
-                '$unset': {'encrypted_session': 1}  # Remove encrypted data to save space
-            }
-        )
-        
-        if result.modified_count > 0:
-            logger.info(f"Session deleted for user {user_id}")
+
+        # Permanently remove the user's session document
+        result = user_sessions.delete_one({'_id': user_id})
+
+        if result.deleted_count > 0:
+            logger.info(f"Session hard-deleted for user {user_id}")
             return True
         else:
-            logger.warning(f"No session found to delete for user {user_id}")
+            logger.warning(f"No session found to hard-delete for user {user_id}")
             return False
-        
+
     except Exception as e:
-        logger.error(f"Error deleting session for user {user_id}: {e}", exc_info=True)
+        logger.error(f"Error hard-deleting session for user {user_id}: {e}", exc_info=True)
         return False
+
 
 async def check_user_has_session(user_id: int) -> bool:
     """Check if user has an active session efficiently with thread safety."""
@@ -249,4 +241,4 @@ async def cleanup_old_sessions(days_old: int = 30) -> int:
 # Alias for backwards compatibility
 async def revoke_user_session(user_id: int) -> bool:
     """Alias for delete_user_session for backwards compatibility."""
-    return await delete_user_session(user_id) 
+    return await delete_user_session(user_id)

@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 
 class CleanupScheduler:
-    """Lightweight scheduler for periodic cleanup tasks."""
+    """Lightweight scheduler for periodic cleanup tasks with consolidated intervals."""
     
     def __init__(self):
         self.tasks: List[asyncio.Task] = []
@@ -23,17 +23,14 @@ class CleanupScheduler:
         # Schedule bandwidth cleanup (daily)
         self.tasks.append(asyncio.create_task(self._daily_bandwidth_cleanup()))
         
-        # Schedule memory cleanup (every 3 hours - reduced frequency for low resources)
+        # Schedule memory cleanup (every 2 hours - consolidated interval)
         self.tasks.append(asyncio.create_task(self._memory_cleanup()))
         
-        # Schedule stream cleanup (every 45 minutes - less frequent on low resources)
+        # Schedule stream cleanup (every 30 minutes - standard interval)
         self.tasks.append(asyncio.create_task(self._stream_cleanup()))
         
-        # Schedule security cleanup (every hour - rate limiter cleanup)
+        # Schedule security cleanup (every 10 minutes - consolidated with rate limiters)
         self.tasks.append(asyncio.create_task(self._security_cleanup()))
-        
-        # Schedule session cleanup (every 6 hours - for session generator)
-        self.tasks.append(asyncio.create_task(self._session_cleanup()))
         
         logger.info(f"Started {len(self.tasks)} cleanup tasks")
     
@@ -76,14 +73,14 @@ class CleanupScheduler:
                 await asyncio.sleep(3600)  # Wait 1 hour before retry
     
     async def _memory_cleanup(self):
-        """Run memory cleanup every 3 hours (reduced frequency for low resources)."""
+        """Run memory cleanup every 2 hours (consolidated interval)."""
         while self.running:
             try:
-                await asyncio.sleep(10800)  # 3 hours (was 2 hours)
+                await asyncio.sleep(7200)  # 2 hours (consolidated from 3 hours)
                 if not self.running:
                     break
                 
-                logger.debug("Running 3-hourly memory cleanup...")
+                logger.debug("Running 2-hourly memory cleanup...")
                 from .memory_manager import memory_manager
                 await memory_manager.periodic_cleanup()
                 
@@ -94,10 +91,10 @@ class CleanupScheduler:
                 await asyncio.sleep(1800)  # Wait 30 minutes before retry
     
     async def _stream_cleanup(self):
-        """Clean up completed streams every 45 minutes (reduced frequency)."""
+        """Clean up completed streams every 30 minutes (standard interval)."""
         while self.running:
             try:
-                await asyncio.sleep(2700)  # 45 minutes (was 30 minutes)
+                await asyncio.sleep(1800)  # 30 minutes (standard interval)
                 if not self.running:
                     break
                 
@@ -106,7 +103,7 @@ class CleanupScheduler:
                 await stream_tracker.cleanup_completed_streams()
                 
                 active_count = stream_tracker.get_active_count()
-                if active_count > 3:  # Log if more than 3 active streams (reduced threshold)
+                if active_count > 3:  # Log if more than 3 active streams
                     logger.info(f"Active streams after cleanup: {active_count}")
                 
             except asyncio.CancelledError:
@@ -116,10 +113,10 @@ class CleanupScheduler:
                 await asyncio.sleep(900)  # Wait 15 minutes before retry
 
     async def _security_cleanup(self):
-        """Clean up security data every hour (rate limiter cleanup)."""
+        """Clean up security data every 10 minutes (consolidated with rate limiters)."""
         while self.running:
             try:
-                await asyncio.sleep(3600)  # 1 hour
+                await asyncio.sleep(600)  # 10 minutes (consolidated with rate limiter cleanup)
                 if not self.running:
                     break
                 
@@ -133,26 +130,7 @@ class CleanupScheduler:
                 logger.error(f"Error in security cleanup: {e}")
                 await asyncio.sleep(900)  # Wait 15 minutes before retry
 
-    async def _session_cleanup(self):
-        """Clean up inactive sessions every 6 hours."""
-        while self.running:
-            try:
-                await asyncio.sleep(21600)  # 6 hours
-                if not self.running:
-                    break
-                
-                logger.debug("Running session cleanup...")
-                from StreamBot.database.user_sessions import cleanup_old_sessions
-                deleted_count = await cleanup_old_sessions(days_old=7)  # Keep sessions for 7 days
-                
-                if deleted_count > 0:
-                    logger.info(f"Session cleanup: removed {deleted_count} old sessions")
-                
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                logger.error(f"Error in session cleanup: {e}")
-                await asyncio.sleep(1800)  # Wait 30 minutes before retry
+    
 
 # Global instance
 cleanup_scheduler = CleanupScheduler() 

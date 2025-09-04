@@ -27,7 +27,8 @@ from ..utils.stream_cleanup import stream_tracker, tracked_stream_response
 from ..utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
 from ..utils.exceptions import NoClientsAvailableError
 from ..session_generator.interactive_login import interactive_login_manager
-from .auth_cookies import set_auth_cookies, clear_auth_cookies, get_session_token
+from .auth_cookies import set_auth_cookies, get_session_token
+from ..security.rate_limiter import invalid_request_guard
 
 logger = logging.getLogger(__name__)
 
@@ -175,15 +176,22 @@ async def download_route(request: web.Request):
 
     encoded_id = request.match_info['encoded_id_str']
     
+    # Fast path: guard against abusive invalid requests by IP
+    client_ip = get_client_ip(request)
+    if invalid_request_guard.is_blocked(client_ip):
+        raise web.HTTPTooManyRequests(text="Too many invalid requests. Try again later.")
+
     # Enhanced input validation
     if not encoded_id or len(encoded_id) > 100:  # Reasonable length limit
-        logger.warning(f"Invalid encoded ID format from {get_client_ip(request)}: {encoded_id[:50]}...")
+        logger.warning(f"Invalid encoded ID format from {client_ip}: {encoded_id[:50]}...")
+        invalid_request_guard.record_invalid(client_ip)
         raise web.HTTPBadRequest(text="Invalid download link format.")
     
     message_id = decode_message_id(encoded_id)
 
     if message_id is None:
-        logger.warning(f"Download request with invalid or undecodable ID: {encoded_id[:50]} from {get_client_ip(request)}")
+        logger.warning(f"Download request with invalid or undecodable ID: {encoded_id[:50]} from {client_ip}")
+        invalid_request_guard.record_invalid(client_ip)
         raise web.HTTPBadRequest(text="Invalid or malformed download link.")
 
     logger.info(f"Download request for decoded message_id: {message_id} (encoded: {encoded_id[:20]}...) from {get_client_ip(request)}")
@@ -201,6 +209,7 @@ async def download_route(request: web.Request):
             # This is intentional: users can share their generated links with others
             bot_client = request.app['bot_client']
             if not hasattr(bot_client, 'user_session_files') or message_id not in bot_client.user_session_files:
+                invalid_request_guard.record_invalid(client_ip)
                 raise web.HTTPNotFound(text="File not found or expired.")
             
             session_info = bot_client.user_session_files[message_id]
@@ -223,6 +232,7 @@ async def download_route(request: web.Request):
                 message_ids=session_info['message_id']
             )
             if not media_msg or not media_msg.media:
+                invalid_request_guard.record_invalid(client_ip)
                 raise web.HTTPNotFound(text="File not found or no longer available.")
             
             # Use user's client for streaming
@@ -988,27 +998,4 @@ async def session_dashboard_route(request: web.Request):
         return web.HTTPFound('/session')
 
 
-# --- Web Logout Route ---
-@routes.get("/session/logout")
-async def session_logout_route(request: web.Request):
-    """Logout user: revoke session (if any) and clear cookies, then redirect home."""
-    try:
-        session_token = get_session_token(request)
-        user_id = await validate_session_token(session_token) if session_token else None
-        if user_id:
-            try:
-                from StreamBot.database.user_sessions import revoke_user_session
-                await revoke_user_session(user_id)
-            except Exception as _e:
-                logger.debug(f"Revoke session failed during web logout for {user_id}: {_e}")
-
-        # Redirect to home and clear cookies
-        response = web.HTTPFound('/session')
-        try:
-            clear_auth_cookies(response)
-        except Exception:
-            pass
-        return response
-    except Exception as e:
-        logger.error(f"Error in web logout route: {e}")
-        return web.HTTPFound('/session')
+# Note: /session/logout route removed per UI change

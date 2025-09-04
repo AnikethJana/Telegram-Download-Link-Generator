@@ -100,11 +100,11 @@ async def main():
             from .session_generator.session_manager import session_manager
             notification_test_passed = await session_manager.test_notification_system()
             if notification_test_passed:
-                logger.info("✅ Notification system test passed")
+                logger.info("[OK] Notification system test passed")
             else:
-                logger.warning("⚠️ Notification system test had issues, but system will continue")
+                logger.warning("[WARNING] Notification system test had issues, but system will continue")
         except Exception as test_error:
-            logger.warning(f"⚠️ Notification system test failed: {test_error}")
+            logger.warning(f"[WARNING] Notification system test failed: {test_error}")
             logger.warning("System will continue, but login notifications may not work")
 
         # Log memory usage after client setup
