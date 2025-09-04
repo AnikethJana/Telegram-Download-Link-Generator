@@ -15,6 +15,7 @@ import aiohttp_jinja2
 from StreamBot.config import Var
 # Ensure decode_message_id is imported from utils
 from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id, get_media_message
+from StreamBot.utils.file_properties import parse_file_id
 from StreamBot.utils.exceptions import NoClientsAvailableError # Import custom exception
 from StreamBot.utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
 from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_response
@@ -193,7 +194,8 @@ async def download_route(request: web.Request):
 
     try:
         # Check if this is a user session file (virtual message ID)
-        if isinstance(message_id, str) and message_id.startswith('user_'):
+        is_user_session = isinstance(message_id, str) and message_id.startswith('user_')
+        if is_user_session:
             # Handle user session file - anyone with the link can download
             # This is intentional: users can share their generated links with others
             bot_client = request.app['bot_client']
@@ -225,6 +227,8 @@ async def download_route(request: web.Request):
             # Use user's client for streaming
             streamer_client = user_client
             logger.debug(f"Using user session client for streaming user file: {message_id}")
+            # Create a ByteStreamer for the user's client (not managed by ClientManager)
+            byte_streamer = ByteStreamer(streamer_client)
             
         else:
             # Handle regular forwarded file
@@ -236,9 +240,14 @@ async def download_route(request: web.Request):
             if not streamer_client or not getattr(streamer_client, "is_connected", False):
                 logger.error(f"Failed to obtain a connected streaming client for message_id {message_id}")
                 raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again shortly.")
-
-        logger.debug(f"Using client @{streamer_client.me.username} for streaming message_id {message_id}")
-        media_msg = await get_media_message(streamer_client, message_id)
+            logger.debug(f"Using client @{streamer_client.me.username} for streaming message_id {message_id}")
+            # Fetch the media message from the log channel using bot/worker client
+            media_msg = await get_media_message(streamer_client, message_id)
+            # Get ByteStreamer instance for the client from ClientManager
+            byte_streamer = client_manager.get_streamer_for_client(streamer_client)
+            if not byte_streamer:
+                logger.error(f"No ByteStreamer found for client @{streamer_client.me.username}")
+                raise web.HTTPInternalServerError(text="Streaming service not available.")
     except asyncio.TimeoutError:
         logger.error(f"Timeout getting streaming client for message_id {message_id}")
         raise web.HTTPServiceUnavailable(text="Service temporarily unavailable.")
@@ -252,15 +261,16 @@ async def download_route(request: web.Request):
         logger.error(f"Unexpected error from get_media_message for {message_id}: {e}", exc_info=True)
         raise web.HTTPInternalServerError(text="Internal server error occurred.")
 
-    # Get ByteStreamer instance for the client
-    byte_streamer = client_manager.get_streamer_for_client(streamer_client)
-    if not byte_streamer:
-        logger.error(f"No ByteStreamer found for client @{streamer_client.me.username}")
-        raise web.HTTPInternalServerError(text="Streaming service not available.")
-
     # Use ByteStreamer to get file properties (similar to WebStreamer approach)
     try:
-        file_id = await byte_streamer.get_file_properties(message_id)
+        if is_user_session:
+            # For user session files, derive FileId directly from the fetched message
+            file_id = await parse_file_id(media_msg)
+            if not file_id:
+                raise FileNotFoundError("Unable to parse file id from user session message")
+        else:
+            # For regular files in log channel, get properties by message_id
+            file_id = await byte_streamer.get_file_properties(message_id)
     except FileNotFoundError:
         logger.error(f"File properties not found for message {message_id}")
         raise web.HTTPNotFound(text="File not found or has been deleted.")
