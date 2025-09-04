@@ -142,7 +142,7 @@ class SessionManager:
         Uses Telegram Bot API as primary method with Pyrogram as fallback.
         Enhanced with detailed logging for troubleshooting.
         """
-        logger.info(f"🚀 Starting notification process for new session - User ID: {user_id}")
+        logger.info(f"[START] Starting notification process for new session - User ID: {user_id}")
 
         # Method 1: Try Telegram Bot API first (most reliable)
         logger.debug(f"Trying Telegram Bot API method for user {user_id}")
@@ -151,15 +151,15 @@ class SessionManager:
 
             success = await send_session_notification(user_id, user_info)
             if success:
-                logger.info(f"✅ Notification sent successfully via Bot API to user {user_id}")
+                logger.info(f"[OK] Notification sent successfully via Bot API to user {user_id}")
                 return True
             else:
-                logger.warning(f"⚠️ Bot API method failed for user {user_id}, trying Pyrogram fallback")
+                logger.warning(f"[WARNING] Bot API method failed for user {user_id}, trying Pyrogram fallback")
 
         except ImportError as import_error:
-            logger.warning(f"⚠️ Could not import Telegram notifications module: {import_error}")
+            logger.warning(f"[WARNING] Could not import Telegram notifications module: {import_error}")
         except Exception as api_error:
-            logger.warning(f"⚠️ Bot API method failed for user {user_id}: {api_error}")
+            logger.warning(f"[WARNING] Bot API method failed for user {user_id}: {api_error}")
 
         # Method 2: Fallback to Pyrogram client
         logger.debug(f"Trying Pyrogram fallback method for user {user_id}")
@@ -169,14 +169,14 @@ class SessionManager:
             from StreamBot.__main__ import CLIENT_MANAGER_INSTANCE
 
             if CLIENT_MANAGER_INSTANCE is None:
-                logger.error(f"❌ CLIENT_MANAGER_INSTANCE is None - ClientManager not initialized for user {user_id}")
+                logger.error(f"[ERROR] CLIENT_MANAGER_INSTANCE is None - ClientManager not initialized for user {user_id}")
                 return False
 
             logger.debug(f"CLIENT_MANAGER_INSTANCE found, getting primary client for user {user_id}")
             primary_client = CLIENT_MANAGER_INSTANCE.get_primary_client()
 
             if primary_client is None:
-                logger.error(f"❌ Primary client is None - No primary client available for user {user_id}")
+                logger.error(f"[ERROR] Primary client is None - No primary client available for user {user_id}")
                 logger.debug(f"CLIENT_MANAGER_INSTANCE type: {type(CLIENT_MANAGER_INSTANCE)}")
                 logger.debug(f"CLIENT_MANAGER_INSTANCE attributes: {dir(CLIENT_MANAGER_INSTANCE)}")
                 return False
@@ -184,39 +184,27 @@ class SessionManager:
             logger.debug(f"Primary client obtained: {type(primary_client)} for user {user_id}")
 
             if not primary_client.is_connected:
-                logger.error(f"❌ Primary client is not connected for user {user_id}")
+                logger.error(f"[ERROR] Primary client is not connected for user {user_id}")
                 logger.debug(f"Connection status: {primary_client.is_connected if hasattr(primary_client, 'is_connected') else 'N/A'}")
                 logger.debug(f"Primary client details: {primary_client}")
                 return False
 
-            logger.info(f"✅ Primary client is connected, sending message to user {user_id}")
+            logger.info(f"[OK] Primary client is connected, sending message to user {user_id}")
 
-            # Send a message to the user about successful session creation
-            welcome_message = f"""✅ **Session Generated Successfully!**
-
-Hello {user_info.get('first_name', 'User')}! Your session has been created and securely stored.
-
-You can now:
-• Share private channel/group post URLs with me
-• Get direct download links for private content
-• Use `/logout` to remove your session anytime
-
-**Privacy:** Your session is encrypted and only used to access content you share with me.
-
-⚠️ **Important Reminder:**
-Using session-based access with newer accounts, downloading large files continuously, abusing the service, or sharing access with others who spam downloads may result in your Telegram account being banned. Please use responsibly and avoid excessive usage patterns that could trigger Telegram's anti-abuse systems."""
-
+            # Build and send the standard welcome message via shared builder
+            from StreamBot.utils.telegram_notifications import build_session_success_message
+            welcome_message = build_session_success_message(user_info)
             logger.debug(f"Prepared welcome message for user {user_id}, message length: {len(welcome_message)}")
 
             await primary_client.send_message(
                 chat_id=user_id,
                 text=welcome_message
             )
-            logger.info(f"✅ Welcome message sent successfully via Pyrogram to user {user_id}")
+            logger.info(f"[OK] Welcome message sent successfully via Pyrogram to user {user_id}")
             return True
 
         except Exception as pyrogram_error:
-            logger.error(f"❌ Both notification methods failed for user {user_id}")
+            logger.error(f"[ERROR] Both notification methods failed for user {user_id}")
             logger.error(f"Bot API error: {api_error if 'api_error' in locals() else 'Not attempted'}")
             logger.error(f"Pyrogram error: {pyrogram_error}")
             logger.debug(f"Pyrogram error details: {pyrogram_error}", exc_info=True)
@@ -244,7 +232,7 @@ Using session-based access with newer accounts, downloading large files continuo
         Test the notification system during startup.
         This helps verify that notifications will work before users try to generate sessions.
         """
-        logger.info("🧪 Testing notification system...")
+        logger.info("[TEST] Testing notification system...")
 
         try:
             # Test Telegram Bot API connection
@@ -254,14 +242,14 @@ Using session-based access with newer accounts, downloading large files continuo
             api_test_success = await notifier.test_bot_connection()
 
             if api_test_success:
-                logger.info("✅ Notification system test passed - Bot API connection successful")
+                logger.info("[OK] Notification system test passed - Bot API connection successful")
                 return True
             else:
-                logger.warning("⚠️ Bot API connection test failed, but system will still try Pyrogram fallback")
+                logger.warning("[WARNING] Bot API connection test failed, but system will still try Pyrogram fallback")
                 return False
 
         except Exception as e:
-            logger.warning(f"⚠️ Notification system test failed: {e}")
+            logger.warning(f"[WARNING] Notification system test failed: {e}")
             logger.warning("System will still attempt to send notifications using Pyrogram fallback")
             return False
 

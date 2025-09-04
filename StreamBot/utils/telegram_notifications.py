@@ -13,6 +13,33 @@ from StreamBot.config import Var
 
 logger = logging.getLogger(__name__)
 
+def build_session_success_message(user_info: Dict[str, Any]) -> str:
+    """Build the standard session success welcome message."""
+    try:
+        first_name = (user_info or {}).get('first_name', 'User')
+    except Exception:
+        first_name = 'User'
+
+    return f"""✅ **Session Generated Successfully!**
+
+Hello {first_name}! 👋 Your session has been created and securely stored.
+
+**🎯 What you can do now:**
+• Share private channel/group post URLs with me
+• Get instant download links for private content
+• Use `/logout` to remove your session anytime
+
+**🔒 Privacy & Security:**
+• Your session is encrypted and secure
+• Only used to access content you share with me
+• No access to your personal messages or data
+
+**⚠️ Important Reminder:**
+Using session-based access with newer accounts, downloading large files continuously, abusing the service, or sharing access with others who spam downloads may result in your Telegram account being banned. Please use responsibly and avoid excessive usage patterns that could trigger Telegram's anti-abuse systems.
+
+**📝 Need Help?**
+Just send me a private post URL and I'll generate a download link for you!"""
+
 
 class TelegramNotifier:
     """Handles sending notifications to users via Telegram Bot API."""
@@ -25,10 +52,10 @@ class TelegramNotifier:
 
         # Validate bot token
         if not self.bot_token:
-            logger.error("❌ BOT_TOKEN not found in configuration")
+            logger.error("[ERROR] BOT_TOKEN not found in configuration")
             raise ValueError("BOT_TOKEN is required for notifications")
 
-        logger.info("✅ Telegram Notifier initialized with Bot API")
+        logger.info("[OK] Telegram Notifier initialized with Bot API")
 
     async def send_message(
         self,
@@ -51,7 +78,7 @@ class TelegramNotifier:
         Returns:
             bool: True if message sent successfully, False otherwise
         """
-        logger.info(f"📤 Attempting to send message to user {chat_id} (length: {len(text)})")
+        logger.info(f"[SEND] Attempting to send message to user {chat_id} (length: {len(text)})")
 
         payload = {
             "chat_id": chat_id,
@@ -74,50 +101,50 @@ class TelegramNotifier:
                         logger.debug(f"Telegram API response: {response.status} - {response_data}")
 
                         if response.status == 200 and response_data.get("ok"):
-                            logger.info(f"✅ Message sent successfully to user {chat_id}")
+                            logger.info(f"[OK] Message sent successfully to user {chat_id}")
                             return True
                         else:
                             error_description = response_data.get("description", "Unknown error")
-                            logger.warning(f"⚠️ Telegram API error for user {chat_id}: {error_description}")
+                            logger.warning(f"[WARNING] Telegram API error for user {chat_id}: {error_description}")
 
                             # Check for specific error types
                             if "bot was blocked by the user" in error_description.lower():
-                                logger.warning(f"🚫 User {chat_id} has blocked the bot")
+                                logger.warning(f"[BLOCKED] User {chat_id} has blocked the bot")
                                 return False
                             elif "chat not found" in error_description.lower():
-                                logger.warning(f"🚫 Chat not found for user {chat_id}")
+                                logger.warning(f"[BLOCKED] Chat not found for user {chat_id}")
                                 return False
                             elif "user is deactivated" in error_description.lower():
-                                logger.warning(f"🚫 User {chat_id} account is deactivated")
+                                logger.warning(f"[BLOCKED] User {chat_id} account is deactivated")
                                 return False
                             else:
                                 # Retry for other errors
                                 if attempt < retry_count - 1:
                                     wait_time = (attempt + 1) * 2  # Exponential backoff
-                                    logger.info(f"⏳ Retrying in {wait_time} seconds...")
+                                    logger.info(f"[WAIT] Retrying in {wait_time} seconds...")
                                     await asyncio.sleep(wait_time)
                                     continue
                                 else:
-                                    logger.error(f"❌ Failed to send message to user {chat_id} after {retry_count} attempts")
+                                    logger.error(f"[ERROR] Failed to send message to user {chat_id} after {retry_count} attempts")
                                     return False
 
             except aiohttp.ClientError as e:
-                logger.warning(f"🌐 Network error sending message to {chat_id} (attempt {attempt + 1}): {e}")
+                logger.warning(f"[NETWORK] Network error sending message to {chat_id} (attempt {attempt + 1}): {e}")
                 if attempt < retry_count - 1:
                     wait_time = (attempt + 1) * 2
-                    logger.info(f"⏳ Retrying in {wait_time} seconds...")
+                    logger.info(f"[WAIT] Retrying in {wait_time} seconds...")
                     await asyncio.sleep(wait_time)
                     continue
 
             except Exception as e:
-                logger.error(f"❌ Unexpected error sending message to {chat_id}: {e}", exc_info=True)
+                logger.error(f"[ERROR] Unexpected error sending message to {chat_id}: {e}", exc_info=True)
                 if attempt < retry_count - 1:
                     wait_time = (attempt + 1) * 2
-                    logger.info(f"⏳ Retrying in {wait_time} seconds...")
+                    logger.info(f"[WAIT] Retrying in {wait_time} seconds...")
                     await asyncio.sleep(wait_time)
                     continue
 
-        logger.error(f"❌ All {retry_count} attempts failed to send message to user {chat_id}")
+        logger.error(f"[ERROR] All {retry_count} attempts failed to send message to user {chat_id}")
         return False
 
     async def send_session_success_notification(self, user_id: int, user_info: Dict[str, Any]) -> bool:
@@ -131,32 +158,9 @@ class TelegramNotifier:
         Returns:
             bool: True if notification sent successfully
         """
-        logger.info(f"🎉 Preparing session success notification for user {user_id}")
+        logger.info(f"[SUCCESS] Preparing session success notification for user {user_id}")
 
-        # Get user name
-        first_name = user_info.get('first_name', 'User')
-        last_name = user_info.get('last_name', '')
-        full_name = f"{first_name} {last_name}".strip()
-
-        welcome_message = f"""✅ **Session Generated Successfully!**
-
-Hello {first_name}! 👋 Your session has been created and securely stored.
-
-**🎯 What you can do now:**
-• Share private channel/group post URLs with me
-• Get instant download links for private content
-• Use `/logout` to remove your session anytime
-
-**🔒 Privacy & Security:**
-• Your session is encrypted and secure
-• Only used to access content you share with me
-• No access to your personal messages or data
-
-**⚠️ Important Reminder:**
-Using session-based access with newer accounts, downloading large files continuously, abusing the service, or sharing access with others who spam downloads may result in your Telegram account being banned. Please use responsibly and avoid excessive usage patterns that could trigger Telegram's anti-abuse systems.
-
-**📝 Need Help?**
-Just send me a private post URL and I'll generate a download link for you!"""
+        welcome_message = build_session_success_message(user_info)
 
         return await self.send_message(
             chat_id=user_id,
@@ -178,14 +182,14 @@ Just send me a private post URL and I'll generate a download link for you!"""
 
                     if response.status == 200 and response_data.get("ok"):
                         bot_info = response_data.get("result", {})
-                        logger.info(f"✅ Bot connection test successful: @{bot_info.get('username', 'unknown')}")
+                        logger.info(f"[OK] Bot connection test successful: @{bot_info.get('username', 'unknown')}")
                         return True
                     else:
-                        logger.error(f"❌ Bot connection test failed: {response_data}")
+                        logger.error(f"[ERROR] Bot connection test failed: {response_data}")
                         return False
 
         except Exception as e:
-            logger.error(f"❌ Bot connection test error: {e}")
+            logger.error(f"[ERROR] Bot connection test error: {e}")
             return False
 
 
@@ -198,9 +202,9 @@ def get_telegram_notifier() -> TelegramNotifier:
     if _telegram_notifier is None:
         try:
             _telegram_notifier = TelegramNotifier()
-            logger.info("✅ Telegram Notifier instance created")
+            logger.info("[OK] Telegram Notifier instance created")
         except Exception as e:
-            logger.error(f"❌ Failed to create Telegram Notifier: {e}")
+            logger.error(f"[ERROR] Failed to create Telegram Notifier: {e}")
             raise
     return _telegram_notifier
 
@@ -219,5 +223,5 @@ async def send_session_notification(user_id: int, user_info: Dict[str, Any]) -> 
         notifier = get_telegram_notifier()
         return await notifier.send_session_success_notification(user_id, user_info)
     except Exception as e:
-        logger.error(f"❌ Error in send_session_notification: {e}")
+        logger.error(f"[ERROR] Error in send_session_notification: {e}")
         return False
