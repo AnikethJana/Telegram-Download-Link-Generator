@@ -895,7 +895,7 @@ async def session_success_route(request: web.Request):
         bot_client = request.app['bot_client']
         bot_username = bot_client.me.username if bot_client and bot_client.me else 'unknown'
         
-        return render_template('success.html', request, {
+        return render_template('session_complete.html', request, {
             'user_info': user_info,
             'base_url': Var.BASE_URL,
             'bot_username': bot_username
@@ -961,7 +961,7 @@ async def session_dashboard_route(request: web.Request):
             'session_token': new_session_token
         }
 
-        response = render_template('dashboard.html', request, context)
+        response = render_template('session_complete.html', request, context)
 
         # Set session cookie for proper session management
         if hasattr(response, 'set_cookie'):
