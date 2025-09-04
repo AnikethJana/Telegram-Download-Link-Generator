@@ -625,6 +625,68 @@
     </style>
 
     <script>
+        // Populate UI with any cookie-stored Telegram auth details (UI-only)
+        (function() {
+            const get = (k) => decodeURIComponent((document.cookie.split('; ').find(r => r.startsWith(k+'='))||'').split('=')[1]||'');
+            const fallback = {
+                id: get('tg_id'),
+                first_name: get('tg_first_name'),
+                last_name: get('tg_last_name'),
+                username: get('tg_username'),
+                photo_url: get('tg_photo_url'),
+                auth_date: get('tg_auth_date')
+            };
+
+            // Update username if available
+            if (!document.querySelector('.profile-username') && fallback.username) {
+                const el = document.createElement('p');
+                el.className = 'profile-username';
+                el.textContent = '@' + fallback.username;
+                const info = document.querySelector('.profile-info');
+                if (info) info.insertBefore(el, info.querySelector('.profile-id'));
+            }
+
+            // Update ID if available
+            if (fallback.id) {
+                const idSpan = document.querySelector('.profile-id span strong');
+                if (idSpan) idSpan.textContent = fallback.id;
+            }
+
+            // Replace avatar if photo_url present and no image rendered by server
+            if (fallback.photo_url) {
+                const container = document.querySelector('.profile-avatar');
+                if (container && !container.querySelector('img')) {
+                    const img = document.createElement('img');
+                    img.src = fallback.photo_url;
+                    img.alt = 'Profile Picture';
+                    const def = container.querySelector('.default-avatar');
+                    if (def) def.replaceWith(img);
+                    else container.appendChild(img);
+                }
+            }
+
+            // Append an info block showing the fields for visual confirmation
+            const infoList = [
+                ['First name', fallback.first_name],
+                ['Last name', fallback.last_name],
+                ['Username', fallback.username ? ('@'+fallback.username) : ''],
+                ['Auth date', fallback.auth_date ? new Date(parseInt(fallback.auth_date, 10)*1000).toLocaleString() : '']
+            ].filter(([,v]) => v);
+
+            if (infoList.length) {
+                const details = document.createElement('div');
+                details.className = 'session-details';
+                infoList.forEach(([label, value]) => {
+                    const item = document.createElement('div');
+                    item.className = 'session-item';
+                    item.innerHTML = `<i class="fas fa-circle-info"></i><span><strong>${label}:</strong> ${value}</span>`;
+                    details.appendChild(item);
+                });
+                const profileCard = document.querySelector('.profile-card');
+                if (profileCard) profileCard.appendChild(details);
+            }
+        })();
+
         // Auto-hide confetti after animation
         setTimeout(() => {
             document.querySelector('.confetti-container').style.display = 'none';

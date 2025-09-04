@@ -451,8 +451,16 @@ async def download_route(request: web.Request):
 @routes.get("/api/info")
 async def api_info_route(request: web.Request):
     """Provides bot status and information via API."""
-    bot_client: Client = request.app['bot_client']
-    start_time: datetime.datetime = request.app['start_time']
+    bot_client: Client = request.app.get('bot_client')
+    # Backward-compatible: support both 'start_time' and 'bot_start_time'
+    start_time = request.app.get('start_time') or request.app.get('bot_start_time')
+    if start_time is None:
+        try:
+            # Fallback to global if available
+            from StreamBot.__main__ import BOT_START_TIME  # type: ignore
+            start_time = BOT_START_TIME
+        except Exception:
+            start_time = None
     user_count = 0
     try:
         from StreamBot.database.database import total_users_count # Assuming this exists
@@ -527,7 +535,9 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
     # Store bot instance and client manager
     app['bot_client'] = bot_instance
     app['client_manager'] = client_manager
+    # Store both keys for compatibility with existing code paths
     app['bot_start_time'] = start_time
+    app['start_time'] = start_time
     
     # Add routes
     app.add_routes(routes)
