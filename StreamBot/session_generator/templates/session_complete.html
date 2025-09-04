@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Complete - Telegram Session Generator</title>
+    <link rel="stylesheet" href="/session/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container session-complete-container">
+        <!-- Success Header -->
+        <div class="success-header">
+            <div class="success-animation">
+                <div class="checkmark-wrapper">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="success-ripple"></div>
+                <div class="success-ripple delay-1"></div>
+                <div class="success-ripple delay-2"></div>
+            </div>
+            <h1 class="success-title">Session Active & Ready!</h1>
+            <p class="success-subtitle">Your secure session is now active and ready to use</p>
+        </div>
+
+        <!-- User Profile Section -->
+        <div class="user-profile-section">
+            <div class="profile-card">
+                <div class="profile-avatar-container">
+                    <div class="profile-avatar">
+                        {% if user_info.photo_url %}
+                            <img src="{{ user_info.photo_url }}" alt="Profile Picture">
+                        {% else %}
+                            <div class="default-avatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                        <div class="status-indicator online"></div>
+                    </div>
+                </div>
+
+                <div class="profile-info">
+                    <h2 class="profile-name">
+                        {{ user_info.first_name }}{% if user_info.last_name %} {{ user_info.last_name }}{% endif %}
+                    </h2>
+                    {% if user_info.username %}
+                        <p class="profile-username">@{{ user_info.username }}</p>
+                    {% endif %}
+                    <div class="profile-id">
+                        <i class="fas fa-id-badge"></i>
+                        <span>User ID: <strong>{{ user_info.id }}</strong></span>
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <div class="status-badge status-active">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Session Active</span>
+                    </div>
+                    <div class="session-details">
+                        <div class="session-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Created: Just now</span>
+                        </div>
+                        <div class="session-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Encrypted & Secure</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="main-content-grid">
+            <!-- Session Status Card -->
+            <div class="status-card">
+                <div class="status-header">
+                    <h2><i class="fas fa-key"></i> Session Status</h2>
+                    <span class="status-badge status-active">
+                        <i class="fas fa-check-circle"></i> Active
+                    </span>
+                </div>
+
+                <div class="session-info">
+                    <p><strong>Status:</strong> Your session is ready and active</p>
+                    <p><strong>Created:</strong> {{ user_info.created_at.strftime('%B %d, %Y at %H:%M UTC') if user_info.created_at else 'Just now' }}</p>
+                    <p><strong>Last Used:</strong> {{ user_info.last_used.strftime('%B %d, %Y at %H:%M UTC') if user_info.last_used else 'Never' }}</p>
+                </div>
+
+                <div class="usage-instructions">
+                    <h3><i class="fas fa-info-circle"></i> How to Use Your Session</h3>
+                    <ol>
+                        <li>Return to your Telegram bot conversation</li>
+                        <li>Share any private channel/group post URL</li>
+                        <li>Receive instant download links for private content</li>
+                        <li>Type <code>/logout</code> in the bot anytime to end your session</li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Quick Start Card -->
+            <div class="quick-start-card">
+                <h3><i class="fas fa-rocket"></i> Quick Start Guide</h3>
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4>Go to Bot</h4>
+                            <p>Return to your Telegram bot chat</p>
+                        </div>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4>Share Link</h4>
+                            <p>Send any private post URL</p>
+                        </div>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4>Get Download</h4>
+                            <p>Receive download links instantly</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bot Commands Card -->
+            <div class="commands-card">
+                <h3><i class="fas fa-robot"></i> Available Commands</h3>
+                <div class="command-list">
+                    <div class="command">
+                        <code>/start</code>
+                        <span>Start using the bot</span>
+                    </div>
+                    <div class="command">
+                        <code>/login</code>
+                        <span>Get link to this session generator</span>
+                    </div>
+                    <div class="command">
+                        <code>/logout</code>
+                        <span>End your session and revoke access</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Card -->
+            <div class="features-card">
+                <h3><i class="fas fa-star"></i> Features</h3>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>
+                            <strong>Secure Sessions</strong>
+                            <p>End-to-end encrypted session storage</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-link"></i>
+                        <div>
+                            <strong>Direct Links</strong>
+                            <p>Generate direct download links instantly</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-clock"></i>
+                        <div>
+                            <strong>Temporary Access</strong>
+                            <p>Links expire automatically for security</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-mobile-alt"></i>
+                        <div>
+                            <strong>Mobile Friendly</strong>
+                            <p>Works on all devices and platforms</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="/session" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i>
+                Back to Generator
+            </a>
+            <button onclick="openTelegramBot()" class="btn btn-primary btn-large">
+                <i class="fab fa-telegram-plane"></i>
+                Open Bot Chat
+            </button>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="security-notice">
+            <div class="notice-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="notice-content">
+                <h4>Important Security Notice</h4>
+                <p>Your session is encrypted and secure. To end your session, type <code>/logout</code> in the bot conversation. Never share your session access with others.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confetti Animation -->
+    <div class="confetti-container">
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+    </div>
+
+    <style>
+        /* Session Complete Page Specific Styles */
+        .session-complete-container {
+            max-width: 1000px;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .success-header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px 24px 0 0;
+            position: relative;
+            overflow: hidden;
+            color: white;
+            margin-bottom: 24px;
+        }
+
+        .success-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        .success-animation {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .checkmark-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+            animation: checkmarkBounce 0.6s ease-out 0.3s both;
+        }
+
+        .checkmark-wrapper i {
+            font-size: 36px;
+            color: white;
+        }
+
+        .success-ripple {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: ripple 2s linear infinite;
+        }
+
+        .success-ripple.delay-1 {
+            animation-delay: 0.5s;
+        }
+
+        .success-ripple.delay-2 {
+            animation-delay: 1s;
+        }
+
+        @keyframes checkmarkBounce {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .success-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .success-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* User Profile Section */
+        .user-profile-section {
+            padding: 0 24px 24px;
+        }
+
+        .profile-card {
+            text-align: center;
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e6e9ff;
+        }
+
+        .profile-avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 24px;
+        }
+
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #667eea;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+            animation: profilePulse 2s ease-in-out infinite;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .default-avatar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .default-avatar i {
+            font-size: 40px;
+            color: white;
+        }
+
+        .status-indicator {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+
+        .status-indicator.online {
+            background: #27ae60;
+            animation: statusBlink 2s ease-in-out infinite;
+        }
+
+        @keyframes profilePulse {
+            0%, 100% {
+                box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+            }
+            50% {
+                box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+            }
+        }
+
+        @keyframes statusBlink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .profile-info {
+            margin-bottom: 20px;
+        }
+
+        .profile-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 8px;
+        }
+
+        .profile-username {
+            font-size: 14px;
+            color: #667eea;
+            margin: 0 0 12px;
+            font-weight: 500;
+        }
+
+        .profile-id {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8f9ff;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            color: #5a6c7d;
+            border: 1px solid #e6e9ff;
+        }
+
+        .profile-id i {
+            color: #667eea;
+        }
+
+        /* Status Section */
+        .status-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+        }
+
+        .status-badge.status-active {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            box-shadow: 0 4px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .session-details {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .session-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #5a6c7d;
+        }
+
+        .session-item i {
+            color: #667eea;
+        }
+
+        /* Main Content Grid */
+        .main-content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            padding: 0 24px;
+        }
+
+        .status-card, .quick-start-card, .commands-card, .features-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e6e9ff;
+        }
+
+        .status-card h2, .quick-start-card h3, .commands-card h3, .features-card h3 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 16px;
+        }
+
+        .status-card h2 i, .quick-start-card h3 i, .commands-card h3 i, .features-card h3 i {
+            color: #667eea;
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .status-info p {
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #5a6c7d;
+        }
+
+        .usage-instructions {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+            border: 1px solid #e6e9ff;
+        }
+
+        .usage-instructions h3 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #2c3e50;
+        }
+
+        .usage-instructions ol {
+            margin-left: 16px;
+            font-size: 12px;
+            color: #5a6c7d;
+        }
+
+        .usage-instructions li {
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .usage-instructions code {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .step-card {
+            background: #f8f9ff;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e6e9ff;
+            transition: all 0.3s ease;
+        }
+
+        .step-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+            margin: 0 auto 8px;
+        }
+
+        .step-content h4 {
+            font-size: 12px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 4px;
+        }
+
+        .step-content p {
+            font-size: 10px;
+            color: #5a6c7d;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .command-list {
+            margin-top: 12px;
+        }
+
+        .command {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e6e9ff;
+            font-size: 12px;
+        }
+
+        .command:last-child {
+            border-bottom: none;
+        }
+
+        .command code {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
+        .command span {
+            color: #5a6c7d;
+            font-size: 11px;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .feature-item i {
+            font-size: 14px;
+            color: #667eea;
+            margin-top: 2px;
+            min-width: 14px;
+        }
+
+        .feature-item strong {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+
+        .feature-item p {
+            color: #5a6c7d;
+            font-size: 11px;
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            padding: 24px;
+            flex-wrap: wrap;
+        }
+
+        /* Security Notice */
+        .security-notice {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 1px solid #ffc107;
+            border-radius: 0 0 24px 24px;
+            padding: 20px 24px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .notice-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 193, 7, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notice-icon i {
+            color: #856404;
+            font-size: 18px;
+        }
+
+        .notice-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #856404;
+            margin: 0 0 6px;
+        }
+
+        .notice-content p {
+            font-size: 12px;
+            color: #856404;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .notice-content code {
+            background: rgba(133, 100, 4, 0.1);
+            color: #856404;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Confetti Animation */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            animation: confettiFall 3s linear infinite;
+        }
+
+        .confetti:nth-child(1) { left: 10%; animation-delay: 0s; background: #667eea; }
+        .confetti:nth-child(2) { left: 20%; animation-delay: 0.2s; background: #27ae60; }
+        .confetti:nth-child(3) { left: 30%; animation-delay: 0.4s; background: #e74c3c; }
+        .confetti:nth-child(4) { left: 40%; animation-delay: 0.6s; background: #f39c12; }
+        .confetti:nth-child(5) { left: 50%; animation-delay: 0.8s; background: #9b59b6; }
+        .confetti:nth-child(6) { left: 60%; animation-delay: 1s; background: #3498db; }
+        .confetti:nth-child(7) { left: 70%; animation-delay: 1.2s; background: #e67e22; }
+        .confetti:nth-child(8) { left: 80%; animation-delay: 1.4s; background: #1abc9c; }
+        .confetti:nth-child(9) { left: 90%; animation-delay: 1.6s; background: #34495e; }
+        .confetti:nth-child(10) { left: 95%; animation-delay: 1.8s; background: #e91e63; }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        @keyframes shimmer {
+            0%, 100% {
+                transform: translateX(-50%) translateY(-50%) rotate(0deg);
+            }
+            50% {
+                transform: translateX(-50%) translateY(-50%) rotate(180deg);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .session-complete-container {
+                padding: 0;
+            }
+
+            .success-title {
+                font-size: 24px;
+            }
+
+            .main-content-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+                padding: 0 16px;
+            }
+
+            .status-card, .quick-start-card, .commands-card, .features-card {
+                padding: 20px;
+            }
+
+            .steps-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+                padding: 20px 16px;
+            }
+
+            .action-buttons .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+
+            .security-notice {
+                margin: 0 16px 16px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-avatar {
+                width: 80px;
+                height: 80px;
+            }
+
+            .profile-name {
+                font-size: 18px;
+            }
+
+            .session-details {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .step-card {
+                display: flex;
+                align-items: center;
+                text-align: left;
+                padding: 12px;
+            }
+
+            .step-number {
+                margin: 0 12px 0 0;
+                flex-shrink: 0;
+            }
+
+            .step-content {
+                flex: 1;
+            }
+        }
+    </style>
+
+    <script>
+        // Populate UI with any cookie-stored Telegram auth details (UI-only)
+        (function() {
+            const get = (k) => decodeURIComponent((document.cookie.split('; ').find(r => r.startsWith(k+'='))||'').split('=')[1]||'');
+            const fallback = {
+                id: get('tg_id'),
+                first_name: get('tg_first_name'),
+                last_name: get('tg_last_name'),
+                username: get('tg_username'),
+                photo_url: get('tg_photo_url'),
+                auth_date: get('tg_auth_date')
+            };
+
+            // Update username if available
+            if (!document.querySelector('.profile-username') && fallback.username) {
+                const el = document.createElement('p');
+                el.className = 'profile-username';
+                el.textContent = '@' + fallback.username;
+                const info = document.querySelector('.profile-info');
+                if (info) info.insertBefore(el, info.querySelector('.profile-id'));
+            }
+
+            // Update ID if available
+            if (fallback.id) {
+                const idSpan = document.querySelector('.profile-id span strong');
+                if (idSpan) idSpan.textContent = fallback.id;
+            }
+
+            // Replace avatar if photo_url present and no image rendered by server
+            if (fallback.photo_url) {
+                const container = document.querySelector('.profile-avatar');
+                if (container && !container.querySelector('img')) {
+                    const img = document.createElement('img');
+                    img.src = fallback.photo_url;
+                    img.alt = 'Profile Picture';
+                    const def = container.querySelector('.default-avatar');
+                    if (def) def.replaceWith(img);
+                    else container.appendChild(img);
+                }
+            }
+
+            // Append an info block showing the fields for visual confirmation
+            const infoList = [
+                ['First name', fallback.first_name],
+                ['Last name', fallback.last_name],
+                ['Username', fallback.username ? ('@'+fallback.username) : ''],
+                ['Auth date', fallback.auth_date ? new Date(parseInt(fallback.auth_date, 10)*1000).toLocaleString() : '']
+            ].filter(([,v]) => v);
+
+            if (infoList.length) {
+                const details = document.createElement('div');
+                details.className = 'session-details';
+                infoList.forEach(([label, value]) => {
+                    const item = document.createElement('div');
+                    item.className = 'session-item';
+
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-circle-info';
+
+                    const span = document.createElement('span');
+
+                    const strong = document.createElement('strong');
+                    strong.textContent = `${label}: `;
+
+                    span.appendChild(strong);
+                    span.appendChild(document.createTextNode(value));
+
+                    item.appendChild(icon);
+                    item.appendChild(span);
+                    details.appendChild(item);
+                });
+                const profileCard = document.querySelector('.profile-card');
+                if (profileCard) profileCard.appendChild(details);
+            }
+        })();
+
+        // Auto-hide confetti after animation
+        setTimeout(() => {
+            const confetti = document.querySelector('.confetti-container');
+            if (confetti) confetti.style.display = 'none';
+        }, 4000);
+
+        function openTelegramBot() {
+            // Try to open Telegram app first, fallback to web
+            const botUsername = '{{ bot_username or "unknown" }}';
+            const telegramUrl = `https://t.me/${botUsername}`;
+
+            // For mobile devices, try to open the app
+            if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                window.location.href = `tg://resolve?domain=${botUsername}`;
+                // Fallback to web after a short delay
+                setTimeout(() => {
+                    window.open(telegramUrl, '_blank');
+                }, 1000);
+            } else {
+                // For desktop, open web version
+                window.open(telegramUrl, '_blank');
+            }
+        }
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to step cards
+            const stepCards = document.querySelectorAll('.step-card');
+            stepCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('animate-in');
+            });
+
+            // Add hover effects to feature items
+            const featureItems = document.querySelectorAll('.feature-item');
+            featureItems.forEach((item, index) => {
+                item.style.animationDelay = `${index * 0.05}s`;
+                item.classList.add('animate-in');
+            });
+        });
+    </script>
+</body>
+</html>

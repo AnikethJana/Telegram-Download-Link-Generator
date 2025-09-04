@@ -138,19 +138,61 @@ class SessionManager:
     
     async def notify_bot_about_new_session(self, user_id: int, user_info: Dict[str, Any]) -> bool:
         """
-        Notify the main bot about a new user session via internal communication.
-        Non-blocking to avoid memory pressure.
+        Notify the user about successful session generation.
+        Uses Telegram Bot API as primary method with Pyrogram as fallback.
+        Enhanced with detailed logging for troubleshooting.
         """
+        logger.info(f"🚀 Starting notification process for new session - User ID: {user_id}")
+
+        # Method 1: Try Telegram Bot API first (most reliable)
+        logger.debug(f"Trying Telegram Bot API method for user {user_id}")
+        try:
+            from StreamBot.utils.telegram_notifications import send_session_notification
+
+            success = await send_session_notification(user_id, user_info)
+            if success:
+                logger.info(f"✅ Notification sent successfully via Bot API to user {user_id}")
+                return True
+            else:
+                logger.warning(f"⚠️ Bot API method failed for user {user_id}, trying Pyrogram fallback")
+
+        except ImportError as import_error:
+            logger.warning(f"⚠️ Could not import Telegram notifications module: {import_error}")
+        except Exception as api_error:
+            logger.warning(f"⚠️ Bot API method failed for user {user_id}: {api_error}")
+
+        # Method 2: Fallback to Pyrogram client
+        logger.debug(f"Trying Pyrogram fallback method for user {user_id}")
         try:
             # Import here to avoid circular imports
+            logger.debug(f"Importing CLIENT_MANAGER_INSTANCE for user {user_id}")
             from StreamBot.__main__ import CLIENT_MANAGER_INSTANCE
-            
-            if CLIENT_MANAGER_INSTANCE:
-                primary_client = CLIENT_MANAGER_INSTANCE.get_primary_client()
-                
-                if primary_client and primary_client.is_connected:
-                    # Send a message to the user about successful session creation
-                    welcome_message = f"""✅ **Session Generated Successfully!**
+
+            if CLIENT_MANAGER_INSTANCE is None:
+                logger.error(f"❌ CLIENT_MANAGER_INSTANCE is None - ClientManager not initialized for user {user_id}")
+                return False
+
+            logger.debug(f"CLIENT_MANAGER_INSTANCE found, getting primary client for user {user_id}")
+            primary_client = CLIENT_MANAGER_INSTANCE.get_primary_client()
+
+            if primary_client is None:
+                logger.error(f"❌ Primary client is None - No primary client available for user {user_id}")
+                logger.debug(f"CLIENT_MANAGER_INSTANCE type: {type(CLIENT_MANAGER_INSTANCE)}")
+                logger.debug(f"CLIENT_MANAGER_INSTANCE attributes: {dir(CLIENT_MANAGER_INSTANCE)}")
+                return False
+
+            logger.debug(f"Primary client obtained: {type(primary_client)} for user {user_id}")
+
+            if not primary_client.is_connected:
+                logger.error(f"❌ Primary client is not connected for user {user_id}")
+                logger.debug(f"Connection status: {primary_client.is_connected if hasattr(primary_client, 'is_connected') else 'N/A'}")
+                logger.debug(f"Primary client details: {primary_client}")
+                return False
+
+            logger.info(f"✅ Primary client is connected, sending message to user {user_id}")
+
+            # Send a message to the user about successful session creation
+            welcome_message = f"""✅ **Session Generated Successfully!**
 
 Hello {user_info.get('first_name', 'User')}! Your session has been created and securely stored.
 
@@ -163,26 +205,21 @@ You can now:
 
 ⚠️ **Important Reminder:**
 Using session-based access with newer accounts, downloading large files continuously, abusing the service, or sharing access with others who spam downloads may result in your Telegram account being banned. Please use responsibly and avoid excessive usage patterns that could trigger Telegram's anti-abuse systems."""
-                    
-                    try:
-                        await primary_client.send_message(
-                            chat_id=user_id,
-                            text=welcome_message
-                        )
-                        logger.info(f"Welcome message sent to user {user_id}")
-                        return True
-                    except Exception as e:
-                        logger.warning(f"Could not send welcome message to user {user_id}: {e}")
-                        return False
-                else:
-                    logger.warning("Primary client not available for sending notification")
-                    return False
-            else:
-                logger.warning("ClientManager not available for sending notification")
-                return False
-                
-        except Exception as e:
-            logger.error(f"Error notifying bot about new session for user {user_id}: {e}", exc_info=True)
+
+            logger.debug(f"Prepared welcome message for user {user_id}, message length: {len(welcome_message)}")
+
+            await primary_client.send_message(
+                chat_id=user_id,
+                text=welcome_message
+            )
+            logger.info(f"✅ Welcome message sent successfully via Pyrogram to user {user_id}")
+            return True
+
+        except Exception as pyrogram_error:
+            logger.error(f"❌ Both notification methods failed for user {user_id}")
+            logger.error(f"Bot API error: {api_error if 'api_error' in locals() else 'Not attempted'}")
+            logger.error(f"Pyrogram error: {pyrogram_error}")
+            logger.debug(f"Pyrogram error details: {pyrogram_error}", exc_info=True)
             return False
     
     async def validate_session_string(self, session_string: str) -> bool:
@@ -201,6 +238,33 @@ Using session-based access with newer accounts, downloading large files continuo
         except Exception as e:
             logger.error(f"Error validating session string: {e}")
             return False
+
+    async def test_notification_system(self) -> bool:
+        """
+        Test the notification system during startup.
+        This helps verify that notifications will work before users try to generate sessions.
+        """
+        logger.info("🧪 Testing notification system...")
+
+        try:
+            # Test Telegram Bot API connection
+            from StreamBot.utils.telegram_notifications import get_telegram_notifier
+
+            notifier = get_telegram_notifier()
+            api_test_success = await notifier.test_bot_connection()
+
+            if api_test_success:
+                logger.info("✅ Notification system test passed - Bot API connection successful")
+                return True
+            else:
+                logger.warning("⚠️ Bot API connection test failed, but system will still try Pyrogram fallback")
+                return False
+
+        except Exception as e:
+            logger.warning(f"⚠️ Notification system test failed: {e}")
+            logger.warning("System will still attempt to send notifications using Pyrogram fallback")
+            return False
+
 
 # Global instance
 session_manager = SessionManager() 
