@@ -13,7 +13,7 @@ except Exception:  # Fallback if class name differs
     PhoneNumberBanned = type("PhoneNumberBanned", (Exception,), {})
 from ..database.user_sessions import store_user_session
 from ..utils.secure_storage import secure_storage
-from ..utils.webshare_proxy import webshare_proxy
+from ..utils.proxy_manager import proxy_manager
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +30,9 @@ class InteractiveLoginManager:
         logger.info("InteractiveLoginManager initialized for user credential-based sessions")
     
     def _create_client(self, name: str, api_id: int, api_hash: str, 
+                      proxy_host: str = None, proxy_port: int = None, proxy_type: str = 'http',
                       proxy_username: str = None, proxy_password: str = None) -> Client:
-        """Create Pyrogram client with user's API credentials and optional Webshare proxy."""
+        """Create Pyrogram client with user's API credentials and optional proxy."""
         client_kwargs = {
             'name': name,
             'api_id': api_id,
@@ -39,16 +40,23 @@ class InteractiveLoginManager:
             'in_memory': True
         }
         
-        # Add Webshare proxy if credentials provided
-        if proxy_username and proxy_password:
-            proxy_config = webshare_proxy.get_proxy_config(proxy_username, proxy_password)
+        # Add proxy if provided
+        if proxy_host and proxy_port:
+            proxy_config = proxy_manager.get_proxy_config(
+                hostname=proxy_host,
+                port=proxy_port,
+                proxy_type=proxy_type,
+                username=proxy_username,
+                password=proxy_password
+            )
             if proxy_config:
                 client_kwargs['proxy'] = proxy_config
         
         return Client(**client_kwargs)
 
     async def start_login(self, user_id: int, api_id: int, api_hash: str, 
-                         phone_number: str, proxy_username: str = None, proxy_password: str = None) -> Dict[str, any]:
+                         phone_number: str, proxy_host: str = None, proxy_port: int = None, 
+                         proxy_type: str = 'http', proxy_username: str = None, proxy_password: str = None) -> Dict[str, any]:
         """Initiate the login process with user's API credentials."""
         async with self._lock:
             if user_id in self.clients:
@@ -59,7 +67,7 @@ class InteractiveLoginManager:
             secure_storage.store_credentials(user_id, api_id, api_hash, phone_number)
             
             # Create client with user's credentials
-            client = self._create_client(f"user_{user_id}", api_id, api_hash, proxy_username, proxy_password)
+            client = self._create_client(f"user_{user_id}", api_id, api_hash, proxy_host, proxy_port, proxy_type, proxy_username, proxy_password)
             self.clients[user_id] = client
 
             await client.connect()

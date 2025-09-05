@@ -57,19 +57,42 @@
                         </div>
                         
                         <div class="form-group" style="margin-top: 20px;">
-                            <details id="webshare-details">
+                            <details id="proxy-details">
                                 <summary style="cursor: pointer; font-weight: 600;">
-                                    Webshare Proxy (Optional)
+                                    Proxy Settings (Optional)
                                 </summary>
                                 <div style="margin-top: 12px;">
-                                    <small>If you're in a region where Telegram is blocked, you can use a Webshare proxy.</small>
+                                    <small>If you're in a region where Telegram is blocked, you can use a proxy server.</small>
+                                    
                                     <div class="form-group" style="margin-top: 10px;">
-                                        <label for="proxy_username">Proxy Username</label>
-                                        <input type="text" id="proxy_username" placeholder="webshare_user">
+                                        <label for="proxy_host">Proxy Host</label>
+                                        <input type="text" id="proxy_host" placeholder="proxy.example.com">
                                     </div>
+                                    
+                                    <div style="display: flex; gap: 10px;">
+                                        <div class="form-group" style="flex: 1;">
+                                            <label for="proxy_port">Port</label>
+                                            <input type="number" id="proxy_port" placeholder="8080" min="1" max="65535">
+                                        </div>
+                                        <div class="form-group" style="flex: 1;">
+                                            <label for="proxy_type">Type</label>
+                                            <select id="proxy_type">
+                                                <option value="http">HTTP</option>
+                                                <option value="https">HTTPS</option>
+                                                <option value="socks4">SOCKS4</option>
+                                                <option value="socks5">SOCKS5</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
                                     <div class="form-group">
-                                        <label for="proxy_password">Proxy Password</label>
-                                        <input type="password" id="proxy_password" placeholder="webshare_pass">
+                                        <label for="proxy_username">Username (Optional)</label>
+                                        <input type="text" id="proxy_username" placeholder="username">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="proxy_password">Password (Optional)</label>
+                                        <input type="password" id="proxy_password" placeholder="password">
                                     </div>
                                 </div>
                             </details>
@@ -115,7 +138,7 @@
         const codeForm = document.getElementById('code-form');
         const passwordForm = document.getElementById('password-form');
         const token = document.getElementById('token').value;
-        let phoneNumber, apiId, apiHash, proxyUsername, proxyPassword;
+        let phoneNumber, apiId, apiHash, proxyHost, proxyPort, proxyType, proxyUsername, proxyPassword;
 
         credentialsForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -125,6 +148,9 @@
             apiId = parseInt(document.getElementById('api_id').value);
             apiHash = document.getElementById('api_hash').value.trim();
             phoneNumber = document.getElementById('phone_number').value.trim();
+            proxyHost = document.getElementById('proxy_host').value.trim() || null;
+            proxyPort = document.getElementById('proxy_port').value ? parseInt(document.getElementById('proxy_port').value) : null;
+            proxyType = document.getElementById('proxy_type').value || 'http';
             proxyUsername = document.getElementById('proxy_username').value.trim() || null;
             proxyPassword = document.getElementById('proxy_password').value.trim() || null;
             
@@ -161,9 +187,13 @@
                     phone_number: phoneNumber
                 };
                 
-                if (document.getElementById('webshare-details').open && proxyUsername && proxyPassword) {
-                    requestData.proxy_username = proxyUsername;
-                    requestData.proxy_password = proxyPassword;
+                // Add proxy settings if provided
+                if (document.getElementById('proxy-details').open && proxyHost && proxyPort) {
+                    requestData.proxy_host = proxyHost;
+                    requestData.proxy_port = proxyPort;
+                    requestData.proxy_type = proxyType;
+                    if (proxyUsername) requestData.proxy_username = proxyUsername;
+                    if (proxyPassword) requestData.proxy_password = proxyPassword;
                 }
                 
                 const response = await fetch('/session/send_code', {

@@ -29,13 +29,7 @@
             <div class="profile-card">
                 <div class="profile-avatar-container">
                     <div class="profile-avatar">
-                        {% if user_info.photo_url %}
-                            <img src="{{ user_info.photo_url }}" alt="Profile Picture">
-                        {% else %}
-                            <div class="default-avatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                        {% endif %}
+                            <img src="{{ gravatar_url }}" alt="Profile Picture">
                         <div class="status-indicator online"></div>
                     </div>
                 </div>
@@ -633,7 +627,6 @@
                 first_name: get('tg_first_name'),
                 last_name: get('tg_last_name'),
                 username: get('tg_username'),
-                photo_url: get('tg_photo_url'),
                 auth_date: get('tg_auth_date')
             };
 
@@ -652,18 +645,7 @@
                 if (idSpan) idSpan.textContent = fallback.id;
             }
 
-            // Replace avatar if photo_url present and no image rendered by server
-            if (fallback.photo_url) {
-                const container = document.querySelector('.profile-avatar');
-                if (container && !container.querySelector('img')) {
-                    const img = document.createElement('img');
-                    img.src = fallback.photo_url;
-                    img.alt = 'Profile Picture';
-                    const def = container.querySelector('.default-avatar');
-                    if (def) def.replaceWith(img);
-                    else container.appendChild(img);
-                }
-            }
+            // Avatar is handled server-side with gravatar
 
             // Append an info block showing the fields for visual confirmation
             const infoList = [

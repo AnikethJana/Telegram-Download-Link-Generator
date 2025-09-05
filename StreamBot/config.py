@@ -2,6 +2,7 @@
 import os
 from logging import getLogger
 import re
+import pyrogram
 
 # Set up basic logging
 logger = getLogger(__name__)
@@ -176,12 +177,19 @@ class Var:
     START_TEXT = f"""
 Hello {{mention}}! 👋
 
-I am Telegram File to Link Bot.
+🚀 **Welcome to the Ultimate Download Link Generator!**
 
-➡️ **Send me any file** and I will generate a direct download link for you .
+📁 Send me any file to get a direct download link instantly.
 
-{{force_sub_info}}
+🔐 **For Private Content:**
+• Use `/login` once, then send the t.me post URL here
+• Use `/logout` anytime to revoke access
+
+⏰ Links expire in about {_expiry_duration_str}.
+
+🎯 **Ready to get started? Send me a file now!**
     """
+
 
     FORCE_SUB_INFO_TEXT = "❗**You must join our channel to use this bot:**\n\n" # Added for start message
 
@@ -241,4 +249,33 @@ The bot has reached its monthly bandwidth limit of {BANDWIDTH_LIMIT_GB} GB.
 ⏰ **Service will resume:** Next month
 
 Thank you for your understanding! 🙏
+    """
+
+    # Start menu info texts (used by buttons/callbacks)
+    HELP_TEXT = f"""
+Here is how to use the bot:
+
+- Send me any file to get a direct download link.
+- To access files from private channels/groups you belong to, use /login and authenticate on the session generator, then send the t.me post URL here.
+- Use /logout to revoke your session and invalidate your private links.
+
+Links usually expire in about {_expiry_duration_str}.
+    """
+
+    ABOUT_TEXT = f"""
+🤖 **Telegram Download Link Generator**
+
+📦 **PyroFork Version:** {getattr(pyrogram, '__version__', 'unknown')}
+☁️ **Deployed on:** [Koyeb](https://koyeb.com)
+📊 **Bandwidth Limit:** {BANDWIDTH_LIMIT_GB} GB/month {'(enabled)' if BANDWIDTH_LIMIT_GB > 0 else '(disabled)'}
+🔗 **Repository:** [GitHub]({GITHUB_REPO_URL or 'https://github.com'})
+
+💡 **Features:**
+• Direct download links for any file
+• Private channel/group support via sessions
+• Secure encrypted session storage
+• Rate limiting and bandwidth monitoring
+• Multi-token support for reliability
+
+⚡ **Powered by:** Python, Pyrogram, and MongoDB
     """

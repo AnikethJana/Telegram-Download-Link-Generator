@@ -105,7 +105,6 @@ class TelegramAuth:
                 'first_name': auth_data.get('first_name', ''),
                 'last_name': auth_data.get('last_name', ''),
                 'username': auth_data.get('username', ''),
-                'photo_url': auth_data.get('photo_url', ''),
                 'auth_date': int(auth_data.get('auth_date', 0))
             }
             
