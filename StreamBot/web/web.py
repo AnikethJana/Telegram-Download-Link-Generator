@@ -30,6 +30,9 @@ from ..session_generator.interactive_login import interactive_login_manager
 from .auth_cookies import set_auth_cookies, get_session_token
 from ..security.rate_limiter import invalid_request_guard
 
+import hashlib
+from typing import Optional, Dict, Any
+
 logger = logging.getLogger(__name__)
 
 routes = web.RouteTableDef()
@@ -78,7 +81,7 @@ def generate_session_token(user_id: int) -> str:
     generate_session_token._token_store[token_hash] = {
         'user_id': user_id,
         'created_at': timestamp,
-        'expires_at': str(int(time.time()) + 3600)  # 1 hour expiry
+        'expires_at': str(int(time.time()) + 3600),  # 1 hour expiry
     }
 
     return token_hash
@@ -678,8 +681,27 @@ async def session_send_code_route(request: web.Request):
     api_id = data.get('api_id')
     api_hash = data.get('api_hash')
     phone_number = data.get('phone_number')
-    proxy_username = data.get('proxy_username')
-    proxy_password = data.get('proxy_password')
+    # Proxy configuration (optional)
+    proxy_host = data.get('proxy_host', '').strip() or None
+    proxy_port = data.get('proxy_port')
+    proxy_type = data.get('proxy_type', 'http').strip().lower()
+    proxy_username = data.get('proxy_username', '').strip() or None
+    proxy_password = data.get('proxy_password', '').strip() or None
+    
+    # Validate proxy configuration if provided
+    if proxy_host:
+        if not proxy_port:
+            return web.json_response({'status': 'error', 'message': 'Proxy port is required when proxy host is provided'}, status=400)
+        
+        try:
+            proxy_port = int(proxy_port)
+        except (ValueError, TypeError):
+            return web.json_response({'status': 'error', 'message': 'Invalid proxy port number'}, status=400)
+        
+        from StreamBot.utils.proxy_manager import proxy_manager
+        is_valid, error_msg = proxy_manager.validate_proxy_input(proxy_host, str(proxy_port), proxy_type)
+        if not is_valid:
+            return web.json_response({'status': 'error', 'message': f'Proxy validation failed: {error_msg}'}, status=400)
     
     user_id = await validate_session_token(token)
     if not user_id:
@@ -696,7 +718,7 @@ async def session_send_code_route(request: web.Request):
     
     try:
         result = await interactive_login_manager.start_login(
-            user_id, api_id, api_hash, phone_number, proxy_username, proxy_password
+            user_id, api_id, api_hash, phone_number, proxy_host, proxy_port, proxy_type, proxy_username, proxy_password
         )
         return web.json_response(result)
     except Exception as e:
@@ -783,6 +805,7 @@ async def session_submit_password_route(request: web.Request):
     if not user_id:
         return web.json_response({'status': 'error', 'message': 'Invalid or expired session.'}, status=401)
 
+    
     try:
         result = await asyncio.wait_for(
             interactive_login_manager.submit_password(user_id, password),
@@ -863,6 +886,17 @@ async def session_auth_route(request: web.Request):
                 'success': False,
                 'error': 'Access to the session generator is restricted to administrators.'
             }, status=403)
+        
+        from StreamBot.database.user_sessions import check_user_has_session
+        if await check_user_has_session(user_id):
+            session_token = generate_session_token(user_id)
+            response = web.json_response({
+                'success': True,
+                'redirect_url': '/session/success',
+                'session_token': session_token
+            })
+            set_auth_cookies(response, session_token, user_id)
+            return response
             
         # Generate a temporary token and redirect to the login form
         session_token = generate_session_token(user_id)
@@ -896,17 +930,23 @@ async def session_success_route(request: web.Request):
             return web.HTTPFound('/session')
         
         # Get user session info from database
-        user_info = await get_user_session_info(user_id)
-        if not user_info:
+        user_session_info = await get_user_session_info(user_id)
+        if not user_session_info:
             logger.warning(f"No session info found for user {user_id} on success page")
             return web.HTTPFound('/session')
+        
+        user_profile = user_session_info.get('user_info', {})
+        # Generate gravatar as default avatar
+        gravatar_hash = hashlib.md5(str(user_id).encode('utf-8')).hexdigest()
+        gravatar_url = f"https://www.gravatar.com/avatar/{gravatar_hash}?d=identicon&s=128"
         
         # Get bot username for the success page
         bot_client = request.app['bot_client']
         bot_username = bot_client.me.username if bot_client and bot_client.me else 'unknown'
         
         return render_template('session_complete.html', request, {
-            'user_info': user_info,
+            'user_info': user_profile,
+            'gravatar_url': gravatar_url,
             'base_url': Var.BASE_URL,
             'bot_username': bot_username
         })
@@ -951,11 +991,16 @@ async def session_dashboard_route(request: web.Request):
 
         # Get user session info
         from StreamBot.database.user_sessions import get_user_session_info
-        user_info = await get_user_session_info(user_id)
+        user_session_info = await get_user_session_info(user_id)
 
-        if not user_info:
+        if not user_session_info:
             logger.warning(f"No session info found for user {user_id}")
             return web.HTTPFound('/session')
+
+        user_profile = user_session_info.get('user_info', {})
+        # Generate gravatar as default avatar
+        gravatar_hash = hashlib.md5(str(user_id).encode('utf-8')).hexdigest()
+        gravatar_url = f"https://www.gravatar.com/avatar/{gravatar_hash}?d=identicon&s=128"
 
         # Generate new session token for this session
         new_session_token = generate_session_token(user_id)
@@ -964,7 +1009,8 @@ async def session_dashboard_route(request: web.Request):
         bot_username = getattr(bot_client.me, 'username', None) if bot_client and hasattr(bot_client, 'me') else None
 
         context = {
-            'user_info': user_info,
+            'user_info': user_profile,
+            'gravatar_url': gravatar_url,
             'bot_username': bot_username,
             'base_url': Var.BASE_URL,
             'app_name': 'Telegram Session Generator',

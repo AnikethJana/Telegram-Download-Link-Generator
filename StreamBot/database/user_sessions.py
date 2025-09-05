@@ -60,7 +60,7 @@ async def store_user_session(user_id: int, session_string: str, user_info: Dict[
                 'user_info': {
                     'first_name': (user_info.get('first_name') or '')[:50],  # Safe handling of None values
                     'username': (user_info.get('username') or '')[:32],  # Safe handling of None values
-                    'auth_date': user_info.get('auth_date')
+                    'auth_date': user_info.get('auth_date'),
                 },
                 'created_at': datetime.datetime.utcnow(),
                 'last_used': datetime.datetime.utcnow(),

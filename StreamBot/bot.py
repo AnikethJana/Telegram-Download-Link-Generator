@@ -155,10 +155,36 @@ def attach_handlers(app: Client):
     """Register all bot handlers to the provided client instance."""
     logger.info("Attaching bot command and message handlers...")
 
+    # --- Inline keyboard builder for /start ---
+    def build_start_keyboard(force_sub_link: str = None) -> InlineKeyboardMarkup | None:
+        buttons = []
+
+        # Join Channel button (if force subscription is enabled)
+        if force_sub_link and Var.FORCE_SUB_CHANNEL:
+            buttons.append([InlineKeyboardButton("🔗 Join Channel", url=force_sub_link)])
+
+        # Optional: Login shortcut if allowed and BASE_URL is public
+        try:
+            session_url = f"{Var.BASE_URL}/session"
+            is_localhost = any(h in session_url.lower() for h in ["localhost", "127.0.0.1", "0.0.0.0"])  # Telegram blocks localhost
+            if Var.ALLOW_USER_LOGIN and not is_localhost:
+                buttons.append([InlineKeyboardButton("🔐 Login", url=session_url)])
+        except Exception:
+            pass
+
+        # Row: Help / About / Close
+        buttons.append([
+            InlineKeyboardButton("❓ Help", callback_data="start:help"),
+            InlineKeyboardButton("ℹ️ About", callback_data="start:about"),
+            InlineKeyboardButton("✖️ Close", callback_data="start:close")
+        ])
+
+        return InlineKeyboardMarkup(buttons) if buttons else None
+
     @app.on_message(filters.command("start") & filters.private)
     async def start_handler(client: Client, message: Message):
         """Handle the /start command."""
-        force_sub_info = ""
+        force_sub_link = None
         if Var.FORCE_SUB_CHANNEL:
             try:
                 fsub_chat = await client.get_chat(Var.FORCE_SUB_CHANNEL)
@@ -166,10 +192,9 @@ def attach_handlers(app: Client):
                 if not invite_link:
                     invite_link_obj = await client.create_chat_invite_link(Var.FORCE_SUB_CHANNEL)
                     invite_link = invite_link_obj.invite_link
-                force_sub_info = Var.FORCE_SUB_INFO_TEXT + f"➡️ [{fsub_chat.title}]({invite_link})\n\n"
+                force_sub_link = invite_link
             except Exception as e:
                 logger.warning(f"Could not get ForceSub channel info for start message: {e}")
-                force_sub_info = "❗**Please ensure you join the required channel to use the bot.**\n\n"
         
         user_id = message.from_user.id
         try:
@@ -177,14 +202,47 @@ def attach_handlers(app: Client):
         except Exception as e:
              logger.error(f"Database error adding user {user_id} on start: {e}")
         
+        # Send clean text message with buttons
+        start_text = Var.START_TEXT.format(mention=message.from_user.mention)
+        
         await message.reply_text(
-            Var.START_TEXT.format(
-                mention=message.from_user.mention,
-                force_sub_info=force_sub_info
-            ),
+            start_text,
             quote=True,
-            disable_web_page_preview=True
+            disable_web_page_preview=True,
+            reply_markup=build_start_keyboard(force_sub_link)
         )
+
+    @app.on_message(filters.command("help") & filters.private)
+    async def help_handler(client: Client, message: Message):
+        await message.reply_text(Var.HELP_TEXT, quote=True, disable_web_page_preview=True)
+
+    @app.on_message(filters.command("about") & filters.private)
+    async def about_handler(client: Client, message: Message):
+        await message.reply_text(Var.ABOUT_TEXT, quote=True, disable_web_page_preview=True)
+
+    @app.on_callback_query(filters.regex(r"^start:(help|about|close)$"))
+    async def start_menu_callbacks(client: Client, callback_query):
+        action = callback_query.data.split(":", 1)[1]
+        try:
+            if action == "help":
+                await callback_query.message.edit_text(
+                    Var.HELP_TEXT,
+                    disable_web_page_preview=True,
+                    reply_markup=build_start_keyboard()
+                )
+            elif action == "about":
+                await callback_query.message.edit_text(
+                    Var.ABOUT_TEXT,
+                    disable_web_page_preview=True,
+                    reply_markup=build_start_keyboard()
+                )
+            elif action == "close":
+                await callback_query.message.delete()
+        except Exception:
+            # Fallback to answering the callback if edit/delete fails
+            await callback_query.answer("Action completed.", show_alert=False)
+        else:
+            await callback_query.answer()
 
     @app.on_message(filters.command("logs") & filters.private)
     async def logs_handler(client: Client, message: Message):
@@ -548,6 +606,59 @@ To generate download links again, use `/login` to create a new session."""
                 "❌ Error processing logout command. Please try again later.",
                 quote=True
             )
+
+    @app.on_message(filters.command("session") & filters.private)
+    async def session_handler(client: Client, message: Message):
+        """Handle the /session command to show session info and validate it."""
+        from StreamBot.database.user_sessions import check_user_has_session, get_user_session_info, revoke_user_session
+        from StreamBot.link_handler import user_session_streamer
+        from pyrogram.errors import AuthKeyUnregistered, UserDeactivated, UserDeactivatedBan
+        user_id = message.from_user.id
+        
+        if not await check_user_has_session(user_id):
+            await message.reply_text("ℹ️ You don't have an active session. Use /login to create one.", quote=True)
+            return
+            
+        user_client = await user_session_streamer.get_user_client(user_id)
+        if not user_client:
+            await revoke_user_session(user_id)
+            await message.reply_text("❌ Your session is invalid or has been revoked. Please use /login to create a new one.", quote=True)
+            return
+            
+        try:
+            from pyrogram.raw import functions
+            raw_auths = await user_client.invoke(functions.account.GetAuthorizations())
+            current_auth = next((auth for auth in raw_auths.authorizations if auth.current), None)
+            if not current_auth:
+                raise ValueError("No current authorization found")
+                
+            session_info = await get_user_session_info(user_id)
+            created_at = datetime.datetime.fromtimestamp(current_auth.date_created).strftime("%Y-%m-%d %H:%M:%S")
+            last_active = datetime.datetime.fromtimestamp(current_auth.date_active).strftime("%Y-%m-%d %H:%M:%S")
+            
+            msg = "**Your Session Information:**\n\n"
+            msg += f"**Device:** {current_auth.device_model}\n"
+            msg += f"**Platform:** {current_auth.platform}\n"
+            msg += f"**System Version:** {current_auth.system_version}\n"
+            msg += f"**App Name:** {current_auth.app_name}\n"
+            msg += f"**App Version:** {current_auth.app_version}\n"
+            msg += f"**Created:** {created_at}\n"
+            msg += f"**Last Active:** {last_active}\n"
+            msg += f"**IP:** {current_auth.ip}\n"
+            msg += f"**Country:** {current_auth.country}\n"
+            msg += f"**Region:** {current_auth.region}\n"
+            if session_info and 'user_info' in session_info and session_info['user_info'].get('username'):
+                msg += f"**Username:** @{session_info['user_info']['username']}\n"
+            msg += "\n**Status:** Active"
+            
+            await message.reply_text(msg, quote=True)
+            
+        except (AuthKeyUnregistered, UserDeactivated, UserDeactivatedBan, ValueError, Exception) as e:
+            logger.error(f"Session validation failed for user {user_id}: {str(e)}", exc_info=True)
+            await revoke_user_session(user_id)
+            await message.reply_text("❌ Your session is invalid or has been revoked. Please use /login to create a new one.", quote=True)
+        finally:
+            await user_session_streamer.cleanup_user_client(user_id)
 
     @app.on_message(filters.private & filters.text & filters.regex(r'https?://t\.me/.*'))
     async def link_handler(client: Client, message: Message):
