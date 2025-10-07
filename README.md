@@ -157,6 +157,21 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 * Forward a message from the target channel/group to [@TGIdsBot](https://t.me/TGIdsBot) .
 * For channels, the ID usually starts with `-100`.
 
+## Quick Deploy
+
+Deploy this bot to your preferred cloud platform with one click:
+
+<p>
+  <a href="https://render.com/deploy?repo=https://github.com/AnikethJana/Telegram-Download-Link-Generator&env.API_ID=&env.API_HASH=&env.BOT_TOKEN=&env.DATABASE_URL=&env.DATABASE_NAME=&env.LOG_CHANNEL=&env.BASE_URL=&env.ADMINS=&env.FORCE_SUB_CHANNEL=&env.LINK_EXPIRY_SECONDS=86400&env.PORT=8080&env.BIND_ADDRESS=0.0.0.0&env.WORKERS=4&env.SESSION_NAME=MyBotSession&env.ALLOW_USER_LOGIN=true&env.BANDWIDTH_LIMIT_GB=100&env.ADDITIONAL_BOT_TOKENS=&env.WORKER_CLIENT_PYROGRAM_WORKERS=1&env.WORKER_SESSIONS_IN_MEMORY=true&env.CORS_ALLOWED_ORIGINS=&env.GITHUB_REPO_URL=https://github.com/AnikethJana/Telegram-Download-Link-Generator">
+    <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" height="36">
+  </a>
+  <a href="https://app.koyeb.com/deploy?name=telegram-file-bot&type=git&repository=AnikethJana%2FTelegram-Download-Link-Generator&branch=main&builder=dockerfile&instance_type=free&regions=fra&env%5BAPI_ID%5D=&env%5BAPI_HASH%5D=&env%5BBOT_TOKEN%5D=&env%5BDATABASE_URL%5D=&env%5BDATABASE_NAME%5D=&env%5BLOG_CHANNEL%5D=&env%5BBASE_URL%5D=&env%5BADMINS%5D=&env%5BFORCE_SUB_CHANNEL%5D=&env%5BLINK_EXPIRY_SECONDS%5D=86400&env%5BPORT%5D=8080&env%5BBIND_ADDRESS%5D=0.0.0.0&env%5BWORKERS%5D=4&env%5BSESSION_NAME%5D=MyBotSession&env%5BALLOW_USER_LOGIN%5D=true&env%5BBANDWIDTH_LIMIT_GB%5D=100&env%5BADDITIONAL_BOT_TOKENS%5D=&env%5BWORKER_CLIENT_PYROGRAM_WORKERS%5D=1&env%5BWORKER_SESSIONS_IN_MEMORY%5D=true&env%5BCORS_ALLOWED_ORIGINS%5D=&env%5BGITHUB_REPO_URL%5D=https%3A%2F%2Fgithub.com%2FAnikethJana%2FTelegram-Download-Link-Generator&ports=8080%3Bhttp%3B%2F" style="margin-left: 10px;">
+    <img src="https://www.koyeb.com/static/images/deploy/button.svg" alt="Deploy to Koyeb" height="36">
+  </a>
+</p>
+
+> Note: After deployment, make sure to fill in all required environment variables (API_ID, API_HASH, BOT_TOKEN, DATABASE_URL, LOG_CHANNEL, BASE_URL, and ADMINS). The BASE_URL should be set to your deployed application URL.
+
 ## Multi-Client Architecture
 
 The bot now supports a multi-bot architecture for improved performance and load distribution:
