@@ -132,11 +132,28 @@ async def stream_video_route(request: web.Request):
         async with tracked_stream_response(response, stream_tracker, request_id):
             while current_retry <= max_retries:
                 try:
+                    # CRITICAL: Calculate remaining bytes to stream based on what we've already sent
+                    # This ensures proper resumption after client switches
+                    remaining_bytes = bytes_to_serve - bytes_streamed
+                    
+                    if remaining_bytes <= 0:
+                        # Already streamed everything
+                        logger.info(f"All bytes already streamed for video {message_id}. Total: {bytes_streamed}")
+                        break
+                    
+                    # Recalculate chunk offset and skip bytes based on current position (memory-efficient)
+                    current_byte_offset = start_offset + bytes_streamed
+                    current_start_chunk = current_byte_offset // chunk_size
+                    current_skip_bytes = current_byte_offset % chunk_size
+                    
+                    if bytes_streamed > 0:
+                        logger.debug(f"Resuming video stream for {message_id}. Already sent: {bytes_streamed}, Remaining: {remaining_bytes}")
+                    
                     # Get the async generator for media chunks.
                     # NOTE: stream_media offset parameter is in chunks, not bytes
                     media_stream = streamer_client.stream_media(
                         media_msg,
-                        offset=start_chunk  # This is chunk offset, not byte offset
+                        offset=current_start_chunk  # This is chunk offset, not byte offset
                     )
                     
                     current_chunk = 0
@@ -144,9 +161,9 @@ async def stream_video_route(request: web.Request):
                         if not chunk:
                             break  # End of file.
 
-                        # If this is the first chunk from our start_chunk, skip the unneeded bytes from the beginning.
+                        # If this is the first chunk from our current position, skip the unneeded bytes from the beginning.
                         if current_chunk == 0:
-                            chunk = chunk[skip_bytes:]
+                            chunk = chunk[current_skip_bytes:]
 
                         # If this chunk would exceed our byte limit, truncate it.
                         if bytes_streamed + len(chunk) > bytes_to_serve:
@@ -172,21 +189,23 @@ async def stream_video_route(request: web.Request):
                     break
 
                 except FloodWait as e:
-                    logger.warning(f"FloodWait during video stream {message_id}: {e}")
+                    logger.warning(f"FloodWait during video stream {message_id}: {e}. Already streamed: {bytes_streamed}")
                     # Try alternative client first before waiting.
                     try:
                         alternative_client = await client_manager.get_alternative_streaming_client(streamer_client)
                         if alternative_client:
-                            logger.info(f"Switching from @{streamer_client.me.username} to @{alternative_client.me.username} for {message_id}")
+                            logger.info(f"Switching from @{streamer_client.me.username} to @{alternative_client.me.username} for {message_id}. Will resume from byte {bytes_streamed}")
                             streamer_client = alternative_client
                             await asyncio.sleep(1)
-                            continue  # Retry with new client.
+                            continue  # Retry with new client, will resume from current position
                         else:
-                            # No alternative client, wait briefly.
-                            await asyncio.sleep(min(e.value, 10))
+                            # No alternative client, wait briefly (cap at 60s for low-resource server)
+                            await asyncio.sleep(min(e.value, 60))
+                            continue  # Retry with same client after waiting
                     except Exception as alt_e:
                         logger.error(f"Error switching client for {message_id}: {alt_e}")
-                        await asyncio.sleep(5)  # Short wait before retry.
+                        await asyncio.sleep(min(e.value, 60))  # Cap wait time
+                        continue  # Retry after waiting
 
                 except Exception as e:
                     current_retry += 1
