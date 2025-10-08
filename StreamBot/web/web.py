@@ -373,14 +373,34 @@ async def download_route(request: web.Request):
             try:
                 # Use WebStreamer-style streaming with ByteStreamer
                 try:
+                    # CRITICAL: Calculate remaining bytes to stream based on what we've already sent
+                    # This ensures proper resumption after client switches
+                    remaining_start_offset = start_offset + bytes_streamed
+                    remaining_bytes = (end_offset - remaining_start_offset + 1)
+                    
+                    if remaining_bytes <= 0:
+                        # Already streamed everything
+                        logger.info(f"All bytes already streamed for {message_id}. Total: {humanbytes(bytes_streamed)}")
+                        break
+                    
+                    # Recalculate streaming parameters for remaining data (memory-efficient)
+                    remaining_offset = remaining_start_offset - (remaining_start_offset % chunk_size)
+                    remaining_first_part_cut = remaining_start_offset - remaining_offset
+                    remaining_until_bytes = min(end_offset, file_size - 1)
+                    remaining_last_part_cut = remaining_until_bytes % chunk_size + 1
+                    remaining_part_count = math.ceil((remaining_until_bytes + 1) / chunk_size) - math.floor(remaining_offset / chunk_size)
+                    
+                    if bytes_streamed > 0:
+                        logger.debug(f"Resuming stream for {message_id}. Already sent: {humanbytes(bytes_streamed)}, Remaining: {humanbytes(remaining_bytes)}")
+                    
                     # Create the streaming coroutine using ByteStreamer
                     async def stream_data():
                         async for chunk in byte_streamer.yield_file(
                             file_id,
-                            offset,
-                            first_part_cut,
-                            last_part_cut,
-                            part_count,
+                            remaining_offset,
+                            remaining_first_part_cut,
+                            remaining_last_part_cut,
+                            remaining_part_count,
                             chunk_size
                         ):
                             try:
@@ -407,27 +427,32 @@ async def download_route(request: web.Request):
                 break # Exit retry loop on successful completion
 
             except FloodWait as e:
-                 logger.warning(f"FloodWait during stream for {message_id} on client @{streamer_client.me.username}. FloodWait: {e.value}s. Attempting to get alternative client...")
+                 logger.warning(f"FloodWait during stream for {message_id} on client @{streamer_client.me.username}. FloodWait: {e.value}s. Already streamed: {humanbytes(bytes_streamed)}. Attempting to get alternative client...")
                  
                  # Try to get a different client instead of waiting
                  try:
                      alternative_client = await client_manager.get_alternative_streaming_client(streamer_client)
                      if alternative_client:
-                         logger.info(f"Switching from @{streamer_client.me.username} to @{alternative_client.me.username} for {message_id} due to FloodWait")
+                         logger.info(f"Switching from @{streamer_client.me.username} to @{alternative_client.me.username} for {message_id} due to FloodWait. Will resume from byte {bytes_streamed}")
                          streamer_client = alternative_client
-                         # Update ByteStreamer instance
+                         # Update ByteStreamer instance for new client
                          byte_streamer = client_manager.get_streamer_for_client(streamer_client)
                          if not byte_streamer:
                              logger.error(f"No ByteStreamer found for alternative client @{streamer_client.me.username}")
                              break
-                         # Small delay to avoid rapid switching
+                         
+                         # IMPORTANT: file_id remains the same (same file from LOG_CHANNEL)
+                         # Just continue the loop to resume streaming with new client from where we left off
                          await asyncio.sleep(1)
+                         continue  # Resume with new client
                      else:
                          logger.warning(f"No alternative clients available for {message_id}. Waiting {e.value}s for FloodWait on @{streamer_client.me.username}")
-                         await asyncio.sleep(e.value + 2)
+                         await asyncio.sleep(min(e.value + 2, 60))  # Cap wait time at 60s
+                         continue  # Retry with same client after waiting
                  except Exception as client_e:
                      logger.warning(f"Error getting alternative client for {message_id}: {client_e}. Falling back to waiting.")
-                     await asyncio.sleep(e.value + 2)
+                     await asyncio.sleep(min(e.value + 2, 60))  # Cap wait time at 60s
+                     continue  # Retry after waiting
                  
                  # Continue to the next iteration of the while loop (retry with potentially different client)
 
