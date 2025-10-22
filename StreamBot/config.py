@@ -115,6 +115,13 @@ class Var:
     # Session generator access control
     ALLOW_USER_LOGIN = get_env("ALLOW_USER_LOGIN", default=False, is_bool=True)
     
+    # URL Shortener configuration
+    # Base URL for the GPLinks API (includes API key)
+    ADLINKFLY_URL = get_env("ADLINKFLY_URL", default="")
+
+    # File size threshold for shortening links (2 MB for testing, change to 200*1024*1024 for production)
+    FILE_SIZE_THRESHOLD = get_env("FILE_SIZE_THRESHOLD", default=2 * 1024 * 1024, is_int=True)  # 2 MB in bytes
+    
     # Basic security validation
     if PORT and (PORT < 1 or PORT > 65535):
         logger.error(f"Invalid PORT value: {PORT}. Must be between 1-65535.")
