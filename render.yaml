@@ -1,0 +1,83 @@
+services:
+  - type: web
+    name: telegram-download-link-generator
+    env: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/info
+    envVars:
+      # --- Telegram Core (Required) ---
+      - key: API_ID
+        sync: false
+      - key: API_HASH
+        sync: false
+      - key: BOT_TOKEN
+        sync: false
+      
+      # --- Channels (Required) ---
+      - key: LOG_CHANNEL
+        sync: false
+      - key: FORCE_SUB_CHANNEL
+        value: ""
+      
+      # --- Web Server (Required) ---
+      - key: BASE_URL
+        sync: false
+      - key: PORT
+        value: 8080
+      - key: BIND_ADDRESS
+        value: 0.0.0.0
+      
+      # --- Video Streaming Frontend ---
+      - key: VIDEO_FRONTEND_URL
+        value: https://cricster.pages.dev
+      
+      # --- Settings ---
+      - key: LINK_EXPIRY_SECONDS
+        value: 86400
+      - key: SESSION_NAME
+        value: MyBotSession
+      - key: WORKERS
+        value: 4
+      - key: GITHUB_REPO_URL
+        value: https://github.com/AnikethJana/Telegram-Download-Link-Generator
+      
+      # --- Admin Users (Required) ---
+      - key: ADMINS
+        sync: false
+      
+      # --- Rate Limiting ---
+      - key: MAX_LINKS_PER_DAY
+        value: 5
+      
+      # --- Bandwidth Limiting ---
+      - key: BANDWIDTH_LIMIT_GB
+        value: 100
+      
+      # --- Session Generator Access Control ---
+      - key: ALLOW_USER_LOGIN
+        value: true
+      
+      # --- Multiple Bot Support ---
+      - key: ADDITIONAL_BOT_TOKENS
+        value: ""
+      - key: WORKER_CLIENT_PYROGRAM_WORKERS
+        value: 1
+      - key: WORKER_SESSIONS_IN_MEMORY
+        value: true
+      
+      # --- CORS Configuration ---
+      - key: CORS_ALLOWED_ORIGINS
+        value: ""
+      
+      # --- Database (MongoDB) (Required) ---
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_NAME
+        value: TgDlBotUsers
+      
+      # --- URL Shortener Configuration ---
+      - key: ADLINKFLY_URL
+        value: https://api.gplinks.com/api?api=your_api_key_here
+      - key: FILE_SIZE_THRESHOLD
+        value: 209715200
+

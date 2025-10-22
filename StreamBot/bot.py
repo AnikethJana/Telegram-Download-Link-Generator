@@ -13,6 +13,7 @@ from .security.rate_limiter import bot_rate_limiter
 from .utils.bandwidth import is_bandwidth_limit_exceeded, get_current_bandwidth_usage
 from .utils.smart_logger import SmartRateLimitedLogger
 from .link_handler import get_message_from_link
+from .utils import url_shortener
 
 logger = logging.getLogger(__name__)
 # TgDlBot instance will be created and managed by ClientManager in __main__.py
@@ -20,6 +21,37 @@ logger = logging.getLogger(__name__)
 
 # Create a memory-safe rate-limited logger instance
 rate_limited_logger = SmartRateLimitedLogger(logger)
+
+
+async def process_download_link(original_link: str, file_size: int) -> str:
+    """
+    Process a download link and shorten it if the file size exceeds the threshold.
+
+    Args:
+        original_link (str): The original download link
+        file_size (int): Size of the file in bytes
+
+    Returns:
+        str: The processed link (shortened if needed, otherwise original)
+    """
+    try:
+        # Check if URL shortening should be used
+        if await url_shortener.should_use_short_url(file_size):
+            logger.info(f"File size {file_size} bytes exceeds threshold, shortening URL")
+            shortened_url = await url_shortener.shorten_url(original_link)
+            if shortened_url:
+                logger.info(f"URL shortened successfully: {original_link} -> {shortened_url}")
+                return shortened_url
+            else:
+                logger.warning("URL shortening failed, using original link")
+                return original_link
+        else:
+            logger.debug(f"File size {file_size} bytes is below threshold, using original link")
+            return original_link
+    except Exception as e:
+        logger.error(f"Error processing download link: {e}", exc_info=True)
+        # Return original link on error to ensure functionality
+        return original_link
 
 
 # --- Small helpers to build messages (deduplicated, KISS) ---
@@ -737,12 +769,19 @@ To generate download links again, use `/login` to create a new session."""
             # Generate download link using the same structure as forwarded files
             encoded_msg_id = encode_message_id(virtual_msg_id)
             download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
-            
+
+            # Process download link (shorten if file size exceeds threshold)
+            processed_download_link = await process_download_link(download_link, file_size)
+
             is_video = is_video_file(file_mime_type)
             reply_markup = None
             if is_video and Var.VIDEO_FRONTEND_URL:
+                # For private content, the stream URL should also be shortened if needed
+                stream_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"  # Same endpoint for streaming private content
+                processed_stream_link = await process_download_link(stream_link, file_size)
+
                 import urllib.parse
-                encoded_stream_uri = urllib.parse.quote(download_link)
+                encoded_stream_uri = urllib.parse.quote(processed_stream_link)
                 video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
                 reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("🎬 Play Video", url=video_play_url)]])
 
@@ -750,7 +789,7 @@ To generate download links again, use `/login` to create a new session."""
                 f"✅ **Download Link Generated!**\n\n"
                 f"**File Name:** `{file_name}`\n"
                 f"**File Size:** {file_size_str}\n\n"
-                f"**Link:** {download_link}\n\n"
+                f"**Link:** {processed_download_link}\n\n"
                 f"⏳ **Expires:** In approximately 24 hours.\n\n"
                 f"🔒 This link uses your personal session to access the private content.",
                 reply_markup=reply_markup,
@@ -832,17 +871,24 @@ To generate download links again, use `/login` to create a new session."""
             encoded_msg_id = encode_message_id(log_msg.id)
             download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
 
+            # Process download link (shorten if file size exceeds threshold)
+            processed_download_link = await process_download_link(download_link, file_size)
+
             # Check if it's a video file and create appropriate response
             is_video = is_video_file(file_mime_type)
             reply_markup = None
-            
+
             if is_video and Var.VIDEO_FRONTEND_URL:
                 # Create inline keyboard with Play Video button - use stream URL directly
                 stream_link = f"{Var.BASE_URL}/stream/{encoded_msg_id}"
+
+                # Process stream link (shorten if file size exceeds threshold)
+                processed_stream_link = await process_download_link(stream_link, file_size)
+
                 import urllib.parse
-                encoded_stream_uri = urllib.parse.quote(stream_link)
+                encoded_stream_uri = urllib.parse.quote(processed_stream_link)
                 video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
-                
+
                 reply_markup = InlineKeyboardMarkup([
                     [InlineKeyboardButton("🎬 Play Video", url=video_play_url)]
                 ])
@@ -852,7 +898,7 @@ To generate download links again, use `/login` to create a new session."""
                 Var.LINK_GENERATED_TEXT.format(
                     file_name=file_name,
                     file_size=file_size_str,
-                    download_link=download_link
+                    download_link=processed_download_link
                 ),
                 reply_markup=reply_markup,
                 disable_web_page_preview=True
