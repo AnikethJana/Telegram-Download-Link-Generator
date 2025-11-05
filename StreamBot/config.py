@@ -119,8 +119,17 @@ class Var:
     # Base URL for the GPLinks API (includes API key)
     ADLINKFLY_URL = get_env("ADLINKFLY_URL", default="")
 
-    # File size threshold for shortening links (2 MB for testing, change to 200*1024*1024 for production)
-    FILE_SIZE_THRESHOLD = get_env("FILE_SIZE_THRESHOLD", default=2 * 1024 * 1024, is_int=True)  # 2 MB in bytes
+    # File size threshold for shortening links, set via env in megabytes (default: 2 MB)
+    _file_size_threshold_raw = get_env("FILE_SIZE_THRESHOLD", default=2, is_int=True)
+    if _file_size_threshold_raw is None:
+        FILE_SIZE_THRESHOLD = 2 * 1024 * 1024
+    elif _file_size_threshold_raw >= 1024 * 1024:
+        logger.warning(
+            "FILE_SIZE_THRESHOLD appears to be specified in bytes. This is deprecated; please update the env var to use megabytes."
+        )
+        FILE_SIZE_THRESHOLD = _file_size_threshold_raw
+    else:
+        FILE_SIZE_THRESHOLD = max(_file_size_threshold_raw, 0) * 1024 * 1024
     
     # Basic security validation
     if PORT and (PORT < 1 or PORT > 65535):

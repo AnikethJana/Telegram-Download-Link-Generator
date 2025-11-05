@@ -133,7 +133,7 @@ DATABASE_NAME=TgDlBotUsers # Name of the database to use
 ADLINKFLY_URL=https://api.gplinks.com/api?api=your_api_key_here
 # File size threshold for URL shortening (default: 200 MB)
 # Files larger than this will have shortened URLs
-FILE_SIZE_THRESHOLD=209715200 # 200 MB in bytes (200 * 1024 * 1024)
+FILE_SIZE_THRESHOLD=200 # Specify value in megabytes
 ```
 
 **Environment Variable Details:**
@@ -161,7 +161,7 @@ FILE_SIZE_THRESHOLD=209715200 # 200 MB in bytes (200 * 1024 * 1024)
 * **`DATABASE_URL`**: Your MongoDB connection string URI.
 * **`DATABASE_NAME`**: The name of the MongoDB database to use (default: `TgDlBotUsers`).
 * **`ADLINKFLY_URL`**: Full GPLinks API URL including your API key. Get your API key from [GPLinks.com](https://gplinks.com).
-* **`FILE_SIZE_THRESHOLD`**: File size threshold in bytes for URL shortening (default: `209715200` = 200 MB). Files larger than this will have their download and streaming URLs shortened automatically.
+* **`FILE_SIZE_THRESHOLD`**: File size threshold in megabytes for URL shortening (default: `200`). Files larger than this will have their download and streaming URLs shortened automatically.
 
 **How to get Numeric IDs:**
 
@@ -173,10 +173,10 @@ FILE_SIZE_THRESHOLD=209715200 # 200 MB in bytes (200 * 1024 * 1024)
 Deploy this bot to your preferred cloud platform with one click:
 
 <p>
-  <a href="https://render.com/deploy?repo=https://github.com/AnikethJana/Telegram-Download-Link-Generator&env.API_ID=&env.API_HASH=&env.BOT_TOKEN=&env.DATABASE_URL=&env.DATABASE_NAME=&env.LOG_CHANNEL=&env.BASE_URL=&env.ADMINS=&env.FORCE_SUB_CHANNEL=&env.LINK_EXPIRY_SECONDS=86400&env.PORT=8080&env.BIND_ADDRESS=0.0.0.0&env.WORKERS=4&env.SESSION_NAME=MyBotSession&env.ALLOW_USER_LOGIN=true&env.BANDWIDTH_LIMIT_GB=100&env.ADDITIONAL_BOT_TOKENS=&env.WORKER_CLIENT_PYROGRAM_WORKERS=1&env.WORKER_SESSIONS_IN_MEMORY=true&env.ADLINKFLY_URL=https://api.gplinks.com/api?api=your_api_key_here&env.FILE_SIZE_THRESHOLD=209715200&env.CORS_ALLOWED_ORIGINS=&env.GITHUB_REPO_URL=https://github.com/AnikethJana/Telegram-Download-Link-Generator">
+  <a href="https://render.com/deploy?repo=https://github.com/AnikethJana/Telegram-Download-Link-Generator&env.API_ID=&env.API_HASH=&env.BOT_TOKEN=&env.DATABASE_URL=&env.DATABASE_NAME=&env.LOG_CHANNEL=&env.BASE_URL=&env.ADMINS=&env.FORCE_SUB_CHANNEL=&env.LINK_EXPIRY_SECONDS=86400&env.PORT=8080&env.BIND_ADDRESS=0.0.0.0&env.WORKERS=4&env.SESSION_NAME=MyBotSession&env.ALLOW_USER_LOGIN=true&env.BANDWIDTH_LIMIT_GB=100&env.ADDITIONAL_BOT_TOKENS=&env.WORKER_CLIENT_PYROGRAM_WORKERS=1&env.WORKER_SESSIONS_IN_MEMORY=true&env.ADLINKFLY_URL=https://api.gplinks.com/api?api=your_api_key_here&env.FILE_SIZE_THRESHOLD=200&env.CORS_ALLOWED_ORIGINS=&env.GITHUB_REPO_URL=https://github.com/AnikethJana/Telegram-Download-Link-Generator">
     <img src="https://render.com/images/deploy-to-render-button.svg" alt="Deploy to Render" height="36">
   </a>
-  <a href="https://app.koyeb.com/deploy?name=telegram-file-bot&type=git&repository=AnikethJana%2FTelegram-Download-Link-Generator&branch=main&builder=dockerfile&instance_type=free&regions=fra&env%5BAPI_ID%5D=&env%5BAPI_HASH%5D=&env%5BBOT_TOKEN%5D=&env%5BDATABASE_URL%5D=&env%5BDATABASE_NAME%5D=&env%5BLOG_CHANNEL%5D=&env%5BBASE_URL%5D=&env%5BADMINS%5D=&env%5BFORCE_SUB_CHANNEL%5D=&env%5BLINK_EXPIRY_SECONDS%5D=86400&env%5BPORT%5D=8080&env%5BBIND_ADDRESS%5D=0.0.0.0&env%5BWORKERS%5D=4&env%5BSESSION_NAME%5D=MyBotSession&env%5BALLOW_USER_LOGIN%5D=true&env%5BBANDWIDTH_LIMIT_GB%5D=100&env%5BADDITIONAL_BOT_TOKENS%5D=&env%5BWORKER_CLIENT_PYROGRAM_WORKERS%5D=1&env%5BWORKER_SESSIONS_IN_MEMORY%5D=true&env%5BCORS_ALLOWED_ORIGINS%5D=&env%5BADLINKFLY_URL%5D=https%3A%2F%2Fapi.gplinks.com%2Fapi%3Fapi%3Dyour_api_key_here&env%5BFILE_SIZE_THRESHOLD%5D=209715200&env%5BGITHUB_REPO_URL%5D=https%3A%2F%2Fgithub.com%2FAnikethJana%2FTelegram-Download-Link-Generator&ports=8080%3Bhttp%3B%2F" style="margin-left: 10px;">
+  <a href="https://app.koyeb.com/deploy?name=telegram-file-bot&type=git&repository=AnikethJana%2FTelegram-Download-Link-Generator&branch=main&builder=dockerfile&instance_type=free&regions=fra&env%5BAPI_ID%5D=&env%5BAPI_HASH%5D=&env%5BBOT_TOKEN%5D=&env%5BDATABASE_URL%5D=&env%5BDATABASE_NAME%5D=&env%5BLOG_CHANNEL%5D=&env%5BBASE_URL%5D=&env%5BADMINS%5D=&env%5BFORCE_SUB_CHANNEL%5D=&env%5BLINK_EXPIRY_SECONDS%5D=86400&env%5BPORT%5D=8080&env%5BBIND_ADDRESS%5D=0.0.0.0&env%5BWORKERS%5D=4&env%5BSESSION_NAME%5D=MyBotSession&env%5BALLOW_USER_LOGIN%5D=true&env%5BBANDWIDTH_LIMIT_GB%5D=100&env%5BADDITIONAL_BOT_TOKENS%5D=&env%5BWORKER_CLIENT_PYROGRAM_WORKERS%5D=1&env%5BWORKER_SESSIONS_IN_MEMORY%5D=true&env%5BCORS_ALLOWED_ORIGINS%5D=&env%5BADLINKFLY_URL%5D=https%3A%2F%2Fapi.gplinks.com%2Fapi%3Fapi%3Dyour_api_key_here&env%5BFILE_SIZE_THRESHOLD%5D=200&env%5BGITHUB_REPO_URL%5D=https%3A%2F%2Fgithub.com%2FAnikethJana%2FTelegram-Download-Link-Generator&ports=8080%3Bhttp%3B%2F" style="margin-left: 10px;">
     <img src="https://www.koyeb.com/static/images/deploy/button.svg" alt="Deploy to Koyeb" height="36">
   </a>
 </p>
