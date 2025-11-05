@@ -2,6 +2,7 @@
 import os
 from logging import getLogger
 import re
+import pyrogram
 
 # Set up basic logging
 logger = getLogger(__name__)
@@ -87,6 +88,10 @@ class Var:
     PORT = get_env("PORT", 8080, is_int=True)
     BIND_ADDRESS = get_env("BIND_ADDRESS", "0.0.0.0")
     
+    # CORS configuration
+    _cors_origins_str = get_env("CORS_ALLOWED_ORIGINS", default="")
+    CORS_ALLOWED_ORIGINS = [origin.strip() for origin in _cors_origins_str.split(',') if origin.strip()]
+    
     # Video streaming frontend configuration
     _video_frontend_url = get_env("VIDEO_FRONTEND_URL", default="https://cricster.pages.dev")
     VIDEO_FRONTEND_URL = None if _video_frontend_url and _video_frontend_url.lower() == "false" else _video_frontend_url
@@ -107,6 +112,16 @@ class Var:
     MAX_LINKS_PER_DAY = get_env("MAX_LINKS_PER_DAY", default=5, is_int=True)
     BANDWIDTH_LIMIT_GB = get_env("BANDWIDTH_LIMIT_GB", default=100, is_int=True)
     
+    # Session generator access control
+    ALLOW_USER_LOGIN = get_env("ALLOW_USER_LOGIN", default=False, is_bool=True)
+    
+    # URL Shortener configuration
+    # Base URL for the GPLinks API (includes API key)
+    ADLINKFLY_URL = get_env("ADLINKFLY_URL", default="")
+
+    # File size threshold for shortening links (2 MB for testing, change to 200*1024*1024 for production)
+    FILE_SIZE_THRESHOLD = get_env("FILE_SIZE_THRESHOLD", default=2 * 1024 * 1024, is_int=True)  # 2 MB in bytes
+    
     # Basic security validation
     if PORT and (PORT < 1 or PORT > 65535):
         logger.error(f"Invalid PORT value: {PORT}. Must be between 1-65535.")
@@ -115,6 +130,8 @@ class Var:
     if WORKERS and (WORKERS < 1 or WORKERS > 32):
         logger.warning(f"WORKERS value {WORKERS} outside recommended range 1-32. Adjusting to safe value.")
         WORKERS = min(max(WORKERS, 1), 8)  # Clamp to 1-8 for low resources
+    
+
     
     # --- Text Messages ---
     # Function to calculate human-readable duration
@@ -167,12 +184,19 @@ class Var:
     START_TEXT = f"""
 Hello {{mention}}! 👋
 
-I am Telegram File to Link Bot.
+🚀 **Welcome to the Ultimate Download Link Generator!**
 
-➡️ **Send me any file** and I will generate a direct download link for you .
+📁 Send me any file to get a direct download link instantly.
 
-{{force_sub_info}}
+🔐 **For Private Content:**
+• Use `/login` once, then send the t.me post URL here
+• Use `/logout` anytime to revoke access
+
+⏰ Links expire in about {_expiry_duration_str}.
+
+🎯 **Ready to get started? Send me a file now!**
     """
+
 
     FORCE_SUB_INFO_TEXT = "❗**You must join our channel to use this bot:**\n\n" # Added for start message
 
@@ -232,4 +256,33 @@ The bot has reached its monthly bandwidth limit of {BANDWIDTH_LIMIT_GB} GB.
 ⏰ **Service will resume:** Next month
 
 Thank you for your understanding! 🙏
+    """
+
+    # Start menu info texts (used by buttons/callbacks)
+    HELP_TEXT = f"""
+Here is how to use the bot:
+
+- Send me any file to get a direct download link.
+- To access files from private channels/groups you belong to, use /login and authenticate on the session generator, then send the t.me post URL here.
+- Use /logout to revoke your session and invalidate your private links.
+
+Links usually expire in about {_expiry_duration_str}.
+    """
+
+    ABOUT_TEXT = f"""
+🤖 **Telegram Download Link Generator**
+
+📦 **PyroFork Version:** {getattr(pyrogram, '__version__', 'unknown')}
+☁️ **Deployed on:** [Koyeb](https://koyeb.com)
+📊 **Bandwidth Limit:** {BANDWIDTH_LIMIT_GB} GB/month {'(enabled)' if BANDWIDTH_LIMIT_GB > 0 else '(disabled)'}
+🔗 **Repository:** [GitHub]({GITHUB_REPO_URL or 'https://github.com'})
+
+💡 **Features:**
+• Direct download links for any file
+• Private channel/group support via sessions
+• Secure encrypted session storage
+• Rate limiting and bandwidth monitoring
+• Multi-token support for reliability
+
+⚡ **Powered by:** Python, Pyrogram, and MongoDB
     """

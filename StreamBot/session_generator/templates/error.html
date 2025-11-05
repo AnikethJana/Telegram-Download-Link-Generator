@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error {{ error_code }} - Telegram Session Generator</title>
+    <link rel="stylesheet" href="/session/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fab fa-telegram-plane"></i>
+                <h1>Session Generator</h1>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="error-container">
+                <div class="error-card">
+                    <div class="error-icon">
+                        {% if error_code == 404 %}
+                            <i class="fas fa-search"></i>
+                        {% elif error_code == 500 %}
+                            <i class="fas fa-exclamation-triangle"></i>
+                        {% else %}
+                            <i class="fas fa-times-circle"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <h1 class="error-code">{{ error_code }}</h1>
+                    
+                    <h2 class="error-title">
+                        {% if error_code == 404 %}
+                            Page Not Found
+                        {% elif error_code == 500 %}
+                            Internal Server Error
+                        {% else %}
+                            Something Went Wrong
+                        {% endif %}
+                    </h2>
+                    
+                    <p class="error-message">
+                        {% if error_message %}
+                            {{ error_message }}
+                        {% elif error_code == 404 %}
+                            The page you're looking for doesn't exist or has been moved.
+                        {% elif error_code == 500 %}
+                            We're experiencing some technical difficulties. Please try again later.
+                        {% else %}
+                            An unexpected error occurred. Please try again.
+                        {% endif %}
+                    </p>
+                    
+                    <div class="error-actions">
+                        <a href="/session" class="btn btn-primary">
+                            <i class="fas fa-home"></i> Go Home
+                        </a>
+                        
+                        <button onclick="window.history.back()" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Go Back
+                        </button>
+                        
+                        {% if error_code == 500 %}
+                        <button onclick="window.location.reload()" class="btn btn-secondary">
+                            <i class="fas fa-sync-alt"></i> Try Again
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    {% if error_code == 404 %}
+                    <div class="helpful-links">
+                        <h3>You might be looking for:</h3>
+                        <ul>
+                            <li><a href="/session">Session Generator Home</a></li>
+                            <li><a href="/api/info">API Status</a></li>
+                            <li><a href="{{ base_url }}/api/info" target="_blank">Bot Information</a></li>
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if error_code == 500 %}
+                <div class="troubleshooting">
+                    <h3><i class="fas fa-tools"></i> Troubleshooting</h3>
+                    <ul>
+                        <li>Check if the service is temporarily down</li>
+                        <li>Try refreshing the page in a few minutes</li>
+                        <li>Clear your browser cache and cookies</li>
+                        <li>Contact support if the problem persists</li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <i class="fas fa-info-circle"></i>
+                If you continue to experience issues, please contact support.
+            </p>
+        </div>
+    </div>
+
+    <style>
+        /* Error-specific styles */
+        .error-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+            gap: 24px;
+        }
+
+        .error-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 48px 32px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+        }
+
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .error-icon i {
+            font-size: 36px;
+            color: white;
+        }
+
+        .error-code {
+            font-size: 72px;
+            font-weight: 700;
+            color: #ff6b6b;
+            margin: 0 0 16px;
+            line-height: 1;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 16px;
+        }
+
+        .error-message {
+            font-size: 16px;
+            color: #666;
+            margin: 0 0 32px;
+            line-height: 1.6;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 32px;
+        }
+
+        .helpful-links {
+            text-align: left;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+
+        .helpful-links h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .helpful-links ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .helpful-links li {
+            margin-bottom: 8px;
+        }
+
+        .helpful-links a {
+            color: #0088cc;
+            text-decoration: none;
+        }
+
+        .helpful-links a:hover {
+            text-decoration: underline;
+        }
+
+        .troubleshooting {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%;
+        }
+
+        .troubleshooting h3 {
+            font-size: 18px;
+            margin-bottom: 16px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .troubleshooting ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .troubleshooting li {
+            margin-bottom: 8px;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .error-card {
+                padding: 32px 24px;
+            }
+
+            .error-code {
+                font-size: 56px;
+            }
+
+            .error-title {
+                font-size: 20px;
+            }
+
+            .error-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .error-actions .btn {
+                width: 100%;
+                max-width: 200px;
+            }
+        }
+    </style>
+</body>
+</html> 

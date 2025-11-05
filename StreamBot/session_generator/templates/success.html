@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Generated Successfully - Telegram Session Generator</title>
+    <link rel="stylesheet" href="/session/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container success-container">
+        <!-- Success Header -->
+        <div class="success-header">
+            <div class="success-animation">
+                <div class="checkmark-wrapper">
+                    <i class="fas fa-check"></i>
+                </div>
+                <div class="success-ripple"></div>
+                <div class="success-ripple delay-1"></div>
+                <div class="success-ripple delay-2"></div>
+            </div>
+            <h1 class="success-title">Session Generated Successfully!</h1>
+            <p class="success-subtitle">Your secure session is now active and ready to use</p>
+        </div>
+
+        <!-- User Profile Section -->
+        <div class="user-profile-section">
+            <div class="profile-card">
+                <div class="profile-avatar-container">
+                    <div class="profile-avatar">
+                            <img src="{{ gravatar_url }}" alt="Profile Picture">
+                        <div class="status-indicator online"></div>
+                    </div>
+                </div>
+                
+                <div class="profile-info">
+                    <h2 class="profile-name">
+                        {{ user_info.first_name }}{% if user_info.last_name %} {{ user_info.last_name }}{% endif %}
+                    </h2>
+                    {% if user_info.username %}
+                        <p class="profile-username">@{{ user_info.username }}</p>
+                    {% endif %}
+                    <div class="profile-id">
+                        <i class="fas fa-id-badge"></i>
+                        <span>User ID: <strong>{{ user_info.id }}</strong></span>
+                    </div>
+                </div>
+
+                <div class="status-section">
+                    <div class="status-badge status-active">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Logged In</span>
+                    </div>
+                    <div class="session-details">
+                        <div class="session-item">
+                            <i class="fas fa-clock"></i>
+                            <span>Created: Just now</span>
+                        </div>
+                        <div class="session-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Encrypted & Secure</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Next Steps Section -->
+        <div class="next-steps-section">
+            <h3><i class="fas fa-rocket"></i> What's Next?</h3>
+            <div class="steps-grid">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h4>Open Telegram Bot</h4>
+                        <p>Go back to your conversation with the bot</p>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h4>Share Private Links</h4>
+                        <p>Send any private channel/group post URL</p>
+                    </div>
+                </div>
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h4>Get Download Links</h4>
+                        <p>Receive instant download links for private content</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="/session/dashboard" class="btn btn-primary btn-large">
+                <i class="fas fa-tachometer-alt"></i>
+                Go to Dashboard
+            </a>
+            <button onclick="openTelegramBot()" class="btn btn-secondary btn-large">
+                <i class="fab fa-telegram-plane"></i>
+                Open Bot Chat
+            </button>
+        </div>
+
+        <!-- Security Notice -->
+        <div class="security-notice">
+            <div class="notice-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="notice-content">
+                <h4>Important Security Notice</h4>
+                <p>Your session is encrypted and secure. Use <code>/logout</code> in the bot to revoke access anytime. Never share your session access with others.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confetti Animation -->
+    <div class="confetti-container">
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+        <div class="confetti"></div>
+    </div>
+
+    <style>
+        /* Success Page Specific Styles */
+        .success-container {
+            max-width: 600px;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        .success-header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 24px 24px 0 0;
+            position: relative;
+            overflow: hidden;
+            color: white;
+        }
+
+        .success-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        .success-animation {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .checkmark-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+            animation: checkmarkBounce 0.6s ease-out 0.3s both;
+        }
+
+        .checkmark-wrapper i {
+            font-size: 36px;
+            color: white;
+        }
+
+        .success-ripple {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: ripple 2s linear infinite;
+        }
+
+        .success-ripple.delay-1 {
+            animation-delay: 0.5s;
+        }
+
+        .success-ripple.delay-2 {
+            animation-delay: 1s;
+        }
+
+        @keyframes checkmarkBounce {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .success-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin: 0 0 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .success-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* User Profile Section */
+        .user-profile-section {
+            padding: 40px 24px;
+            background: white;
+        }
+
+        .profile-card {
+            text-align: center;
+        }
+
+        .profile-avatar-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 24px;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #667eea;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+            animation: profilePulse 2s ease-in-out infinite;
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .default-avatar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .default-avatar i {
+            font-size: 48px;
+            color: white;
+        }
+
+        .status-indicator {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+
+        .status-indicator.online {
+            background: #27ae60;
+            animation: statusBlink 2s ease-in-out infinite;
+        }
+
+        @keyframes profilePulse {
+            0%, 100% {
+                box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+            }
+            50% {
+                box-shadow: 0 12px 40px rgba(102, 126, 234, 0.4);
+            }
+        }
+
+        @keyframes statusBlink {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .profile-info {
+            margin-bottom: 24px;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 8px;
+        }
+
+        .profile-username {
+            font-size: 16px;
+            color: #667eea;
+            margin: 0 0 16px;
+            font-weight: 500;
+        }
+
+        .profile-id {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8f9ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #5a6c7d;
+            border: 1px solid #e6e9ff;
+        }
+
+        .profile-id i {
+            color: #667eea;
+        }
+
+        /* Status Section */
+        .status-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .status-badge.status-active {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            box-shadow: 0 4px 20px rgba(39, 174, 96, 0.3);
+        }
+
+        .session-details {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .session-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #5a6c7d;
+        }
+
+        .session-item i {
+            color: #667eea;
+        }
+
+        /* Next Steps Section */
+        .next-steps-section {
+            background: #f8f9ff;
+            padding: 32px 24px;
+            border-top: 1px solid #e6e9ff;
+        }
+
+        .next-steps-section h3 {
+            text-align: center;
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .next-steps-section h3 i {
+            color: #667eea;
+        }
+
+        .steps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .step-card {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e6e9ff;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .step-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .step-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .step-number {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            margin: 0 auto 12px;
+        }
+
+        .step-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 6px;
+        }
+
+        .step-content p {
+            font-size: 12px;
+            color: #5a6c7d;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            padding: 0 24px 32px;
+            flex-wrap: wrap;
+        }
+
+        /* Security Notice */
+        .security-notice {
+            background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+            border: 1px solid #ffc107;
+            border-radius: 0 0 24px 24px;
+            padding: 20px 24px;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .notice-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 193, 7, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notice-icon i {
+            color: #856404;
+            font-size: 18px;
+        }
+
+        .notice-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #856404;
+            margin: 0 0 6px;
+        }
+
+        .notice-content p {
+            font-size: 12px;
+            color: #856404;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        .notice-content code {
+            background: rgba(133, 100, 4, 0.1);
+            color: #856404;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        /* Confetti Animation */
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1000;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #667eea;
+            animation: confettiFall 3s linear infinite;
+        }
+
+        .confetti:nth-child(1) { left: 10%; animation-delay: 0s; background: #667eea; }
+        .confetti:nth-child(2) { left: 20%; animation-delay: 0.2s; background: #27ae60; }
+        .confetti:nth-child(3) { left: 30%; animation-delay: 0.4s; background: #e74c3c; }
+        .confetti:nth-child(4) { left: 40%; animation-delay: 0.6s; background: #f39c12; }
+        .confetti:nth-child(5) { left: 50%; animation-delay: 0.8s; background: #9b59b6; }
+        .confetti:nth-child(6) { left: 60%; animation-delay: 1s; background: #3498db; }
+        .confetti:nth-child(7) { left: 70%; animation-delay: 1.2s; background: #e67e22; }
+        .confetti:nth-child(8) { left: 80%; animation-delay: 1.4s; background: #1abc9c; }
+        .confetti:nth-child(9) { left: 90%; animation-delay: 1.6s; background: #34495e; }
+        .confetti:nth-child(10) { left: 95%; animation-delay: 1.8s; background: #e91e63; }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 640px) {
+            .success-title {
+                font-size: 24px;
+            }
+            
+            .profile-avatar {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .steps-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .action-buttons .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+            
+            .security-notice {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+
+    <script>
+        // Populate UI with any cookie-stored Telegram auth details (UI-only)
+        (function() {
+            const get = (k) => decodeURIComponent((document.cookie.split('; ').find(r => r.startsWith(k+'='))||'').split('=')[1]||'');
+            const fallback = {
+                id: get('tg_id'),
+                first_name: get('tg_first_name'),
+                last_name: get('tg_last_name'),
+                username: get('tg_username'),
+                auth_date: get('tg_auth_date')
+            };
+
+            // Update username if available
+            if (!document.querySelector('.profile-username') && fallback.username) {
+                const el = document.createElement('p');
+                el.className = 'profile-username';
+                el.textContent = '@' + fallback.username;
+                const info = document.querySelector('.profile-info');
+                if (info) info.insertBefore(el, info.querySelector('.profile-id'));
+            }
+
+            // Update ID if available
+            if (fallback.id) {
+                const idSpan = document.querySelector('.profile-id span strong');
+                if (idSpan) idSpan.textContent = fallback.id;
+            }
+
+            // Avatar is handled server-side with gravatar
+
+            // Append an info block showing the fields for visual confirmation
+            const infoList = [
+                ['First name', fallback.first_name],
+                ['Last name', fallback.last_name],
+                ['Username', fallback.username ? ('@'+fallback.username) : ''],
+                ['Auth date', fallback.auth_date ? new Date(parseInt(fallback.auth_date, 10)*1000).toLocaleString() : '']
+            ].filter(([,v]) => v);
+
+            if (infoList.length) {
+                const details = document.createElement('div');
+                details.className = 'session-details';
+                infoList.forEach(([label, value]) => {
+                    const item = document.createElement('div');
+                    item.className = 'session-item';
+
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-circle-info';
+
+                    const span = document.createElement('span');
+                    
+                    const strong = document.createElement('strong');
+                    strong.textContent = `${label}: `;
+                    
+                    span.appendChild(strong);
+                    span.appendChild(document.createTextNode(value));
+                    
+                    item.appendChild(icon);
+                    item.appendChild(span);
+                    details.appendChild(item);
+                });
+                const profileCard = document.querySelector('.profile-card');
+                if (profileCard) profileCard.appendChild(details);
+            }
+        })();
+
+        // Auto-hide confetti after animation
+        setTimeout(() => {
+            document.querySelector('.confetti-container').style.display = 'none';
+        }, 4000);
+
+        function openTelegramBot() {
+            // Try to open Telegram app first, fallback to web
+            const botUsername = '{{ bot_username }}';
+            const telegramUrl = `https://t.me/${botUsername}`;
+            
+            // For mobile devices, try to open the app
+            if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+                window.location.href = `tg://resolve?domain=${botUsername}`;
+                // Fallback to web after a short delay
+                setTimeout(() => {
+                    window.open(telegramUrl, '_blank');
+                }, 1000);
+            } else {
+                // For desktop, open web version
+                window.open(telegramUrl, '_blank');
+            }
+        }
+
+        // Add some interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to step cards
+            const stepCards = document.querySelectorAll('.step-card');
+            stepCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('animate-in');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Telegram Session Generator</title>
+    <link rel="stylesheet" href="/session/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fab fa-telegram-plane"></i>
+                <div>
+                    <h1>Session Generator</h1>
+                    <p class="subtitle">Welcome back!</p>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">
+                        <img src="{{ gravatar_url }}" alt="User Avatar">
+                </div>
+                <div class="user-details">
+                    <span class="user-name">{{ user_info.first_name }}{% if user_info.last_name %} {{ user_info.last_name }}{% endif %}</span>
+                    {% if user_info.username %}
+                        <span class="username">@{{ user_info.username }}</span>
+                    {% endif %}
+                </div>
+                <button id="logout-btn" class="btn btn-secondary" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="dashboard-grid">
+                <!-- Session Status Card -->
+                <div class="status-card">
+                    <div class="status-header">
+                        <h2><i class="fas fa-key"></i> Session Status</h2>
+                        {% if user_info and user_info.is_active %}
+                            <span class="status-badge status-active">
+                                <i class="fas fa-check-circle"></i> Active
+                            </span>
+                        {% else %}
+                            <span class="status-badge status-inactive">
+                                <i class="fas fa-times-circle"></i> No Session
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    {% if user_info and user_info.is_active %}
+                        <div class="session-details">
+                            <div class="session-info">
+                                <p><strong>Created:</strong> {{ user_info.created_at.strftime('%B %d, %Y at %H:%M UTC') if user_info.created_at else 'Unknown' }}</p>
+                                <p><strong>Last Used:</strong> {{ user_info.last_used.strftime('%B %d, %Y at %H:%M UTC') if user_info.last_used else 'Never' }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="usage-instructions">
+                            <h3><i class="fas fa-info-circle"></i> How to Use</h3>
+                            <ol>
+                                <li>Open your Telegram bot conversation</li>
+                                <li>Share any private channel/group post URL</li>
+                                <li>Receive instant download links</li>
+                                <li>Use <code>/logout</code> to revoke access anytime</li>
+                            </ol>
+                        </div>
+                    {% else %}
+                        <div class="no-session">
+                            <p>You don't have an active session yet. Generate one to start accessing private content.</p>
+                            <a href="/session" class="btn btn-primary btn-large">
+                                <i class="fas fa-plus-circle"></i> Generate Session
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Bot Information Card -->
+                <div class="info-card">
+                    <h3><i class="fas fa-robot"></i> Bot Commands</h3>
+                    <div class="command-list">
+                        <div class="command">
+                            <code>/start</code>
+                            <span>Start using the bot</span>
+                        </div>
+                        <div class="command">
+                            <code>/login</code>
+                            <span>Get link to this session generator</span>
+                        </div>
+                        <div class="command">
+                            <code>/logout</code>
+                            <span>Revoke your session and invalidate all links</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Card -->
+                <div class="features-card">
+                    <h3><i class="fas fa-star"></i> Features</h3>
+                    <div class="feature-list">
+                        <div class="feature-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>
+                                <strong>Secure Sessions</strong>
+                                <p>End-to-end encrypted session storage</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-link"></i>
+                            <div>
+                                <strong>Direct Links</strong>
+                                <p>Generate direct download links instantly</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-clock"></i>
+                            <div>
+                                <strong>Temporary Access</strong>
+                                <p>Links expire automatically for security</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-mobile-alt"></i>
+                            <div>
+                                <strong>Mobile Friendly</strong>
+                                <p>Works on all devices and platforms</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <i class="fas fa-lock"></i>
+                Your session data is encrypted and secure. Use <code>/logout</code> in the bot to revoke access.
+            </p>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loading-text">Processing...</p>
+        </div>
+    </div>
+
+    <!-- Flash messages container -->
+    <div class="flash-messages" id="flash-messages">
+        <!-- Flash messages will be added here dynamically -->
+    </div>
+
+    <script>
+        // Check for session token and add to requests
+        function getAuthHeaders() {
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+
+            // No longer need to add X-Session-Token header from client-side.
+            // The browser will automatically send the HttpOnly session_token cookie.
+
+            return headers;
+        }
+
+        function generateSession() {
+            showLoading('Generating session...');
+
+            fetch('/session/auth', {
+                method: 'POST',
+                headers: getAuthHeaders()
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                
+                if (data.success && data.redirect_url) {
+                    window.location.href = data.redirect_url;
+                } else if (data.success) {
+                    showSuccess(data.message);
+                    // Reload page after 2 seconds to show updated status
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showError('Session generation failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                console.error('Error:', error);
+                showError('Session generation failed. Please try again.');
+            });
+        }
+
+        function showLoading(text = 'Processing...') {
+            document.getElementById('loading-text').textContent = text;
+            document.getElementById('loading-overlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+
+        function showSuccess(message) {
+            showFlashMessage(message, 'success');
+        }
+
+        function showError(message) {
+            showFlashMessage(message, 'error');
+        }
+
+        function showFlashMessage(message, type) {
+            const flashMessages = document.querySelector('.flash-messages') || createFlashContainer();
+            const flashDiv = document.createElement('div');
+            flashDiv.className = `flash-message flash-${type}`;
+            flashDiv.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()">&times;</button>
+            `;
+            flashMessages.appendChild(flashDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (flashDiv.parentElement) {
+                    flashDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function createFlashContainer() {
+            const container = document.createElement('div');
+            container.className = 'flash-messages';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        function logout() {
+            // Navigate to server-side logout to revoke and clear cookies efficiently
+            window.location.href = '/session/logout';
+        }
+
+        // Add logout button handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoutBtn = document.getElementById('logout-btn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', logout);
+            }
+        });
+    </script>
+
+    <style>
+        /* Dashboard specific styles */
+        .header {
+            padding: 20px 24px;
+        }
+        
+        .header .logo {
+            justify-content: flex-start;
+            flex: 1;
+        }
+        
+        .header .logo div {
+            text-align: left;
+        }
+        
+        .header .logo h1 {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+        
+        .header .logo .subtitle {
+            font-size: 12px;
+            opacity: 0.8;
+            margin: 0;
+        }
+        
+        .user-info {
+            position: relative;
+            z-index: 1;
+        }
+        
+        .session-details {
+            margin-bottom: 20px;
+        }
+        
+        .session-info p {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #5a6c7d;
+        }
+        
+        .usage-instructions {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 20px;
+            border: 1px solid #e6e9ff;
+        }
+        
+        .usage-instructions h3 {
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #2c3e50;
+        }
+        
+        .usage-instructions ol {
+            margin-left: 16px;
+            font-size: 12px;
+            color: #5a6c7d;
+        }
+        
+        .usage-instructions li {
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+        
+        .no-session {
+            text-align: center;
+            padding: 24px 16px;
+        }
+        
+        .no-session p {
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #5a6c7d;
+        }
+        
+        .command-list {
+            margin-top: 12px;
+        }
+        
+        .command {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e6e9ff;
+            font-size: 12px;
+        }
+        
+        .command:last-child {
+            border-bottom: none;
+        }
+        
+        .command code {
+            background: #667eea;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-weight: 600;
+            font-size: 11px;
+        }
+        
+        .command span {
+            color: #5a6c7d;
+            font-size: 11px;
+        }
+        
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .feature-item i {
+            font-size: 14px;
+            color: #667eea;
+            margin-top: 2px;
+            min-width: 14px;
+        }
+        
+        .feature-item strong {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 12px;
+            color: #2c3e50;
+        }
+        
+        .feature-item p {
+            color: #5a6c7d;
+            font-size: 11px;
+            margin: 0;
+            line-height: 1.3;
+        }
+        
+        /* Responsive adjustments for dashboard */
+        @media (max-width: 640px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            
+            .header .logo {
+                justify-content: center;
+            }
+            
+            .header .logo div {
+                text-align: center;
+            }
+            
+            .user-info {
+                order: -1;
+            }
+        }
+    </style>
+</body>
+</html> 

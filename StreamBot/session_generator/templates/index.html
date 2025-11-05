@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Session Generator</title>
+    <link rel="stylesheet" href="/session/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <i class="fab fa-telegram-plane"></i>
+                <div>
+                    <h1>Session Generator</h1>
+                    <p class="subtitle">Generate secure sessions for private file access</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h2>Secure Authentication</h2>
+                <p>Login with your Telegram account to generate a secure session for accessing private content.</p>
+                
+                <div class="benefits">
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Access private channels/groups</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Encrypted session storage</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>No credential sharing required</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Instant download link generation</span>
+                    </div>
+                </div>
+
+                <div class="login-section">
+                    <h3>Get Started</h3>
+                    {% if login_restricted %}
+                    <div class="access-restricted">
+                        <div class="restriction-notice">
+                            <i class="fas fa-lock"></i>
+                            <h4>Access Restricted</h4>
+                            <p>The session generator is currently restricted to administrators only.</p>
+                            <p>Contact the bot administrator if you need access to private content features.</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p>Click the button below to authenticate with Telegram and generate your session.</p>
+                    
+                    <!-- Localhost Development Notice -->
+                    <div id="localhost-notice" class="localhost-notice" style="display: none;">
+                        <i class="fas fa-laptop-code"></i>
+                        <h4>Localhost Development Mode</h4>
+                        <p>Telegram Login Widget requires HTTPS and a configured domain.</p>
+                        <p>To test locally, you need to:</p>
+                        <p>1. Deploy to a server with HTTPS</p>
+                        <p>2. Configure domain with <code>@BotFather</code></p>
+                        <p>3. Or use the bot directly for file sharing</p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Telegram Login Widget -->
+                    <div id="telegram-login-container"{% if login_restricted %} style="display: none;"{% endif %}>
+                        {% if bot_username %}
+                        <script async src="https://telegram.org/js/telegram-widget.js?22" 
+                                data-telegram-login="{{ bot_username }}" 
+                                data-size="large" 
+                                data-radius="8"
+                                data-onauth="onTelegramAuth(user)" 
+                                data-request-access="write">
+                        </script>
+                        {% else %}
+                        <div class="telegram-login-placeholder">
+                            <p><i class="fas fa-exclamation-triangle"></i> Bot username not configured</p>
+                            <p>Please set up your bot's domain with @BotFather first.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="login-fallback" style="display: none;">
+                        <button class="btn btn-telegram" onclick="initTelegramLogin()">
+                            <i class="fab fa-telegram-plane"></i>
+                            Login with Telegram
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-section">
+                <div class="info-card">
+                    <h3><i class="fas fa-question-circle"></i> How it works</h3>
+                    <ol>
+                        <li>Authenticate with Telegram using the official login widget</li>
+                        <li>Your session is generated and securely encrypted</li>
+                        <li>Share private post URLs with the bot</li>
+                        <li>Get instant download links for private content</li>
+                    </ol>
+                </div>
+
+                <div class="info-card">
+                    <h3><i class="fas fa-lock"></i> Security & Privacy</h3>
+                    <ul>
+                        <li>Sessions are encrypted using industry-standard encryption</li>
+                        <li>Only you can access content from your session</li>
+                        <li>Use <code>/logout</code> in the bot to revoke access anytime</li>
+                        <li>No sensitive data is stored in plain text</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <i class="fas fa-info-circle"></i>
+                Once authenticated, you'll receive a confirmation message in Telegram.
+            </p>
+        </div>
+    </div>
+
+    <!-- Loading overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loading-text">Authenticating with Telegram...</p>
+        </div>
+    </div>
+
+    <!-- Flash messages container -->
+    <div class="flash-messages" id="flash-messages">
+        <!-- Flash messages will be added here dynamically -->
+    </div>
+
+    <script src="/session/static/telegram-auth.js"></script>
+    <style>
+        /* Index page specific styles */
+        .header {
+            justify-content: center;
+            text-align: center;
+        }
+        
+        .header .logo {
+            justify-content: center;
+        }
+        
+        .header .logo div {
+            text-align: center;
+        }
+        
+        .telegram-login-placeholder {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 12px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        
+        .telegram-login-placeholder p {
+            margin: 8px 0;
+            font-size: 13px;
+            color: #856404;
+        }
+        
+        .telegram-login-placeholder i {
+            color: #ffc107;
+            margin-right: 6px;
+        }
+    </style>
+    <script>
+        // Check if running on localhost
+        const isLocalhost = location.hostname === 'localhost' || 
+                           location.hostname === '127.0.0.1' || 
+                           location.hostname === '0.0.0.0' ||
+                           location.hostname.startsWith('192.168.') ||
+                           location.hostname.startsWith('10.') ||
+                           location.protocol === 'file:';
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show localhost notice if applicable
+            if (isLocalhost) {
+                document.getElementById('localhost-notice').style.display = 'block';
+            }
+            
+            // Check if Telegram widget loaded properly after timeout
+            setTimeout(function() {
+                checkTelegramWidgetStatus();
+            }, 5000);
+
+            // Auto-hide loading overlay if it gets stuck
+            setTimeout(function() {
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay.style.display === 'flex') {
+                    showLoading(false);
+                    showError('Authentication timeout. Please try again.');
+                }
+            }, 30000); // 30 second timeout
+        });
+
+        function checkTelegramWidgetStatus() {
+            const widget = document.querySelector('iframe[src*="telegram.org"]');
+            const container = document.querySelector('#telegram-login-container');
+            const fallback = document.querySelector('.login-fallback');
+            
+            if (!widget && container && !isLocalhost) {
+                // Widget failed to load and we're not on localhost
+                container.style.display = 'none';
+                fallback.style.display = 'block';
+                showError('Telegram widget failed to load. Please check your internet connection.');
+            } else if (!widget && isLocalhost) {
+                // On localhost, hide the container and show localhost notice
+                if (container) container.style.display = 'none';
+                document.getElementById('localhost-notice').style.display = 'block';
+            }
+        }
+
+        // Global function for Telegram widget callback
+        function onTelegramAuth(user) {
+            if (!user || !user.id) {
+                showError('Invalid authentication data received');
+                return;
+            }
+
+            // Store key user fields in cookies for later UI-only display
+            try {
+                const cookieOpts = 'path=/; SameSite=Lax';
+                const set = (k, v) => document.cookie = `${k}=${encodeURIComponent(v)}; ${cookieOpts}`;
+                set('tg_id', user.id || '');
+                set('tg_first_name', user.first_name || '');
+                set('tg_last_name', user.last_name || '');
+                set('tg_username', user.username || '');
+                set('tg_auth_date', user.auth_date || '');
+            } catch (_) {}
+
+            showLoading(true);
+            updateLoadingText('Verifying authentication...');
+            
+            // Timeout for the authentication request
+            const timeoutId = setTimeout(() => {
+                showLoading(false);
+                showError('Authentication request timed out. Please try again.');
+            }, 15000);
+
+            // Send auth data to server
+            fetch('/session/auth', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(user)
+            })
+            .then(response => {
+                clearTimeout(timeoutId);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                showLoading(false);
+
+                if (data.success) {
+                    updateLoadingText('Authentication successful! Redirecting...');
+                    showLoading(true);
+
+                    // Store session token if provided
+                    if (data.session_token) {
+                        // localStorage.setItem('session_token', data.session_token); // Removed for security
+                    }
+
+                    // Redirect to dashboard - prefer token-based URL over user_id
+                    const redirectUrl = data.redirect_url || `/session/dashboard?user_id=${user.id}`;
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 1000);
+                } else {
+                    showError('Authentication failed: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                clearTimeout(timeoutId);
+                showLoading(false);
+                console.error('Authentication error:', error);
+                showError('Authentication failed: ' + error.message);
+            });
+        }
+
+        function updateLoadingText(text) {
+            const loadingText = document.getElementById('loading-text');
+            if (loadingText) {
+                loadingText.textContent = text;
+            }
+        }
+
+        function showLoading(show) {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) {
+                overlay.style.display = show ? 'flex' : 'none';
+            }
+        }
+
+        function showError(message) {
+            const flashMessages = document.querySelector('.flash-messages') || createFlashContainer();
+            const flashDiv = document.createElement('div');
+            flashDiv.className = 'flash-message flash-error';
+            flashDiv.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()">&times;</button>
+            `;
+            flashMessages.appendChild(flashDiv);
+            
+            // Auto-remove after 8 seconds for error messages
+            setTimeout(() => {
+                if (flashDiv.parentElement) {
+                    flashDiv.remove();
+                }
+            }, 8000);
+        }
+
+        function showSuccess(message) {
+            const flashMessages = document.querySelector('.flash-messages') || createFlashContainer();
+            const flashDiv = document.createElement('div');
+            flashDiv.className = 'flash-message flash-success';
+            flashDiv.innerHTML = `
+                <span>${message}</span>
+                <button onclick="this.parentElement.remove()">&times;</button>
+            `;
+            flashMessages.appendChild(flashDiv);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                if (flashDiv.parentElement) {
+                    flashDiv.remove();
+                }
+            }, 5000);
+        }
+
+        function createFlashContainer() {
+            const container = document.createElement('div');
+            container.className = 'flash-messages';
+            document.body.appendChild(container);
+            return container;
+        }
+
+        // Fallback login function
+        function initTelegramLogin() {
+            if (isLocalhost) {
+                showError('Telegram authentication requires HTTPS and domain configuration. Please deploy to a server first.');
+            } else {
+                showError('Please contact the administrator to configure the bot domain with @BotFather.');
+            }
+        }
+    </script>
+</body>
+</html> 

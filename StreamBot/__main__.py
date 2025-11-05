@@ -29,6 +29,11 @@ logging.basicConfig(
 
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 logging.getLogger("aiohttp.access").setLevel(logging.WARNING)
+# Reduce noise: log only errors for session-related modules
+logging.getLogger("StreamBot.session_generator").setLevel(logging.ERROR)
+logging.getLogger("StreamBot.session_generator.session_manager").setLevel(logging.ERROR)
+logging.getLogger("StreamBot.session_generator.telegram_auth").setLevel(logging.ERROR)
+logging.getLogger("StreamBot.web.web").setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 # --- Global variable for start time ---
@@ -88,7 +93,20 @@ async def main():
         me = await primary_bot_client.get_me()
         primary_bot_client.me = me # type: ignore # pyright: ignore [reportGeneralTypeIssues]
         logger.info(f"Primary bot client operational as @{me.username} (ID: {me.id})")
-        
+
+        # Test notification system
+        logger.info("Testing notification system...")
+        try:
+            from .session_generator.session_manager import session_manager
+            notification_test_passed = await session_manager.test_notification_system()
+            if notification_test_passed:
+                logger.info("[OK] Notification system test passed")
+            else:
+                logger.warning("[WARNING] Notification system test had issues, but system will continue")
+        except Exception as test_error:
+            logger.warning(f"[WARNING] Notification system test failed: {test_error}")
+            logger.warning("System will continue, but login notifications may not work")
+
         # Log memory usage after client setup
         memory_manager.log_memory_usage("clients started")
 
