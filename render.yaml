@@ -79,5 +79,5 @@ services:
       - key: ADLINKFLY_URL
         value: https://api.gplinks.com/api?api=your_api_key_here
       - key: FILE_SIZE_THRESHOLD
-        value: 209715200
+        value: 200
 
