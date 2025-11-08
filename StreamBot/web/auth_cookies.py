@@ -7,8 +7,8 @@ def set_auth_cookies(response: web.StreamResponse, session_token: str, user_id: 
 
     Cookies:
     - session_token: opaque token used by server to validate session
-    - is_authenticated: string 'true' for client-side checks
-    - user_id: user identifier for UI display (non-sensitive)
+    - is_authenticated: string 'true' flag recorded alongside the session
+    - user_id: user identifier (non-sensitive) stored for diagnostics
     """
     is_secure = False
     try:
@@ -25,11 +25,8 @@ def set_auth_cookies(response: web.StreamResponse, session_token: str, user_id: 
     }
 
     response.set_cookie('session_token', session_token, **cookie_kwargs)
-
-    # is_authenticated and user_id are for convenience; not marked httponly to allow UI access
-    # Keep same expiry and security attributes except httponly
-    response.set_cookie('is_authenticated', 'true', secure=is_secure, max_age=max_age_seconds, samesite='Lax')
-    response.set_cookie('user_id', str(user_id), secure=is_secure, max_age=max_age_seconds, samesite='Lax')
+    response.set_cookie('is_authenticated', 'true', **cookie_kwargs)
+    response.set_cookie('user_id', str(user_id), **cookie_kwargs)
 
 
 def clear_auth_cookies(response: web.StreamResponse) -> None:
