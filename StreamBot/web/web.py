@@ -961,9 +961,9 @@ async def session_success_route(request: web.Request):
             return web.HTTPFound('/session')
         
         user_profile = user_session_info.get('user_info', {})
-        # Generate gravatar as default avatar
-        gravatar_hash = hashlib.md5(str(user_id).encode('utf-8')).hexdigest()
-        gravatar_url = f"https://www.gravatar.com/avatar/{gravatar_hash}?d=identicon&s=128"
+        # Generate deterministic identicon avatar (DiceBear) using SHA-256 seed
+        avatar_seed = hashlib.sha256(str(user_id).encode('utf-8')).hexdigest()
+        avatar_url = f"https://api.dicebear.com/7.x/identicon/svg?seed={avatar_seed}&size=128"
         
         # Get bot username for the success page
         bot_client = request.app['bot_client']
@@ -971,7 +971,7 @@ async def session_success_route(request: web.Request):
         
         return render_template('session_complete.html', request, {
             'user_info': user_profile,
-            'gravatar_url': gravatar_url,
+            'avatar_url': avatar_url,
             'base_url': Var.BASE_URL,
             'bot_username': bot_username
         })
@@ -1023,9 +1023,9 @@ async def session_dashboard_route(request: web.Request):
             return web.HTTPFound('/session')
 
         user_profile = user_session_info.get('user_info', {})
-        # Generate gravatar as default avatar
-        gravatar_hash = hashlib.md5(str(user_id).encode('utf-8')).hexdigest()
-        gravatar_url = f"https://www.gravatar.com/avatar/{gravatar_hash}?d=identicon&s=128"
+        # Generate deterministic identicon avatar (DiceBear) using SHA-256 seed
+        avatar_seed = hashlib.sha256(str(user_id).encode('utf-8')).hexdigest()
+        avatar_url = f"https://api.dicebear.com/7.x/identicon/svg?seed={avatar_seed}&size=128"
 
         # Generate new session token for this session
         new_session_token = generate_session_token(user_id)
@@ -1035,7 +1035,7 @@ async def session_dashboard_route(request: web.Request):
 
         context = {
             'user_info': user_profile,
-            'gravatar_url': gravatar_url,
+            'avatar_url': avatar_url,
             'bot_username': bot_username,
             'base_url': Var.BASE_URL,
             'app_name': 'Telegram Session Generator',
@@ -1049,15 +1049,15 @@ async def session_dashboard_route(request: web.Request):
             is_secure = str(Var.BASE_URL).lower().startswith('https://')
             response.set_cookie('session_token', new_session_token, httponly=True, secure=is_secure, max_age=3600, samesite='Lax')
             # convenience cookies for UI
-            response.set_cookie('is_authenticated', 'true', secure=is_secure, max_age=3600, samesite='Lax')
-            response.set_cookie('user_id', str(user_id), secure=is_secure, max_age=3600, samesite='Lax')
+            response.set_cookie('is_authenticated', 'true', httponly=True, secure=is_secure, max_age=3600, samesite='Lax')
+            response.set_cookie('user_id', str(user_id), httponly=True, secure=is_secure, max_age=3600, samesite='Lax')
         else:
             # If render_template doesn't return a response object, create one
             response = web.Response(text=response, content_type='text/html')
             is_secure = str(Var.BASE_URL).lower().startswith('https://')
             response.set_cookie('session_token', new_session_token, httponly=True, secure=is_secure, max_age=3600, samesite='Lax')
-            response.set_cookie('is_authenticated', 'true', secure=is_secure, max_age=3600, samesite='Lax')
-            response.set_cookie('user_id', str(user_id), secure=is_secure, max_age=3600, samesite='Lax')
+            response.set_cookie('is_authenticated', 'true', httponly=True, secure=is_secure, max_age=3600, samesite='Lax')
+            response.set_cookie('user_id', str(user_id), httponly=True, secure=is_secure, max_age=3600, samesite='Lax')
 
         return response
 

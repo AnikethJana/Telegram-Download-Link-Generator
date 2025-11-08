@@ -29,7 +29,7 @@
             <div class="profile-card">
                 <div class="profile-avatar-container">
                     <div class="profile-avatar">
-                            <img src="{{ gravatar_url }}" alt="Profile Picture">
+                            <img src="{{ avatar_url }}" alt="Profile Picture">
                         <div class="status-indicator online"></div>
                     </div>
                 </div>
@@ -645,7 +645,7 @@
                 if (idSpan) idSpan.textContent = fallback.id;
             }
 
-            // Avatar is handled server-side with gravatar
+            // Avatar is handled server-side via DiceBear identicon
 
             // Append an info block showing the fields for visual confirmation
             const infoList = [
