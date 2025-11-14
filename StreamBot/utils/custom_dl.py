@@ -58,104 +58,114 @@ class ByteStreamer:
 
     async def generate_media_session(self, client: Client, file_id: FileId) -> Session:
         """
-        Generates the media session for the DC that contains the media file.
-        This is required for getting the bytes from Telegram servers.
+        Creates or retrieves a media session for the specified data center.
+        Media sessions are necessary to download file bytes from Telegram.
         """
-
-        media_session = client.media_sessions.get(file_id.dc_id, None)
-
-        if media_session is None:
-            if file_id.dc_id != await client.storage.dc_id():
-                media_session = Session(
-                    client,
-                    file_id.dc_id,
-                    await Auth(
-                        client, file_id.dc_id, await client.storage.test_mode()
-                    ).create(),
-                    await client.storage.test_mode(),
-                    is_media=True,
+        target_dc = file_id.dc_id
+        
+        # Return existing session if already cached
+        if target_dc in client.media_sessions:
+            logger.debug(f"Using cached media session for DC {target_dc}")
+            return client.media_sessions[target_dc]
+        
+        # Determine if we need cross-DC authorization
+        storage_dc = await client.storage.dc_id()
+        test_mode = await client.storage.test_mode()
+        requires_auth_transfer = (target_dc != storage_dc)
+        
+        # Create session based on DC location
+        if requires_auth_transfer:
+            # Cross-DC session requires authorization export
+            auth_key = await Auth(client, target_dc, test_mode).create()
+            new_session = Session(client, target_dc, auth_key, test_mode, is_media=True)
+            await new_session.start()
+            
+            # Attempt authorization transfer with retries
+            auth_success = False
+            for attempt in range(6):
+                auth_data = await client.invoke(
+                    raw.functions.auth.ExportAuthorization(dc_id=target_dc)
                 )
-                await media_session.start()
-
-                for _ in range(6):
-                    exported_auth = await client.invoke(
-                        raw.functions.auth.ExportAuthorization(dc_id=file_id.dc_id)
+                
+                try:
+                    await new_session.invoke(
+                        raw.functions.auth.ImportAuthorization(
+                            id=auth_data.id, bytes=auth_data.bytes
+                        )
                     )
-
-                    try:
-                        await media_session.invoke(
-                            raw.functions.auth.ImportAuthorization(
-                                id=exported_auth.id, bytes=exported_auth.bytes
-                            )
-                        )
-                        break
-                    except AuthBytesInvalid:
-                        logger.debug(
-                            f"Invalid authorization bytes for DC {file_id.dc_id}"
-                        )
-                        continue
-                else:
-                    await media_session.stop()
-                    raise AuthBytesInvalid
-            else:
-                media_session = Session(
-                    client,
-                    file_id.dc_id,
-                    await client.storage.auth_key(),
-                    await client.storage.test_mode(),
-                    is_media=True,
-                )
-                await media_session.start()
-            logger.debug(f"Created media session for DC {file_id.dc_id}")
-            client.media_sessions[file_id.dc_id] = media_session
+                    auth_success = True
+                    break
+                except AuthBytesInvalid:
+                    logger.debug(f"Auth transfer failed for DC {target_dc}, attempt {attempt + 1}/6")
+                    
+            if not auth_success:
+                await new_session.stop()
+                raise AuthBytesInvalid
         else:
-            logger.debug(f"Using cached media session for DC {file_id.dc_id}")
-        return media_session
+            # Same-DC session uses existing auth key
+            auth_key = await client.storage.auth_key()
+            new_session = Session(client, target_dc, auth_key, test_mode, is_media=True)
+            await new_session.start()
+        
+        # Cache and return the new session
+        logger.debug(f"Created media session for DC {target_dc}")
+        client.media_sessions[target_dc] = new_session
+        return new_session
 
     @staticmethod
     async def get_location(file_id: FileId) -> Union[raw.types.InputPhotoFileLocation,
                                                      raw.types.InputDocumentFileLocation,
                                                      raw.types.InputPeerPhotoFileLocation,]:
         """
-        Returns the file location for the media file.
+        Constructs the appropriate Telegram file location object based on file type.
         """
-        file_type = file_id.file_type
-
-        if file_type == FileType.CHAT_PHOTO:
-            if file_id.chat_id > 0:
-                peer = raw.types.InputPeerUser(
-                    user_id=file_id.chat_id, access_hash=file_id.chat_access_hash
+        media_type = file_id.file_type
+        
+        # Handle standard photo files
+        if media_type == FileType.PHOTO:
+            return raw.types.InputPhotoFileLocation(
+                id=file_id.media_id,
+                access_hash=file_id.access_hash,
+                file_reference=file_id.file_reference,
+                thumb_size=file_id.thumbnail_size,
+            )
+        
+        # Handle chat/profile photos with peer-based location
+        if media_type == FileType.CHAT_PHOTO:
+            chat_identifier = file_id.chat_id
+            access_hash_value = file_id.chat_access_hash
+            
+            # Determine peer type based on chat identifier
+            if chat_identifier > 0:
+                # Positive ID indicates user
+                peer_obj = raw.types.InputPeerUser(
+                    user_id=chat_identifier, access_hash=access_hash_value
                 )
+            elif access_hash_value == 0:
+                # No access hash means basic chat
+                peer_obj = raw.types.InputPeerChat(chat_id=-chat_identifier)
             else:
-                if file_id.chat_access_hash == 0:
-                    peer = raw.types.InputPeerChat(chat_id=-file_id.chat_id)
-                else:
-                    peer = raw.types.InputPeerChannel(
-                        channel_id=utils.get_channel_id(file_id.chat_id),
-                        access_hash=file_id.chat_access_hash,
-                    )
-
-            location = raw.types.InputPeerPhotoFileLocation(
-                peer=peer,
+                # Negative ID with access hash indicates channel
+                peer_obj = raw.types.InputPeerChannel(
+                    channel_id=utils.get_channel_id(chat_identifier),
+                    access_hash=access_hash_value,
+                )
+            
+            is_big_photo = (file_id.thumbnail_source == ThumbnailSource.CHAT_PHOTO_BIG)
+            return raw.types.InputPeerPhotoFileLocation(
+                peer=peer_obj,
                 volume_id=file_id.volume_id,
                 local_id=file_id.local_id,
-                big=file_id.thumbnail_source == ThumbnailSource.CHAT_PHOTO_BIG,
+                big=is_big_photo,
             )
-        elif file_type == FileType.PHOTO:
-            location = raw.types.InputPhotoFileLocation(
-                id=file_id.media_id,
-                access_hash=file_id.access_hash,
-                file_reference=file_id.file_reference,
-                thumb_size=file_id.thumbnail_size,
-            )
-        else:
-            location = raw.types.InputDocumentFileLocation(
-                id=file_id.media_id,
-                access_hash=file_id.access_hash,
-                file_reference=file_id.file_reference,
-                thumb_size=file_id.thumbnail_size,
-            )
-        return location
+        
+        # Default: handle documents, videos, audio, etc.
+        return raw.types.InputDocumentFileLocation(
+            id=file_id.media_id,
+            access_hash=file_id.access_hash,
+            file_reference=file_id.file_reference,
+            thumb_size=file_id.thumbnail_size,
+        )
 
     async def yield_file(
         self,
@@ -215,9 +225,13 @@ class ByteStreamer:
 
     async def clean_cache(self) -> None:
         """
-        function to clean the cache to reduce memory usage
+        Periodic task that clears cached file IDs to prevent memory buildup.
+        Runs continuously in the background at intervals defined by clean_timer.
         """
         while True:
+            # Wait for the cleanup interval
             await asyncio.sleep(self.clean_timer)
+            
+            # Remove all cached file ID entries
             self.cached_file_ids.clear()
-            logger.debug("Cleaned the cache") 
+            logger.debug("Cache cleanup completed - all file IDs cleared") 

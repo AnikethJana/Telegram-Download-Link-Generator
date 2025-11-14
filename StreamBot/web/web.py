@@ -628,6 +628,35 @@ async def session_generator_route(request: web.Request):
     """Session generator main page route."""
     from aiohttp_jinja2 import render_template
     
+    # Check bandwidth limit first (before any processing)
+    if await is_bandwidth_limit_exceeded():
+        # Check if user is admin
+        try:
+            session_token = get_session_token(request)
+            if session_token:
+                user_id = await validate_session_token(session_token)
+                # Allow admins to bypass bandwidth limit
+                if user_id and user_id not in Var.ADMINS:
+                    return web.Response(
+                        text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                        content_type='text/html',
+                        status=503
+                    )
+            else:
+                # No token, definitely not admin
+                return web.Response(
+                    text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                    content_type='text/html',
+                    status=503
+                )
+        except Exception:
+            # Error checking auth, show bandwidth limit
+            return web.Response(
+                text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                content_type='text/html',
+                status=503
+            )
+    
     bot_client: Client = request.app['bot_client']
     
     # If already authenticated via cookie and has session, go to success page
@@ -673,6 +702,18 @@ async def session_generator_route_slash(request: web.Request):
 async def session_login_route(request: web.Request):
     """Route to display the interactive login form."""
     from aiohttp_jinja2 import render_template
+    
+    # Check bandwidth limit
+    if await is_bandwidth_limit_exceeded():
+        token = request.query.get('token')
+        user_id = await validate_session_token(token) if token else None
+        # Allow admins to bypass
+        if not user_id or user_id not in Var.ADMINS:
+            return web.Response(
+                text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                content_type='text/html',
+                status=503
+            )
     
     # If already authenticated via cookie and has session, go to success page
     try:
@@ -904,6 +945,14 @@ async def session_auth_route(request: web.Request):
         
         user_id = int(data['id'])
         
+        # Check bandwidth limit (allow admins to bypass)
+        if await is_bandwidth_limit_exceeded():
+            if user_id not in Var.ADMINS:
+                return web.json_response({
+                    'success': False,
+                    'error': 'Bandwidth limit reached. Please come back next month.'
+                }, status=503)
+        
         # Check if user has permission to use session generator
         if not check_session_generator_access(user_id):
             logger.info(f"Session generator web access denied for non-admin user {user_id}")
@@ -949,6 +998,15 @@ async def session_success_route(request: web.Request):
         # Prefer cookie/header session token
         session_token = get_session_token(request)
         user_id = await validate_session_token(session_token) if session_token else None
+        
+        # Check bandwidth limit (allow admins to bypass)
+        if await is_bandwidth_limit_exceeded():
+            if not user_id or user_id not in Var.ADMINS:
+                return web.Response(
+                    text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                    content_type='text/html',
+                    status=503
+                )
         
         if not user_id:
             logger.warning("No valid session token or user_id provided for success page")
@@ -1000,6 +1058,15 @@ async def session_dashboard_route(request: web.Request):
             user_id = await validate_session_token(session_token)
         elif user_id_param:
             user_id = int(user_id_param)
+
+        # Check bandwidth limit (allow admins to bypass)
+        if await is_bandwidth_limit_exceeded():
+            if not user_id or user_id not in Var.ADMINS:
+                return web.Response(
+                    text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                    content_type='text/html',
+                    status=503
+                )
 
         if not user_id:
             logger.warning("No valid session token or user_id provided")

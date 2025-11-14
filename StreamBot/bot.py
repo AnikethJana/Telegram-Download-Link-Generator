@@ -1,4 +1,18 @@
-# StreamBot/bot.py
+"""
+Telegram Bot handlers and message processing for the Download Link Generator.
+
+This module contains all bot command handlers, message processors, and helper
+functions for managing user interactions with the Telegram bot. It handles:
+
+- Command processing (/start, /help, /login, /logout, etc.)
+- File upload processing with download link generation
+- Private channel link processing via user sessions
+- Rate limiting and security checks
+- User management and database operations
+
+All handlers are designed to be memory-efficient and thread-safe.
+"""
+
 import logging
 import asyncio
 import os
@@ -16,16 +30,18 @@ from .link_handler import get_message_from_link
 from .utils import url_shortener
 
 logger = logging.getLogger(__name__)
-# TgDlBot instance will be created and managed by ClientManager in __main__.py
-# Handlers will be attached to it there.
 
-# Create a memory-safe rate-limited logger instance
+# Memory-efficient rate-limited logger for high-frequency operations
 rate_limited_logger = SmartRateLimitedLogger(logger)
 
 
 async def process_download_link(original_link: str, file_size: int) -> str:
     """
     Process a download link and shorten it if the file size exceeds the threshold.
+
+    This function checks if URL shortening should be applied based on file size
+    and configuration. If shortening fails, it gracefully falls back to the
+    original link to ensure functionality is not disrupted.
 
     Args:
         original_link (str): The original download link
@@ -35,7 +51,7 @@ async def process_download_link(original_link: str, file_size: int) -> str:
         str: The processed link (shortened if needed, otherwise original)
     """
     try:
-        # Check if URL shortening should be used
+        # Determine if URL shortening should be applied based on file size
         if await url_shortener.should_use_short_url(file_size):
             logger.info(f"File size {file_size} bytes exceeds threshold, shortening URL")
             shortened_url = await url_shortener.shorten_url(original_link)
@@ -50,12 +66,24 @@ async def process_download_link(original_link: str, file_size: int) -> str:
             return original_link
     except Exception as e:
         logger.error(f"Error processing download link: {e}", exc_info=True)
-        # Return original link on error to ensure functionality
+        # Graceful fallback - return original link to maintain functionality
         return original_link
 
 
-# --- Small helpers to build messages (deduplicated, KISS) ---
 def build_active_session_message(session_generator_url: str, is_localhost: bool) -> str:
+    """
+    Build a message for users who already have an active session.
+
+    Provides guidance on using their existing session and includes localhost-specific
+    instructions for development/testing environments.
+
+    Args:
+        session_generator_url (str): URL to the session management page
+        is_localhost (bool): Whether the application is running on localhost
+
+    Returns:
+        str: Formatted message with session usage instructions
+    """
     if is_localhost:
         return f"""✅ **You already have an active session!**
 
@@ -85,6 +113,19 @@ Your session is currently active and ready to use for generating download links.
 
 
 def build_login_message(session_generator_url: str, is_localhost: bool) -> str:
+    """
+    Build a login prompt message for users without an active session.
+
+    Provides instructions for creating a new session and includes security warnings
+    about responsible usage to prevent account bans.
+
+    Args:
+        session_generator_url (str): URL to the session creation page
+        is_localhost (bool): Whether the application is running on localhost
+
+    Returns:
+        str: Formatted message with login instructions and security warnings
+    """
     if is_localhost:
         return f"""🔐 **Login to Session Generator**
 
@@ -132,13 +173,27 @@ Generate secure sessions to get download links from private Telegram channels an
 ⚠️ **Important Caution:**
 Using session-based access with newer accounts, downloading large files continuously, abusing the service, or sharing access with others who spam downloads may result in your Telegram account being banned. Please use responsibly and avoid excessive usage patterns that could trigger Telegram's anti-abuse systems."""
 
-# --- Helper: Check Force Subscription 
 async def check_force_sub(client: Client, message: Message) -> bool:
-    """Check if user is subscribed to force subscription channel."""
+    """
+    Check if user is subscribed to the required force subscription channel.
+
+    This function verifies that users have joined the mandatory channel before
+    allowing them to use the bot. If not subscribed, it provides a join link
+    and prevents further processing.
+
+    Args:
+        client (Client): The Pyrogram client instance
+        message (Message): The message from the user to check
+
+    Returns:
+        bool: True if user is subscribed or no force subscription is required,
+              False if user needs to join the channel
+    """
     if not Var.FORCE_SUB_CHANNEL:
         return True
 
     try:
+        # Check user's membership status in the required channel
         member = await client.get_chat_member(Var.FORCE_SUB_CHANNEL, message.from_user.id)
         if member.status not in ["kicked", "left"]:
             return True
@@ -147,12 +202,15 @@ async def check_force_sub(client: Client, message: Message) -> bool:
 
     except UserNotParticipant:
         try:
+            # Get channel information and invite link
             chat = await client.get_chat(Var.FORCE_SUB_CHANNEL)
             invite_link = chat.invite_link
             if not invite_link:
-                 invite_link_obj = await client.create_chat_invite_link(Var.FORCE_SUB_CHANNEL)
-                 invite_link = invite_link_obj.invite_link
+                # Create new invite link if none exists
+                invite_link_obj = await client.create_chat_invite_link(Var.FORCE_SUB_CHANNEL)
+                invite_link = invite_link_obj.invite_link
 
+            # Create join button with channel name
             button_text = f"Join {chat.title}" if chat.title else "Join Channel"
             button = [[InlineKeyboardButton(button_text, url=invite_link)]]
             await message.reply_text(
@@ -161,7 +219,7 @@ async def check_force_sub(client: Client, message: Message) -> bool:
                 quote=True
             )
         except FloodWait as e:
-            logger.warning(f"FloodWait creating invite link or getting chat for {Var.FORCE_SUB_CHANNEL}: {e.value}s")
+            logger.warning(f"FloodWait creating invite link for {Var.FORCE_SUB_CHANNEL}: {e.value}s")
             await message.reply_text(Var.FLOOD_WAIT_TEXT.format(seconds=e.value), quote=True)
         except Exception as e:
             logger.error(f"Could not get channel info or invite link for {Var.FORCE_SUB_CHANNEL}: {e}", exc_info=True)
@@ -182,12 +240,22 @@ async def check_force_sub(client: Client, message: Message) -> bool:
         return False
 
 
-# --- Bot Handlers ---
-def attach_handlers(app: Client):
-    """Register all bot handlers to the provided client instance."""
+def attach_handlers(app: Client) -> None:
+    """
+    Register all bot command and message handlers to the provided client instance.
+
+    This function sets up all the event handlers for the Telegram bot including:
+    - Command handlers (/start, /help, /login, /logout, etc.)
+    - Message handlers for file uploads and URL processing
+    - Callback query handlers for interactive buttons
+    - Rate limiting and security checks
+
+    Args:
+        app (Client): The Pyrogram client instance to attach handlers to
+    """
     logger.info("Attaching bot command and message handlers...")
 
-    # --- Inline keyboard builder for /start ---
+    # Inline keyboard builder for /start command
     def build_start_keyboard(force_sub_link: str = None) -> InlineKeyboardMarkup | None:
         buttons = []
 
@@ -214,11 +282,22 @@ def attach_handlers(app: Client):
         return InlineKeyboardMarkup(buttons) if buttons else None
 
     @app.on_message(filters.command("start") & filters.private)
-    async def start_handler(client: Client, message: Message):
-        """Handle the /start command."""
+    async def start_handler(client: Client, message: Message) -> None:
+        """
+        Handle the /start command for new users.
+
+        This handler welcomes users, adds them to the database, and provides
+        an interactive keyboard with help options and force subscription links
+        if configured.
+
+        Args:
+            client (Client): The Pyrogram client instance
+            message (Message): The /start command message
+        """
         force_sub_link = None
         if Var.FORCE_SUB_CHANNEL:
             try:
+                # Get or create force subscription channel invite link
                 fsub_chat = await client.get_chat(Var.FORCE_SUB_CHANNEL)
                 invite_link = fsub_chat.invite_link
                 if not invite_link:
@@ -227,16 +306,17 @@ def attach_handlers(app: Client):
                 force_sub_link = invite_link
             except Exception as e:
                 logger.warning(f"Could not get ForceSub channel info for start message: {e}")
-        
+
         user_id = message.from_user.id
         try:
-             await add_user(user_id)
+            # Add user to database for tracking and broadcast functionality
+            await add_user(user_id)
         except Exception as e:
-             logger.error(f"Database error adding user {user_id} on start: {e}")
-        
-        # Send clean text message with buttons
+            logger.error(f"Database error adding user {user_id} on start: {e}")
+
+        # Send welcome message with interactive keyboard
         start_text = Var.START_TEXT.format(mention=message.from_user.mention)
-        
+
         await message.reply_text(
             start_text,
             quote=True,
@@ -490,6 +570,12 @@ def attach_handlers(app: Client):
         """Handle the /login command to provide session generator web link."""
         user_id = message.from_user.id
         
+        # Check bandwidth limit (admins bypass this check)
+        if user_id not in Var.ADMINS:
+            if await is_bandwidth_limit_exceeded():
+                await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
+                return
+        
         # Check if user has permission to use session generator
         if not Var.ALLOW_USER_LOGIN and (not Var.ADMINS or user_id not in Var.ADMINS):
             await message.reply_text(
@@ -567,6 +653,12 @@ def attach_handlers(app: Client):
     async def logout_handler(client: Client, message: Message):
         """Handle the /logout command to revoke user session."""
         user_id = message.from_user.id
+        
+        # Check bandwidth limit (admins bypass this check)
+        if user_id not in Var.ADMINS:
+            if await is_bandwidth_limit_exceeded():
+                await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
+                return
         
         # Check if user has permission to use session generator
         if not Var.ALLOW_USER_LOGIN and (not Var.ADMINS or user_id not in Var.ADMINS):
@@ -646,6 +738,12 @@ To generate download links again, use `/login` to create a new session."""
         from StreamBot.link_handler import user_session_streamer
         from pyrogram.errors import AuthKeyUnregistered, UserDeactivated, UserDeactivatedBan
         user_id = message.from_user.id
+        
+        # Check bandwidth limit (admins bypass this check)
+        if user_id not in Var.ADMINS:
+            if await is_bandwidth_limit_exceeded():
+                await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
+                return
         
         if not await check_user_has_session(user_id):
             await message.reply_text("ℹ️ You don't have an active session. Use /login to create one.", quote=True)
@@ -806,8 +904,19 @@ To generate download links again, use `/login` to create a new session."""
         filters.document | filters.video | filters.audio | filters.photo |
         filters.animation | filters.sticker | filters.voice
     ))
-    async def file_handler(client: Client, message: Message):
-        """Handle incoming media messages to generate download links."""
+    async def file_handler(client: Client, message: Message) -> None:
+        """
+        Handle incoming media messages and generate secure download links.
+
+        This handler processes uploaded files by forwarding them to a log channel,
+        then generates time-limited download links. It includes comprehensive
+        security checks including rate limiting, bandwidth monitoring, and
+        force subscription verification.
+
+        Args:
+            client (Client): The Pyrogram client instance
+            message (Message): The message containing the uploaded file
+        """
         user_id = message.from_user.id
 
         # Rate limiting check - ensure proper enforcement
