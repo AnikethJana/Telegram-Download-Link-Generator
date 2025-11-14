@@ -1,85 +1,133 @@
-# StreamBot/config.py
+"""
+Configuration management for the Telegram Download Link Generator.
+
+This module provides centralized configuration loading from environment variables
+with type conversion, validation, and security features. It includes:
+
+- Environment variable parsing with type safety
+- Configuration validation for critical values
+- Secure handling of sensitive information
+- Application constants and text messages
+
+All configuration is loaded at startup and cached for performance.
+"""
+
 import os
 from logging import getLogger
 import re
 import pyrogram
 
-# Set up basic logging
 logger = getLogger(__name__)
 
-# Simple environment variable loader
-def get_env(name: str, default=None, required: bool = False, is_bool: bool = False, is_int: bool = False):
-    """Get environment variable with type conversion and validation."""
+
+def get_env(
+    name: str,
+    default=None,
+    required: bool = False,
+    is_bool: bool = False,
+    is_int: bool = False
+):
+    """
+    Get environment variable with type conversion, validation, and security.
+
+    This function provides secure and robust environment variable handling with:
+    - Type conversion for booleans and integers
+    - Input validation for critical configuration values
+    - Secure logging that masks sensitive information
+    - Bounds checking to prevent integer overflow
+    - Graceful fallback to defaults
+
+    Args:
+        name (str): Environment variable name to retrieve
+        default: Default value if environment variable is not set
+        required (bool): Whether this variable must be provided
+        is_bool (bool): Whether to convert value to boolean
+        is_int (bool): Whether to convert value to integer
+
+    Returns:
+        The converted environment variable value or default
+
+    Raises:
+        SystemExit: If required variable is missing or invalid
+    """
     value = os.environ.get(name, default)
 
     if required and value is None:
         logger.critical(f"Missing required environment variable: {name}")
         exit(f"Missing required environment variable: {name}")
 
-    # Log config value before potential conversion errors, masking sensitive info
+    # Log configuration value with sensitive data masking
     log_value_display = '******' if name.endswith(('TOKEN', 'HASH', 'SECRET', 'KEY')) else value
     logger.info(f"Config: Reading {name} = {log_value_display}")
 
     if value is None:
-        return None # Return None if default is None and env var is not set
+        return None
 
     if is_bool:
-        # Handle boolean conversion robustly
         return str(value).lower() in ("true", "1", "yes", "on")
     elif is_int:
         try:
             int_value = int(value)
-            # Basic security check for reasonable integer bounds
+            # Security check for reasonable integer bounds
             if name in ['API_ID', 'LOG_CHANNEL', 'FORCE_SUB_CHANNEL'] and int_value != 0:
-                if abs(int_value) > 2**63:  # Prevent overflow
+                if abs(int_value) > 2**63:  # Prevent integer overflow
                     logger.error(f"Integer value for {name} exceeds reasonable bounds: {int_value}")
                     if required:
                         exit(f"Invalid required integer environment variable: {name}")
                     return default
             return int_value
         except (ValueError, TypeError):
-            logger.error(f"Invalid integer value for {name}: '{value}'. Using default: {default} or exiting if required.")
+            logger.error(f"Invalid integer value for {name}: '{value}'. Using default: {default}")
             if required:
                 exit(f"Invalid required integer environment variable: {name}='{value}'")
-            # Attempt to convert default to int if it's not None, otherwise return None or the original default
             try:
                 return int(default) if default is not None else None
             except (ValueError, TypeError):
-                 logger.error(f"Default value '{default}' for {name} is also not a valid integer.")
-                 return default # Return original default if it cannot be converted
+                logger.error(f"Default value '{default}' for {name} is also not a valid integer.")
+                return default
     else:
-        # Basic string validation for critical values
+        # Validate critical string configuration values
         if name == 'API_HASH' and value:
             if not re.match(r'^[a-f0-9]{32}$', str(value)):
-                logger.warning(f"API_HASH format appears invalid (should be 32 hex chars)")
+                logger.warning("API_HASH format appears invalid (should be 32 hex characters)")
         elif name in ['BOT_TOKEN', 'ADDITIONAL_BOT_TOKENS'] and value:
-            # Basic bot token format validation
             if name == 'BOT_TOKEN' and not re.match(r'^\d+:[A-Za-z0-9_-]{35}$', str(value)):
-                logger.warning(f"BOT_TOKEN format appears invalid")
+                logger.warning("BOT_TOKEN format appears invalid")
         elif name == 'BASE_URL' and value:
-            # Basic URL validation
             if not str(value).startswith(('http://', 'https://')):
-                logger.warning(f"BASE_URL should start with http:// or https://")
-        
-        # Return as string (or original type if default was used and not string)
+                logger.warning("BASE_URL should start with http:// or https://")
+
         return value
 
 
 class Var:
-    """Application configuration from environment variables."""
-    
-    # Telegram API credentials
+    """
+    Application configuration container loaded from environment variables.
+
+    This class centralizes all application configuration with validation,
+    type conversion, and security checks. Configuration values are loaded
+    once at startup and cached for performance.
+
+    Key configuration categories:
+    - Telegram API credentials and multi-client setup
+    - Channel and logging configuration
+    - Web server and CORS settings
+    - Security and rate limiting parameters
+    - Database and session management
+    """
+
+    # Telegram API credentials - required for bot operation
     API_ID = get_env("API_ID", required=True, is_int=True)
     API_HASH = get_env("API_HASH", required=True)
     BOT_TOKEN = get_env("BOT_TOKEN", required=True)
-    
-    # Multi-client configuration
+
+    # Multi-client configuration for high-load scenarios
     _additional_bot_tokens_str = get_env("ADDITIONAL_BOT_TOKENS", default="")
     ADDITIONAL_BOT_TOKENS = [token.strip() for token in _additional_bot_tokens_str.split(",") if token.strip()]
     WORKER_CLIENT_PYROGRAM_WORKERS = get_env("WORKER_CLIENT_PYROGRAM_WORKERS", 1, is_int=True)
     WORKER_SESSIONS_IN_MEMORY = get_env("WORKER_SESSIONS_IN_MEMORY", False, is_bool=True)
 
-    # Channel configuration
+    # Channel configuration for logging and force subscription
     LOG_CHANNEL = get_env("LOG_CHANNEL", required=True, is_int=True)
     FORCE_SUB_CHANNEL = get_env("FORCE_SUB_CHANNEL", default=None, is_int=True)
 
@@ -87,19 +135,19 @@ class Var:
     BASE_URL = str(get_env("BASE_URL", required=True)).rstrip('/')
     PORT = get_env("PORT", 8080, is_int=True)
     BIND_ADDRESS = get_env("BIND_ADDRESS", "0.0.0.0")
-    
-    # CORS configuration
+
+    # CORS configuration for web interface
     _cors_origins_str = get_env("CORS_ALLOWED_ORIGINS", default="")
     CORS_ALLOWED_ORIGINS = [origin.strip() for origin in _cors_origins_str.split(',') if origin.strip()]
-    
+
     # Video streaming frontend configuration
     _video_frontend_url = get_env("VIDEO_FRONTEND_URL", default="https://cricster.pages.dev")
     VIDEO_FRONTEND_URL = None if _video_frontend_url and _video_frontend_url.lower() == "false" else _video_frontend_url
 
-    # Link expiry and security
+    # Link expiry and security settings
     LINK_EXPIRY_SECONDS = get_env("LINK_EXPIRY_SECONDS", 86400, is_int=True)
 
-    # Bot settings
+    # Bot operational settings
     SESSION_NAME = get_env("SESSION_NAME", "TgDlBot")
     WORKERS = get_env("WORKERS", 4, is_int=True)
     GITHUB_REPO_URL = get_env("GITHUB_REPO_URL", default=None)
@@ -107,19 +155,18 @@ class Var:
     # Database configuration
     DB_URI = get_env("DATABASE_URL", required=True)
     DB_NAME = get_env("DATABASE_NAME", "TgDlBotUsers")
-    
+
     # Rate and bandwidth limiting
     MAX_LINKS_PER_DAY = get_env("MAX_LINKS_PER_DAY", default=5, is_int=True)
     BANDWIDTH_LIMIT_GB = get_env("BANDWIDTH_LIMIT_GB", default=100, is_int=True)
-    
+
     # Session generator access control
     ALLOW_USER_LOGIN = get_env("ALLOW_USER_LOGIN", default=False, is_bool=True)
-    
+
     # URL Shortener configuration
-    # Base URL for the GPLinks API (includes API key)
     ADLINKFLY_URL = get_env("ADLINKFLY_URL", default="")
 
-    # File size threshold for shortening links, set via env in megabytes (default: 2 MB)
+    # File size threshold for shortening links (converted to bytes)
     _file_size_threshold_raw = get_env("FILE_SIZE_THRESHOLD", default=2, is_int=True)
     if _file_size_threshold_raw is None:
         FILE_SIZE_THRESHOLD = 2 * 1024 * 1024
@@ -130,12 +177,12 @@ class Var:
         FILE_SIZE_THRESHOLD = _file_size_threshold_raw
     else:
         FILE_SIZE_THRESHOLD = max(_file_size_threshold_raw, 0) * 1024 * 1024
-    
-    # Basic security validation
+
+    # Security validation for critical configuration values
     if PORT and (PORT < 1 or PORT > 65535):
         logger.error(f"Invalid PORT value: {PORT}. Must be between 1-65535.")
         PORT = 8080
-    
+
     if WORKERS and (WORKERS < 1 or WORKERS > 32):
         logger.warning(f"WORKERS value {WORKERS} outside recommended range 1-32. Adjusting to safe value.")
         WORKERS = min(max(WORKERS, 1), 8)  # Clamp to 1-8 for low resources
@@ -170,7 +217,7 @@ class Var:
         logger.error(f"Invalid ADMINS value '{_admin_str}'. Ensure it's a space-separated list of numbers.")
         ADMINS = [] # Set to empty list on error
 
-    # --- Broadcast Messages ---
+    # Broadcast command messages
     BROADCAST_REPLY_PROMPT = "Reply to the message you want to broadcast with the `/broadcast` command."
     BROADCAST_ADMIN_ONLY = "❌ Only authorized admins can use this command."
     BROADCAST_STARTING = "⏳ Starting broadcast... This may take some time."
