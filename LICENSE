@@ -1,23 +1,103 @@
-MIT License
+Telegram File Download & Streaming Link Generator License
+Version 1.0 (2025-11-13)
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Copyright (c) 2023-2025
+Aniketh Jana <anikethjana@outlook.com>
 
-1. The above copyright notice and this permission notice shall be included in
-   all copies or substantial portions of the Software.
+====================================
+1. DEFINITIONS
+====================================
+1.1 "Software" means the source code, object code, build scripts, documentation, templates, assets, and any other files contained in or distributed with the Telegram File Download & Streaming Link Generator project.
 
-2. Commercial use of the Software requires a separate commercial license.
-   Please contact anikethjana@gmail.com for details on obtaining a
-   commercial license.
+1.2 "Maintainer" means the copyright holder identified above and any duly authorised successor or assignee.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE. 
+1.3 "Individual Use" means installation, execution, or modification of the Software by a natural person acting on their own behalf for personal projects, education, experimentation, evaluation, or other non-revenue-generating purposes.
+
+1.4 "Commercial Use" means any use of the Software (or any derivative work of the Software) by an organisation, company, partnership, sole proprietorship, or individual that results in, or is intended to result in, direct or indirect revenue, including but not limited to software-as-a-service (SaaS), managed hosting, consulting, or resale.
+
+1.5 "Service Revenue" means gross revenue attributable to products or services that rely on, bundle, embed, expose, or otherwise incorporate the Software or derivative works thereof.
+
+1.6 "Corporate Entity" means any business organisation with more than 5 employees, or annual revenue exceeding USD 10,000 (or the equivalent in local currency).
+
+====================================
+2. LICENSE GRANT
+====================================
+2.1 Subject to the terms and conditions of this License, the Maintainer grants you a non-exclusive, worldwide, non-transferable, revocable licence to:
+  (a) use, copy, modify, and merge the Software for Individual Use;
+  (b) evaluate the Software internally for potential Commercial Use;
+  (c) redistribute unmodified copies of the Software for non-commercial purposes, provided this License is included with every copy.
+
+2.2 No patent rights are granted under this License.
+
+====================================
+3. COMMERCIAL USE & ROYALTIES
+====================================
+3.1 Commercial Use is permitted only if you obtain a written commercial licence from the Maintainer (a "Commercial Licence Agreement").
+
+3.2 If you operate, offer, sell, or monetise a product or service that incorporates the Software, you must:
+  (a) negotiate and execute a Commercial Licence Agreement with the Maintainer before launch;
+  (b) remit the royalty, licence fee, or revenue-share rate agreed in that Commercial Licence Agreement;
+  (c) provide any reports or supporting records specified in that agreement and cooperate with reasonable compliance requests;
+  (d) permit the Maintainer (or an independent auditor bound by confidentiality) to verify the accuracy of your reports in accordance with the audit provisions set out in the agreement, provided no more than once per calendar year unless a material breach is suspected.
+
+3.3 Failure to comply with Section 3 constitutes an immediate material breach and terminates all rights granted by this License.
+
+====================================
+4. REDISTRIBUTION & DERIVATIVES
+====================================
+4.1 You may create derivative works for Individual Use. Any redistribution of derivative works requires the Maintainer’s prior written consent.
+
+4.2 You must not remove or alter any copyright, trademark, attribution, or licence notices contained in the Software.
+
+4.3 You must not represent any derivative work as the original Software or imply that the Maintainer endorses your modifications without express written permission.
+
+====================================
+5. PROHIBITED CONDUCT
+====================================
+You must not:
+(a) sublicense, lease, or sell rights in the Software except as expressly permitted by this License;
+(b) use the Software to infringe the rights of third parties;
+(c) reverse engineer any portion of the Software distributed solely in object code form, except where such restriction is prohibited by applicable law;
+(d) use any Maintainer trademarks, names, or logos without prior written permission.
+
+====================================
+6. TERMINATION
+====================================
+6.1 This License is effective until terminated. The Maintainer may terminate this License immediately if you breach any term.
+
+6.2 Upon termination you must cease all use of the Software and destroy all copies in your possession, except that obligations relating to royalties, reporting, confidentiality, and indemnification survive termination.
+
+====================================
+7. WARRANTY DISCLAIMER
+====================================
+THE SOFTWARE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, OR NON-INFRINGEMENT. YOUR USE OF THE SOFTWARE IS AT YOUR SOLE RISK.
+
+====================================
+8. LIMITATION OF LIABILITY
+====================================
+IN NO EVENT SHALL THE MAINTAINER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES, LOSS OF USE, DATA, OR PROFITS, BUSINESS INTERRUPTION, OR OTHER COMMERCIAL DAMAGES OR LOSSES) ARISING OUT OF OR RELATED TO THE SOFTWARE OR THIS LICENSE, HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+====================================
+9. INDEMNIFICATION
+====================================
+You agree to indemnify, defend, and hold harmless the Maintainer from and against any claims, losses, liabilities, damages, costs, and expenses (including reasonable attorneys’ fees) arising out of or relating to your use of the Software, your breach of this License, or your violation of applicable law.
+
+====================================
+10. GOVERNING LAW & DISPUTES
+====================================
+This License shall be governed by and construed in accordance with the laws of India, without regard to its conflict of law principles. Any dispute shall be submitted to the exclusive jurisdiction of the courts located in Kolkata, West Bengal, India, provided that the Maintainer may seek injunctive or equitable relief in any jurisdiction to enforce Sections 3 or 9.
+
+====================================
+11. CONTACT
+====================================
+For Commercial Licence Agreements, royalty remittance, or other enquiries, contact: anikethjana@gmail.com
+
+====================================
+12. SEVERABILITY
+====================================
+If any provision of this License is held unenforceable, that provision shall be severed, and the remaining provisions shall remain in full force and effect.
+
+====================================
+13. ENTIRE AGREEMENT & AMENDMENTS
+====================================
+This License constitutes the entire agreement between you and the Maintainer regarding the Software. Any amendments must be in writing and signed by the Maintainer. The Maintainer may publish updated versions of this License; continued use of the Software after such publication constitutes acceptance of the revised terms.
