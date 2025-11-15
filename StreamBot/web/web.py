@@ -32,8 +32,10 @@ from ..security.rate_limiter import invalid_request_guard
 
 import hashlib
 from typing import Optional, Dict, Any
+from StreamBot.utils.smart_logger import SmartRateLimitedLogger
 
 logger = logging.getLogger(__name__)
+stream_rate_limited_logger = SmartRateLimitedLogger(logger)
 
 routes = web.RouteTableDef()
 
@@ -408,10 +410,17 @@ async def download_route(request: web.Request):
                                 nonlocal bytes_streamed
                                 bytes_streamed += len(chunk)
                             except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError) as client_e:
-                                logger.warning(f"Client connection issue during write for {message_id}: {type(client_e).__name__}. Streamed {humanbytes(bytes_streamed)}.")
+                                stream_rate_limited_logger.log(
+                                    'warning',
+                                    f"Client connection issue during write for {message_id}: {type(client_e).__name__}. Streamed {humanbytes(bytes_streamed)}."
+                                )
                                 return
                             except Exception as write_e:
-                                logger.error(f"Error writing chunk for {message_id}: {write_e}", exc_info=True)
+                                stream_rate_limited_logger.log(
+                                    'error',
+                                    f"Error writing chunk for {message_id}: {write_e}",
+                                    exc_info=True
+                                )
                                 return
                     
                     # Apply timeout to the entire streaming operation
@@ -479,7 +488,10 @@ async def download_route(request: web.Request):
     if bytes_streamed == expected_bytes_to_serve:
         logger.info(f"Finished streaming {humanbytes(bytes_streamed)} for {message_id} in {stream_duration:.2f}s. Expected: {humanbytes(expected_bytes_to_serve)}.")
     else:
-        logger.warning(f"Stream for {message_id} ended. Expected to serve {humanbytes(expected_bytes_to_serve)}, actually sent {humanbytes(bytes_streamed)} in {stream_duration:.2f}s.")
+        stream_rate_limited_logger.log(
+            'warning',
+            f"Stream for {message_id} ended. Expected to serve {humanbytes(expected_bytes_to_serve)}, actually sent {humanbytes(bytes_streamed)} in {stream_duration:.2f}s."
+        )
 
     total_request_duration = asyncio.get_event_loop().time() - start_time_request
     logger.info(f"Download request for {message_id} completed. Total duration: {total_request_duration:.2f}s")

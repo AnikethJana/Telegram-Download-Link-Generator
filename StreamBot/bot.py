@@ -35,17 +35,17 @@ logger = logging.getLogger(__name__)
 rate_limited_logger = SmartRateLimitedLogger(logger)
 
 
-async def process_download_link(original_link: str, file_size: int) -> str:
+async def process_link(original_link: str, file_size: int) -> str:
     """
-    Process a download link and shorten it if the file size exceeds the threshold.
+    Process any externally shared link and shorten it if the file size exceeds the threshold.
 
-    This function checks if URL shortening should be applied based on file size
-    and configuration. If shortening fails, it gracefully falls back to the
-    original link to ensure functionality is not disrupted.
+    This helper is used for download URLs, stream URLs and video frontend links. If
+    shortening fails, we gracefully fall back to the original link to ensure functionality
+    is not disrupted.
 
     Args:
-        original_link (str): The original download link
-        file_size (int): Size of the file in bytes
+        original_link (str): The original link to be shared
+        file_size (int): Size of the related file in bytes
 
     Returns:
         str: The processed link (shortened if needed, otherwise original)
@@ -53,16 +53,16 @@ async def process_download_link(original_link: str, file_size: int) -> str:
     try:
         # Determine if URL shortening should be applied based on file size
         if await url_shortener.should_use_short_url(file_size):
-            logger.info(f"File size {file_size} bytes exceeds threshold, shortening URL")
+            rate_limited_logger.log('info', f"File size {file_size} bytes exceeds threshold, shortening URL")
             shortened_url = await url_shortener.shorten_url(original_link)
             if shortened_url:
-                logger.info(f"URL shortened successfully: {original_link} -> {shortened_url}")
+                rate_limited_logger.log('info', f"URL shortened successfully: {original_link} -> {shortened_url}")
                 return shortened_url
             else:
-                logger.warning("URL shortening failed, using original link")
+                rate_limited_logger.log('warning', "URL shortening failed, using original link")
                 return original_link
         else:
-            logger.debug(f"File size {file_size} bytes is below threshold, using original link")
+            rate_limited_logger.log('debug', f"File size {file_size} bytes is below threshold, using original link")
             return original_link
     except Exception as e:
         logger.error(f"Error processing download link: {e}", exc_info=True)
@@ -869,18 +869,19 @@ To generate download links again, use `/login` to create a new session."""
             download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
 
             # Process download link (shorten if file size exceeds threshold)
-            processed_download_link = await process_download_link(download_link, file_size)
+            processed_download_link = await process_link(download_link, file_size)
 
             is_video = is_video_file(file_mime_type)
             reply_markup = None
             if is_video and Var.VIDEO_FRONTEND_URL:
                 # For private content, the stream URL should also be shortened if needed
                 stream_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"  # Same endpoint for streaming private content
-                processed_stream_link = await process_download_link(stream_link, file_size)
+                processed_stream_link = stream_link
 
                 import urllib.parse
                 encoded_stream_uri = urllib.parse.quote(processed_stream_link)
                 video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
+                video_play_url = await process_link(video_play_url, file_size)
                 reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("🎬 Play Video", url=video_play_url)]])
 
             await processing_msg.edit_text(
@@ -981,7 +982,7 @@ To generate download links again, use `/login` to create a new session."""
             download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
 
             # Process download link (shorten if file size exceeds threshold)
-            processed_download_link = await process_download_link(download_link, file_size)
+            processed_download_link = await process_link(download_link, file_size)
 
             # Check if it's a video file and create appropriate response
             is_video = is_video_file(file_mime_type)
@@ -991,12 +992,10 @@ To generate download links again, use `/login` to create a new session."""
                 # Create inline keyboard with Play Video button - use stream URL directly
                 stream_link = f"{Var.BASE_URL}/stream/{encoded_msg_id}"
 
-                # Process stream link (shorten if file size exceeds threshold)
-                processed_stream_link = await process_download_link(stream_link, file_size)
-
                 import urllib.parse
-                encoded_stream_uri = urllib.parse.quote(processed_stream_link)
+                encoded_stream_uri = urllib.parse.quote(stream_link)
                 video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
+                video_play_url = await process_link(video_play_url, file_size)
 
                 reply_markup = InlineKeyboardMarkup([
                     [InlineKeyboardButton("🎬 Play Video", url=video_play_url)]

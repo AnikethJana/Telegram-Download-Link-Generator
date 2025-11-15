@@ -39,7 +39,7 @@ class SmartRateLimitedLogger:
         if old_keys:
             self.logger.debug(f"Cleaned {len(old_keys)} old log cache entries")
 
-    def log(self, level, message):
+    def log(self, level, message, **kwargs):
         """Log a message with rate limiting and memory-safe cache management."""
         # Periodic cache cleanup
         self._cleanup_cache()
@@ -57,15 +57,15 @@ class SmartRateLimitedLogger:
         
         # Log the message
         if level == 'debug':
-            self.logger.debug(message)
+            self.logger.debug(message, **kwargs)
         elif level == 'info':
-            self.logger.info(message)
+            self.logger.info(message, **kwargs)
         elif level == 'warning':
-            self.logger.warning(message)
+            self.logger.warning(message, **kwargs)
         elif level == 'error':
-            self.logger.error(message)
+            self.logger.error(message, **kwargs)
         elif level == 'critical':
-            self.logger.critical(message)
+            self.logger.critical(message, **kwargs)
     
     def get_cache_stats(self) -> Dict[str, int]:
         """Get current cache statistics."""
