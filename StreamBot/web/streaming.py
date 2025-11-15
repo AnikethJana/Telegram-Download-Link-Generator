@@ -8,8 +8,10 @@ from StreamBot.utils.utils import decode_message_id, get_file_attr, VIDEO_MIME_T
 from StreamBot.utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
 from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_response
 from StreamBot.security.validator import validate_range_header, get_client_ip
+from StreamBot.utils.smart_logger import SmartRateLimitedLogger
 
 logger = logging.getLogger(__name__)
+streaming_rate_limited_logger = SmartRateLimitedLogger(logger)
 
 async def stream_video_route(request: web.Request):
     """Handle video streaming requests with optimized streaming support."""
@@ -176,7 +178,10 @@ async def stream_video_route(request: web.Request):
                             logger.debug(f"Client disconnected during video stream {message_id}")
                             return response  # Exit cleanly on client disconnect.
                         except Exception as e:
-                            logger.error(f"Error streaming chunk for {message_id}: {e}")
+                            streaming_rate_limited_logger.log(
+                                'error',
+                                f"Error streaming chunk for {message_id}: {e}"
+                            )
                             return response  # Exit on write errors.
                         
                         current_chunk += 1
@@ -203,15 +208,21 @@ async def stream_video_route(request: web.Request):
                             await asyncio.sleep(min(e.value, 60))
                             continue  # Retry with same client after waiting
                     except Exception as alt_e:
-                        logger.error(f"Error switching client for {message_id}: {alt_e}")
+                        streaming_rate_limited_logger.log(
+                            'error',
+                            f"Error switching client for {message_id}: {alt_e}"
+                        )
                         await asyncio.sleep(min(e.value, 60))  # Cap wait time
                         continue  # Retry after waiting
 
                 except Exception as e:
                     current_retry += 1
-                    logger.error(f"Error during video streaming {message_id} (attempt {current_retry}): {e}")
+                    streaming_rate_limited_logger.log(
+                        'error',
+                        f"Error during video streaming {message_id} (attempt {current_retry}): {e}"
+                    )
                     if current_retry > max_retries:
-                        logger.error(f"Max retries reached for {message_id}, aborting")
+                        streaming_rate_limited_logger.log('error', f"Max retries reached for {message_id}, aborting")
                         break
                     await asyncio.sleep(2 * current_retry)  # Exponential backoff
 
