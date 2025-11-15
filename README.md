@@ -1,7 +1,7 @@
 # Telegram File Download & Streaming Link Generator Bot
 
 [![Python Version](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+[![License: Custom](https://img.shields.io/badge/License-Custom-blue.svg)](LICENSE) 
 
 A Telegram bot built with Python (using Pyrogram and aiohttp) that generates temporary, direct download links and streaming links for files sent to it. It utilizes a log channel to store files and a web server to handle both download and streaming requests with advanced video playback support.
 
@@ -317,3 +317,7 @@ This project was inspired from :
 
 * [CodeXBotz/File-Sharing-Bot](https://github.com/CodeXBotz/File-Sharing-Bot)
 * [EverythingSuckz/FileStreamBot](https://github.com/EverythingSuckz/TG-FileStreamBot/tree/python)
+
+## License 
+
+- Personal and non-commercial use remains free under the custom licence in `LICENSE`.
