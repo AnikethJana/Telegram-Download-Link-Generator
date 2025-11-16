@@ -131,16 +131,29 @@ async def validate_session_token(token: str) -> int | None:
     return token_data['user_id']
 
 def check_session_generator_access(user_id: int) -> bool:
-    """Check if user has permission to access session generator features."""
-    # If ALLOW_USER_LOGIN is True, everyone can access
-    if Var.ALLOW_USER_LOGIN:
-        return True
-    
-    # If ALLOW_USER_LOGIN is False, only admins can access
-    if Var.ADMINS and user_id in Var.ADMINS:
-        return True
-    
-    return False
+    """Return True only when session generator logins are enabled."""
+    return bool(Var.ALLOW_USER_LOGIN)
+
+
+async def get_force_sub_redirect_url(bot_client: Optional[Client]) -> Optional[str]:
+    """Resolve a shareable URL for the force-subscribe channel if configured."""
+    if not bot_client or not Var.FORCE_SUB_CHANNEL:
+        return None
+
+    try:
+        chat = await bot_client.get_chat(Var.FORCE_SUB_CHANNEL)
+        if getattr(chat, "username", None):
+            return f"https://telegram.dog/{chat.username}"
+        if getattr(chat, "invite_link", None):
+            return chat.invite_link
+
+        invite_link = await bot_client.create_chat_invite_link(Var.FORCE_SUB_CHANNEL)
+        return getattr(invite_link, "invite_link", None)
+    except FloodWait as e:
+        logger.warning(f"FloodWait while resolving force-subscribe link: {e.value}s")
+    except Exception as e:
+        logger.warning(f"Unable to resolve force-subscribe link: {e}")
+    return None
 
 # Request timeout for streaming operations (2 hours max)
 STREAM_TIMEOUT = 7200  # 2 hours
@@ -590,6 +603,16 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
     app['bot_start_time'] = start_time
     app['start_time'] = start_time
     
+    # Cache bot metadata for redirects
+    bot_username = None
+    try:
+        bot_me = getattr(bot_instance, "me", None) or await bot_instance.get_me()
+        bot_username = getattr(bot_me, "username", None)
+    except Exception as e:
+        logger.warning(f"Unable to fetch bot username for redirects: {e}")
+    app["bot_username"] = bot_username
+    app["force_sub_url"] = await get_force_sub_redirect_url(bot_instance)
+
     # Add routes
     app.add_routes(routes)
     
@@ -967,10 +990,10 @@ async def session_auth_route(request: web.Request):
         
         # Check if user has permission to use session generator
         if not check_session_generator_access(user_id):
-            logger.info(f"Session generator web access denied for non-admin user {user_id}")
+            logger.info(f"Session generator disabled - web access denied for user {user_id}")
             return web.json_response({
                 'success': False,
-                'error': 'Access to the session generator is restricted to administrators.'
+                'error': 'The session generator is currently disabled. Please try again later.'
             }, status=403)
         
         from StreamBot.database.user_sessions import check_user_has_session
@@ -1086,9 +1109,9 @@ async def session_dashboard_route(request: web.Request):
 
         # Check if user has permission to use session generator
         if not check_session_generator_access(user_id):
-            logger.info(f"Session generator dashboard access denied for non-admin user {user_id}")
+            logger.info(f"Session generator disabled - dashboard access denied for user {user_id}")
             return web.Response(
-                text="Access Denied: Session generator is restricted to administrators only.",
+                text="Access Denied: The session generator is currently disabled.",
                 status=403,
                 content_type='text/plain'
             )
@@ -1149,3 +1172,19 @@ async def session_dashboard_route(request: web.Request):
 
 
 # Note: /session/logout route removed per UI change
+
+
+@routes.route('*', '/{tail:.*}')
+async def fallback_redirect_route(request: web.Request):
+    """Redirect undefined routes to force-subscribe channel or bot link."""
+    redirect_url = request.app.get('force_sub_url')
+
+    if not redirect_url:
+        bot_username = request.app.get('bot_username')
+        if bot_username:
+            redirect_url = f"https://telegram.dog/{bot_username}"
+
+    if not redirect_url:
+        redirect_url = Var.GITHUB_REPO_URL or "https://telegram.dog"
+
+    raise web.HTTPFound(redirect_url)

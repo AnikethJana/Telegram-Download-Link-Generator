@@ -261,6 +261,12 @@ def attach_handlers(app: Client) -> None:
     """
     logger.info("Attaching bot command and message handlers...")
 
+    SESSION_GENERATOR_DISABLED_TEXT = (
+        "🔒 **Session Generator Disabled**\n\n"
+        "The session generator feature is currently disabled for all users.\n\n"
+        "Please try again later."
+    )
+
     # Inline keyboard builder for /start command
     def build_start_keyboard(force_sub_link: str = None) -> InlineKeyboardMarkup | None:
         buttons = []
@@ -575,23 +581,17 @@ def attach_handlers(app: Client) -> None:
     async def login_handler(client: Client, message: Message):
         """Handle the /login command to provide session generator web link."""
         user_id = message.from_user.id
+
+        if not Var.ALLOW_USER_LOGIN:
+            await message.reply_text(SESSION_GENERATOR_DISABLED_TEXT, quote=True)
+            logger.info(f"Session generator disabled - login denied for user {user_id}")
+            return
         
         # Check bandwidth limit (admins bypass this check)
         if user_id not in Var.ADMINS:
             if await is_bandwidth_limit_exceeded():
                 await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
                 return
-        
-        # Check if user has permission to use session generator
-        if not Var.ALLOW_USER_LOGIN and (not Var.ADMINS or user_id not in Var.ADMINS):
-            await message.reply_text(
-                "🔒 **Session Generator Access Restricted**\n\n"
-                "The session generator feature is currently restricted to administrators only.\n\n"
-                "Contact the bot administrator if you need access to private content features.",
-                quote=True
-            )
-            logger.info(f"Session generator access denied for non-admin user {user_id}")
-            return
         
         try:
             # Add user to database if not exists (efficient single operation)
@@ -659,22 +659,17 @@ def attach_handlers(app: Client) -> None:
     async def logout_handler(client: Client, message: Message):
         """Handle the /logout command to revoke user session."""
         user_id = message.from_user.id
+
+        if not Var.ALLOW_USER_LOGIN:
+            await message.reply_text(SESSION_GENERATOR_DISABLED_TEXT, quote=True)
+            logger.info(f"Session generator disabled - logout denied for user {user_id}")
+            return
         
         # Check bandwidth limit (admins bypass this check)
         if user_id not in Var.ADMINS:
             if await is_bandwidth_limit_exceeded():
                 await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
                 return
-        
-        # Check if user has permission to use session generator
-        if not Var.ALLOW_USER_LOGIN and (not Var.ADMINS or user_id not in Var.ADMINS):
-            await message.reply_text(
-                "🔒 **Session Generator Access Restricted**\n\n"
-                "The session generator feature is currently restricted to administrators only.",
-                quote=True
-            )
-            logger.info(f"Session generator logout access denied for non-admin user {user_id}")
-            return
         
         try:
             from StreamBot.database.user_sessions import check_user_has_session, revoke_user_session
@@ -744,6 +739,11 @@ To generate download links again, use `/login` to create a new session."""
         from StreamBot.link_handler import user_session_streamer
         from pyrogram.errors import AuthKeyUnregistered, UserDeactivated, UserDeactivatedBan
         user_id = message.from_user.id
+
+        if not Var.ALLOW_USER_LOGIN:
+            await message.reply_text(SESSION_GENERATOR_DISABLED_TEXT, quote=True)
+            logger.info(f"Session generator disabled - session info denied for user {user_id}")
+            return
         
         # Check bandwidth limit (admins bypass this check)
         if user_id not in Var.ADMINS:
