@@ -628,7 +628,11 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
             ) for origin in Var.CORS_ALLOWED_ORIGINS
         })
         for route in list(app.router.routes()):
-            cors.add(route)
+            try:
+                cors.add(route)
+            except ValueError as exc:
+                route_name = getattr(route, "name", None) or getattr(route.resource, "canonical", None) or str(route.resource)
+                logger.warning(f"Skipping CORS binding for route '{route_name}': {exc}")
     else:
         logger.warning("CORS_ALLOWED_ORIGINS is not set. The Telegram login widget may not work on external domains.")
 
