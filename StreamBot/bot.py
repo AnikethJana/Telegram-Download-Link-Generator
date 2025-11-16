@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 rate_limited_logger = SmartRateLimitedLogger(logger)
 
 
-async def process_link(original_link: str, file_size: int) -> str:
+async def process_link(original_link: str, file_size: int, user_id: int | None = None) -> str:
     """
     Process any externally shared link and shorten it if the file size exceeds the threshold.
 
@@ -46,11 +46,17 @@ async def process_link(original_link: str, file_size: int) -> str:
     Args:
         original_link (str): The original link to be shared
         file_size (int): Size of the related file in bytes
+        user_id (int | None): Optional Telegram user ID for admin bypass logic
 
     Returns:
         str: The processed link (shortened if needed, otherwise original)
     """
     try:
+        # Admins/owners should never be forced through shorteners
+        if user_id is not None and user_id in Var.ADMINS:
+            rate_limited_logger.log('debug', f"Bypassing URL shortener for admin user {user_id}")
+            return original_link
+
         # Determine if URL shortening should be applied based on file size
         if await url_shortener.should_use_short_url(file_size):
             rate_limited_logger.log('info', f"File size {file_size} bytes exceeds threshold, shortening URL")
@@ -869,7 +875,7 @@ To generate download links again, use `/login` to create a new session."""
             download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
 
             # Process download link (shorten if file size exceeds threshold)
-            processed_download_link = await process_link(download_link, file_size)
+            processed_download_link = await process_link(download_link, file_size, user_id=user_id)
 
             is_video = is_video_file(file_mime_type)
             reply_markup = None
@@ -881,7 +887,7 @@ To generate download links again, use `/login` to create a new session."""
                 import urllib.parse
                 encoded_stream_uri = urllib.parse.quote(processed_stream_link)
                 video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
-                video_play_url = await process_link(video_play_url, file_size)
+                video_play_url = await process_link(video_play_url, file_size, user_id=user_id)
                 reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("🎬 Play Video", url=video_play_url)]])
 
             await processing_msg.edit_text(
@@ -944,11 +950,14 @@ To generate download links again, use `/login` to create a new session."""
                 # If MAX_LINKS_PER_DAY is 0 or negative, still record for stats but don't limit
                 await bot_rate_limiter.check_and_record_link_generation(user_id)
 
-        # Bandwidth limit check
+        # Bandwidth limit check (non-admins only)
         if await is_bandwidth_limit_exceeded():
-            logger.warning(f"File upload from user {user_id} rejected: bandwidth limit exceeded")
-            await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
-            return
+            if user_id in Var.ADMINS:
+                logger.info(f"Bandwidth limit reached but allowing admin user {user_id} to continue")
+            else:
+                logger.warning(f"File upload from user {user_id} rejected: bandwidth limit exceeded")
+                await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
+                return
 
         # Force subscription check
         if not await check_force_sub(client, message):
@@ -982,7 +991,7 @@ To generate download links again, use `/login` to create a new session."""
             download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
 
             # Process download link (shorten if file size exceeds threshold)
-            processed_download_link = await process_link(download_link, file_size)
+            processed_download_link = await process_link(download_link, file_size, user_id=user_id)
 
             # Check if it's a video file and create appropriate response
             is_video = is_video_file(file_mime_type)
@@ -995,7 +1004,7 @@ To generate download links again, use `/login` to create a new session."""
                 import urllib.parse
                 encoded_stream_uri = urllib.parse.quote(stream_link)
                 video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
-                video_play_url = await process_link(video_play_url, file_size)
+                video_play_url = await process_link(video_play_url, file_size, user_id=user_id)
 
                 reply_markup = InlineKeyboardMarkup([
                     [InlineKeyboardButton("🎬 Play Video", url=video_play_url)]
