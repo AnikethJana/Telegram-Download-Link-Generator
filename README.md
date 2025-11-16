@@ -55,11 +55,6 @@ The Session Generator is a secure web-based system that allows users to generate
     ```bash
     pip install -r requirements.txt
     ```
-    
-    **Note**: The requirements now include additional dependencies for the Session Generator:
-    - `aiohttp-jinja2` - For web template rendering
-    - `Jinja2` - Template engine for the web interface
-    - `cryptography` - For secure session encryption
 
 ## Configuration
 
