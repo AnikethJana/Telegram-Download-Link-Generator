@@ -425,13 +425,15 @@ async def download_route(request: web.Request):
                             except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError) as client_e:
                                 stream_rate_limited_logger.log(
                                     'warning',
-                                    f"Client connection issue during write for {message_id}: {type(client_e).__name__}. Streamed {humanbytes(bytes_streamed)}."
+                                    f"Client connection issue during write for {message_id}: {type(client_e).__name__}. Streamed {humanbytes(bytes_streamed)}.",
+                                    key="download.client_connection_issue"
                                 )
                                 return
                             except Exception as write_e:
                                 stream_rate_limited_logger.log(
                                     'error',
                                     f"Error writing chunk for {message_id}: {write_e}",
+                                    key="download.chunk_write_error",
                                     exc_info=True
                                 )
                                 return
@@ -503,7 +505,8 @@ async def download_route(request: web.Request):
     else:
         stream_rate_limited_logger.log(
             'warning',
-            f"Stream for {message_id} ended. Expected to serve {humanbytes(expected_bytes_to_serve)}, actually sent {humanbytes(bytes_streamed)} in {stream_duration:.2f}s."
+            f"Stream for {message_id} ended. Expected to serve {humanbytes(expected_bytes_to_serve)}, actually sent {humanbytes(bytes_streamed)} in {stream_duration:.2f}s.",
+            key="download.stream_ended_unexpected_bytes"
         )
 
     total_request_duration = asyncio.get_event_loop().time() - start_time_request

@@ -180,7 +180,8 @@ async def stream_video_route(request: web.Request):
                         except Exception as e:
                             streaming_rate_limited_logger.log(
                                 'error',
-                                f"Error streaming chunk for {message_id}: {e}"
+                                f"Error streaming chunk for {message_id}: {e}",
+                                key="streaming.chunk_write_error"
                             )
                             return response  # Exit on write errors.
                         
@@ -210,7 +211,8 @@ async def stream_video_route(request: web.Request):
                     except Exception as alt_e:
                         streaming_rate_limited_logger.log(
                             'error',
-                            f"Error switching client for {message_id}: {alt_e}"
+                            f"Error switching client for {message_id}: {alt_e}",
+                            key="streaming.client_switch_error"
                         )
                         await asyncio.sleep(min(e.value, 60))  # Cap wait time
                         continue  # Retry after waiting
@@ -219,10 +221,15 @@ async def stream_video_route(request: web.Request):
                     current_retry += 1
                     streaming_rate_limited_logger.log(
                         'error',
-                        f"Error during video streaming {message_id} (attempt {current_retry}): {e}"
+                        f"Error during video streaming {message_id} (attempt {current_retry}): {e}",
+                        key="streaming.retry_error"
                     )
                     if current_retry > max_retries:
-                        streaming_rate_limited_logger.log('error', f"Max retries reached for {message_id}, aborting")
+                        streaming_rate_limited_logger.log(
+                            'error',
+                            f"Max retries reached for {message_id}, aborting",
+                            key="streaming.max_retries_reached"
+                        )
                         break
                     await asyncio.sleep(2 * current_retry)  # Exponential backoff
 
