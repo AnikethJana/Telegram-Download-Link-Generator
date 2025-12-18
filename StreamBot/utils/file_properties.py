@@ -6,14 +6,18 @@ from pyrogram.raw.types.messages import Messages
 
 
 async def parse_file_id(message: "Message") -> Optional[FileId]:
-    media = get_media_from_message(message)
-    if media:
-        return FileId.decode(media.file_id)
+    """Extract and decode the file ID from a message's media attachment."""
+    media_obj = get_media_from_message(message)
+    if media_obj is not None:
+        return FileId.decode(media_obj.file_id)
+    return None
 
 async def parse_file_unique_id(message: "Messages") -> Optional[str]:
-    media = get_media_from_message(message)
-    if media:
-        return media.file_unique_id
+    """Extract the unique file identifier from a message's media attachment."""
+    media_obj = get_media_from_message(message)
+    if media_obj is not None:
+        return media_obj.file_unique_id
+    return None
 
 async def get_file_ids(client: Client, chat_id: int, message_id: int) -> Optional[FileId]:
     message = await client.get_messages(chat_id, message_id)
@@ -29,17 +33,27 @@ async def get_file_ids(client: Client, chat_id: int, message_id: int) -> Optiona
     return file_id
 
 def get_media_from_message(message: "Message") -> Any:
-    media_types = (
-        "audio",
+    """
+    Searches a message for any media attachments and returns the first one found.
+    Checks common media types including documents, photos, videos, and audio.
+    """
+    # List of possible media attachment attributes
+    possible_media_attrs = [
         "document",
-        "photo",
-        "sticker",
-        "animation",
+        "photo", 
         "video",
+        "audio",
+        "animation",
         "voice",
         "video_note",
-    )
-    for attr in media_types:
-        media = getattr(message, attr, None)
-        if media:
-            return media 
+        "sticker",
+    ]
+    
+    # Check each attribute and return first valid media found
+    for attr_name in possible_media_attrs:
+        media_content = getattr(message, attr_name, None)
+        if media_content is not None:
+            return media_content
+    
+    # No media found in message
+    return None 

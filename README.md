@@ -1,7 +1,7 @@
 # Telegram File Download & Streaming Link Generator Bot
 
 [![Python Version](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE) 
 
 A Telegram bot built with Python (using Pyrogram and aiohttp) that generates temporary, direct download links and streaming links for files sent to it. It utilizes a log channel to store files and a web server to handle both download and streaming requests with advanced video playback support.
 
@@ -55,11 +55,6 @@ The Session Generator is a secure web-based system that allows users to generate
     ```bash
     pip install -r requirements.txt
     ```
-    
-    **Note**: The requirements now include additional dependencies for the Session Generator:
-    - `aiohttp-jinja2` - For web template rendering
-    - `Jinja2` - Template engine for the web interface
-    - `cryptography` - For secure session encryption
 
 ## Configuration
 
@@ -317,3 +312,7 @@ This project was inspired from :
 
 * [CodeXBotz/File-Sharing-Bot](https://github.com/CodeXBotz/File-Sharing-Bot)
 * [EverythingSuckz/FileStreamBot](https://github.com/EverythingSuckz/TG-FileStreamBot/tree/python)
+
+## License 
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
