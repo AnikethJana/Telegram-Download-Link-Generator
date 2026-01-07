@@ -32,8 +32,10 @@ from ..security.rate_limiter import invalid_request_guard
 
 import hashlib
 from typing import Optional, Dict, Any
+from StreamBot.utils.smart_logger import SmartRateLimitedLogger
 
 logger = logging.getLogger(__name__)
+stream_rate_limited_logger = SmartRateLimitedLogger(logger)
 
 routes = web.RouteTableDef()
 
@@ -129,16 +131,29 @@ async def validate_session_token(token: str) -> int | None:
     return token_data['user_id']
 
 def check_session_generator_access(user_id: int) -> bool:
-    """Check if user has permission to access session generator features."""
-    # If ALLOW_USER_LOGIN is True, everyone can access
-    if Var.ALLOW_USER_LOGIN:
-        return True
-    
-    # If ALLOW_USER_LOGIN is False, only admins can access
-    if Var.ADMINS and user_id in Var.ADMINS:
-        return True
-    
-    return False
+    """Return True only when session generator logins are enabled."""
+    return bool(Var.ALLOW_USER_LOGIN)
+
+
+async def get_force_sub_redirect_url(bot_client: Optional[Client]) -> Optional[str]:
+    """Resolve a shareable URL for the force-subscribe channel if configured."""
+    if not bot_client or not Var.FORCE_SUB_CHANNEL:
+        return None
+
+    try:
+        chat = await bot_client.get_chat(Var.FORCE_SUB_CHANNEL)
+        if getattr(chat, "username", None):
+            return f"https://telegram.dog/{chat.username}"
+        if getattr(chat, "invite_link", None):
+            return chat.invite_link
+
+        invite_link = await bot_client.create_chat_invite_link(Var.FORCE_SUB_CHANNEL)
+        return getattr(invite_link, "invite_link", None)
+    except FloodWait as e:
+        logger.warning(f"FloodWait while resolving force-subscribe link: {e.value}s")
+    except Exception as e:
+        logger.warning(f"Unable to resolve force-subscribe link: {e}")
+    return None
 
 # Request timeout for streaming operations (2 hours max)
 STREAM_TIMEOUT = 7200  # 2 hours
@@ -408,10 +423,19 @@ async def download_route(request: web.Request):
                                 nonlocal bytes_streamed
                                 bytes_streamed += len(chunk)
                             except (ConnectionResetError, BrokenPipeError, asyncio.CancelledError) as client_e:
-                                logger.warning(f"Client connection issue during write for {message_id}: {type(client_e).__name__}. Streamed {humanbytes(bytes_streamed)}.")
+                                stream_rate_limited_logger.log(
+                                    'warning',
+                                    f"Client connection issue during write for {message_id}: {type(client_e).__name__}. Streamed {humanbytes(bytes_streamed)}.",
+                                    key="download.client_connection_issue"
+                                )
                                 return
                             except Exception as write_e:
-                                logger.error(f"Error writing chunk for {message_id}: {write_e}", exc_info=True)
+                                stream_rate_limited_logger.log(
+                                    'error',
+                                    f"Error writing chunk for {message_id}: {write_e}",
+                                    key="download.chunk_write_error",
+                                    exc_info=True
+                                )
                                 return
                     
                     # Apply timeout to the entire streaming operation
@@ -479,7 +503,11 @@ async def download_route(request: web.Request):
     if bytes_streamed == expected_bytes_to_serve:
         logger.info(f"Finished streaming {humanbytes(bytes_streamed)} for {message_id} in {stream_duration:.2f}s. Expected: {humanbytes(expected_bytes_to_serve)}.")
     else:
-        logger.warning(f"Stream for {message_id} ended. Expected to serve {humanbytes(expected_bytes_to_serve)}, actually sent {humanbytes(bytes_streamed)} in {stream_duration:.2f}s.")
+        stream_rate_limited_logger.log(
+            'warning',
+            f"Stream for {message_id} ended. Expected to serve {humanbytes(expected_bytes_to_serve)}, actually sent {humanbytes(bytes_streamed)} in {stream_duration:.2f}s.",
+            key="download.stream_ended_unexpected_bytes"
+        )
 
     total_request_duration = asyncio.get_event_loop().time() - start_time_request
     logger.info(f"Download request for {message_id} completed. Total duration: {total_request_duration:.2f}s")
@@ -578,6 +606,16 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
     app['bot_start_time'] = start_time
     app['start_time'] = start_time
     
+    # Cache bot metadata for redirects
+    bot_username = None
+    try:
+        bot_me = getattr(bot_instance, "me", None) or await bot_instance.get_me()
+        bot_username = getattr(bot_me, "username", None)
+    except Exception as e:
+        logger.warning(f"Unable to fetch bot username for redirects: {e}")
+    app["bot_username"] = bot_username
+    app["force_sub_url"] = await get_force_sub_redirect_url(bot_instance)
+
     # Add routes
     app.add_routes(routes)
     
@@ -593,7 +631,11 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
             ) for origin in Var.CORS_ALLOWED_ORIGINS
         })
         for route in list(app.router.routes()):
-            cors.add(route)
+            try:
+                cors.add(route)
+            except ValueError as exc:
+                route_name = getattr(route, "name", None) or getattr(route.resource, "canonical", None) or str(route.resource)
+                logger.warning(f"Skipping CORS binding for route '{route_name}': {exc}")
     else:
         logger.warning("CORS_ALLOWED_ORIGINS is not set. The Telegram login widget may not work on external domains.")
 
@@ -627,6 +669,35 @@ async def stream_route(request: web.Request):
 async def session_generator_route(request: web.Request):
     """Session generator main page route."""
     from aiohttp_jinja2 import render_template
+    
+    # Check bandwidth limit first (before any processing)
+    if await is_bandwidth_limit_exceeded():
+        # Check if user is admin
+        try:
+            session_token = get_session_token(request)
+            if session_token:
+                user_id = await validate_session_token(session_token)
+                # Allow admins to bypass bandwidth limit
+                if user_id and user_id not in Var.ADMINS:
+                    return web.Response(
+                        text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                        content_type='text/html',
+                        status=503
+                    )
+            else:
+                # No token, definitely not admin
+                return web.Response(
+                    text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                    content_type='text/html',
+                    status=503
+                )
+        except Exception:
+            # Error checking auth, show bandwidth limit
+            return web.Response(
+                text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                content_type='text/html',
+                status=503
+            )
     
     bot_client: Client = request.app['bot_client']
     
@@ -673,6 +744,18 @@ async def session_generator_route_slash(request: web.Request):
 async def session_login_route(request: web.Request):
     """Route to display the interactive login form."""
     from aiohttp_jinja2 import render_template
+    
+    # Check bandwidth limit
+    if await is_bandwidth_limit_exceeded():
+        token = request.query.get('token')
+        user_id = await validate_session_token(token) if token else None
+        # Allow admins to bypass
+        if not user_id or user_id not in Var.ADMINS:
+            return web.Response(
+                text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                content_type='text/html',
+                status=503
+            )
     
     # If already authenticated via cookie and has session, go to success page
     try:
@@ -904,12 +987,20 @@ async def session_auth_route(request: web.Request):
         
         user_id = int(data['id'])
         
+        # Check bandwidth limit (allow admins to bypass)
+        if await is_bandwidth_limit_exceeded():
+            if user_id not in Var.ADMINS:
+                return web.json_response({
+                    'success': False,
+                    'error': 'Bandwidth limit reached. Please come back next month.'
+                }, status=503)
+        
         # Check if user has permission to use session generator
         if not check_session_generator_access(user_id):
-            logger.info(f"Session generator web access denied for non-admin user {user_id}")
+            logger.info(f"Session generator disabled - web access denied for user {user_id}")
             return web.json_response({
                 'success': False,
-                'error': 'Access to the session generator is restricted to administrators.'
+                'error': 'The session generator is currently disabled. Please try again later.'
             }, status=403)
         
         from StreamBot.database.user_sessions import check_user_has_session
@@ -949,6 +1040,15 @@ async def session_success_route(request: web.Request):
         # Prefer cookie/header session token
         session_token = get_session_token(request)
         user_id = await validate_session_token(session_token) if session_token else None
+        
+        # Check bandwidth limit (allow admins to bypass)
+        if await is_bandwidth_limit_exceeded():
+            if not user_id or user_id not in Var.ADMINS:
+                return web.Response(
+                    text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                    content_type='text/html',
+                    status=503
+                )
         
         if not user_id:
             logger.warning("No valid session token or user_id provided for success page")
@@ -1001,15 +1101,24 @@ async def session_dashboard_route(request: web.Request):
         elif user_id_param:
             user_id = int(user_id_param)
 
+        # Check bandwidth limit (allow admins to bypass)
+        if await is_bandwidth_limit_exceeded():
+            if not user_id or user_id not in Var.ADMINS:
+                return web.Response(
+                    text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
+                    content_type='text/html',
+                    status=503
+                )
+
         if not user_id:
             logger.warning("No valid session token or user_id provided")
             return web.HTTPFound('/session')
 
         # Check if user has permission to use session generator
         if not check_session_generator_access(user_id):
-            logger.info(f"Session generator dashboard access denied for non-admin user {user_id}")
+            logger.info(f"Session generator disabled - dashboard access denied for user {user_id}")
             return web.Response(
-                text="Access Denied: Session generator is restricted to administrators only.",
+                text="Access Denied: The session generator is currently disabled.",
                 status=403,
                 content_type='text/plain'
             )
@@ -1070,3 +1179,19 @@ async def session_dashboard_route(request: web.Request):
 
 
 # Note: /session/logout route removed per UI change
+
+
+@routes.route('*', '/{tail:.*}')
+async def fallback_redirect_route(request: web.Request):
+    """Redirect undefined routes to force-subscribe channel or bot link."""
+    redirect_url = request.app.get('force_sub_url')
+
+    if not redirect_url:
+        bot_username = request.app.get('bot_username')
+        if bot_username:
+            redirect_url = f"https://telegram.dog/{bot_username}"
+
+    if not redirect_url:
+        redirect_url = Var.GITHUB_REPO_URL or "https://telegram.dog"
+
+    raise web.HTTPFound(redirect_url)
