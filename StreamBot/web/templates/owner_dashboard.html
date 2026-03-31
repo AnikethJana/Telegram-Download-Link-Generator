@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Analytics Dashboard</title>
+  <meta name="description" content="Owner analytics dashboard — users, links, bandwidth, and geo insights."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#050810;--surface:rgba(255,255,255,0.035);--surface2:rgba(255,255,255,0.055);
+      --border:rgba(255,255,255,0.07);--border-h:rgba(255,255,255,0.14);
+      --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+      --blue:#60a5fa;--cyan:#22d3ee;--violet:#a78bfa;--emerald:#34d399;--amber:#fbbf24;--rose:#f87171;
+      --radius:16px;--radius-sm:12px;--radius-xs:8px;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;color:var(--text);background:var(--bg);min-height:100vh;}
+    .bg-ambient{position:fixed;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(ellipse 70% 50% at 15% 5%,rgba(96,165,250,0.12),transparent),
+        radial-gradient(ellipse 50% 40% at 85% 80%,rgba(167,139,250,0.08),transparent),
+        radial-gradient(ellipse 40% 30% at 50% 40%,rgba(34,211,238,0.05),transparent);}
+    .wrap{max-width:1440px;margin:0 auto;padding:20px;position:relative;z-index:1}
+    .topbar{position:sticky;top:0;z-index:20;background:rgba(5,8,16,0.85);backdrop-filter:blur(20px) saturate(1.5);-webkit-backdrop-filter:blur(20px) saturate(1.5);border-bottom:1px solid var(--border);padding:0;}
+    .topbar-inner{max-width:1440px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--blue),var(--violet));display:flex;align-items:center;justify-content:center;}
+    .logo-icon svg{width:18px;height:18px;color:#fff}
+    .logo-text{font-size:16px;font-weight:700;letter-spacing:-0.02em}
+    .logo-badge{font-size:10px;font-weight:600;padding:3px 8px;border-radius:99px;background:rgba(96,165,250,0.15);color:var(--blue);letter-spacing:0.04em;}
+    .tabs{display:flex;gap:4px;flex-wrap:wrap}
+    .tab{padding:8px 16px;border-radius:var(--radius-xs);font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border:none;background:transparent;transition:all .15s ease;text-decoration:none;}
+    .tab:hover,.tab.active{color:var(--text);background:var(--surface2)}
+    .tab.active{background:rgba(96,165,250,0.12);color:var(--blue)}
+    .filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:16px 0;}
+    .filter-input{padding:9px 14px;border-radius:var(--radius-xs);background:var(--surface);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color .15s;}
+    .filter-input:focus{border-color:var(--blue)}
+    .filter-input::placeholder{color:var(--text3)}
+    .btn{padding:9px 18px;border-radius:var(--radius-xs);font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;transition:all .15s;font-family:inherit;display:inline-flex;align-items:center;gap:6px;}
+    .btn:hover{border-color:var(--border-h);background:var(--surface2)}
+    .btn-primary{background:linear-gradient(135deg,var(--blue),var(--violet));border-color:transparent;color:#fff;}
+    .btn-primary:hover{opacity:0.9;border-color:transparent}
+    .btn svg{width:14px;height:14px}
+    .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:20px;}
+    .stat-card{padding:22px 20px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);position:relative;overflow:hidden;transition:border-color .2s,transform .15s;}
+    .stat-card:hover{border-color:var(--border-h);transform:translateY(-2px)}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent);}
+    .stat-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+    .stat-icon svg{width:20px;height:20px}
+    .stat-icon.users{background:rgba(96,165,250,0.12);color:var(--blue)}
+    .stat-icon.links{background:rgba(167,139,250,0.12);color:var(--violet)}
+    .stat-icon.clicks{background:rgba(34,211,238,0.12);color:var(--cyan)}
+    .stat-icon.bandwidth{background:rgba(52,211,153,0.12);color:var(--emerald)}
+    .stat-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:8px}
+    .stat-value{font-size:30px;font-weight:800;letter-spacing:-0.03em;line-height:1}
+    .chart-card{padding:20px;border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);margin-bottom:20px;}
+    .chart-card canvas{max-height:280px}
+    .section{margin-bottom:20px;animation:fadeIn .4s ease forwards;opacity:0}
+    @keyframes fadeIn{to{opacity:1}}
+    .section:nth-child(2){animation-delay:.1s}
+    .section:nth-child(3){animation-delay:.2s}
+    .section:nth-child(4){animation-delay:.3s}
+    .section-card{border-radius:var(--radius);background:var(--surface);border:1px solid var(--border);overflow:hidden;}
+    .section-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;}
+    .section-title{font-size:16px;font-weight:700;display:flex;align-items:center;gap:8px}
+    .section-title svg{width:18px;height:18px;color:var(--blue);opacity:.7}
+    .pager{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+    .pager-info{font-size:12px;color:var(--text3);min-width:100px}
+    .pager .btn{padding:6px 12px;font-size:12px}
+    .pager-size{width:70px;padding:6px 8px;border-radius:var(--radius-xs);background:var(--surface2);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:12px;outline:none;}
+    .table-wrap{overflow-x:auto;max-height:480px;overflow-y:auto}
+    table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
+    thead{position:sticky;top:0;z-index:2}
+    th{padding:12px 14px;text-align:left;font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text3);background:rgba(5,8,16,0.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);}
+    td{padding:11px 14px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:top;color:var(--text2);}
+    tr{transition:background .1s}
+    tbody tr:hover td{background:rgba(255,255,255,0.025);color:var(--text)}
+    .mono{font-family:'JetBrains Mono',Consolas,monospace;font-size:11px}
+    .empty-row td{text-align:center;padding:32px;color:var(--text3)}
+    .loading-overlay{position:fixed;top:0;left:0;right:0;height:3px;z-index:100;background:transparent;pointer-events:none;}
+    .loading-overlay.active::after{content:'';display:block;height:100%;background:linear-gradient(90deg,transparent,var(--blue),var(--violet),transparent);animation:loadingSlide 1.2s ease-in-out infinite;}
+    @keyframes loadingSlide{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+    .toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:var(--radius-xs);background:rgba(239,68,68,0.9);color:#fff;font-size:13px;font-weight:600;backdrop-filter:blur(10px);display:none;animation:toastIn .3s ease;}
+    @keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    /* badge chips */
+    .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;letter-spacing:0.04em;}
+    .badge-premium{background:rgba(251,191,36,0.15);color:var(--amber);}
+    .badge-verified{background:rgba(96,165,250,0.15);color:var(--blue);}
+    .badge-scam{background:rgba(248,113,113,0.15);color:var(--rose);}
+    .badge-admin{background:rgba(167,139,250,0.15);color:var(--violet);}
+    .badge-sub{background:rgba(52,211,153,0.15);color:var(--emerald);}
+    .badge-nosub{background:rgba(100,116,139,0.15);color:var(--text3);}
+    /* clickable rows */
+    .clickable-row{cursor:pointer;}
+    /* Modals */
+    .modal-overlay{position:fixed;inset:0;background:rgba(5,8,16,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:500;display:none;align-items:center;justify-content:center;opacity:0;transition:opacity 0.25s ease;padding:20px;}
+    .modal-overlay.active{opacity:1;display:flex;}
+    .modal-content{background:linear-gradient(160deg,rgba(15,23,42,0.98),rgba(5,8,16,0.99));border:1px solid var(--border);border-radius:var(--radius);width:100%;max-width:1100px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 32px 64px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.06);transform:translateY(24px);transition:transform 0.3s cubic-bezier(0.16,1,0.3,1);}
+    .modal-overlay.active .modal-content{transform:translateY(0);}
+    .modal-header{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+    .modal-title{font-size:18px;font-weight:700;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .modal-subtitle{font-size:12px;color:var(--text3);margin-top:4px;}
+    .modal-close{background:transparent;border:none;color:var(--text3);cursor:pointer;padding:8px;border-radius:var(--radius-xs);transition:all 0.2s;flex-shrink:0;}
+    .modal-close:hover{background:var(--surface2);color:var(--text);}
+    .modal-body{padding:20px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:20px;}
+    /* User profile card inside modal */
+    .user-profile-banner{display:flex;gap:20px;align-items:center;padding:20px;border-radius:var(--radius-sm);background:var(--surface);border:1px solid var(--border);flex-wrap:wrap;}
+    .user-avatar{width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--violet));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:-1px;}
+    .user-info-col{flex:1;min-width:200px;}
+    .user-display-name{font-size:20px;font-weight:700;letter-spacing:-0.02em;margin-bottom:6px;}
+    .user-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+    .user-meta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-top:12px;}
+    .user-meta-item{background:var(--surface2);border-radius:var(--radius-xs);padding:10px 12px;}
+    .user-meta-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--text3);margin-bottom:4px;}
+    .user-meta-value{font-size:13px;font-weight:600;color:var(--text);}
+    /* Sub section header inside modal */
+    .modal-section-title{font-size:13px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:0.08em;display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+    .modal-section-title svg{width:14px;height:14px;color:var(--blue);}
+    /* Responsive */
+    @media(max-width:768px){
+      .topbar-inner{flex-direction:column;align-items:flex-start}
+      .stats-grid{grid-template-columns:1fr 1fr}
+      .filters{flex-direction:column}
+      .filter-input,.btn{width:100%}
+      .section-header{flex-direction:column;align-items:flex-start}
+      .modal-content{max-height:98vh;}
+    }
+    @media(max-width:480px){
+      .stats-grid{grid-template-columns:1fr}
+      .stat-value{font-size:24px}
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-ambient"></div>
+  <div id="loadingBar" class="loading-overlay"></div>
+  <div id="toast" class="toast"></div>
+
+  <!-- ===== LEVEL 1: User Detail Modal ===== -->
+  <div id="userModal" class="modal-overlay" onclick="if(event.target===this) closeUserModal()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="userModalTitle">User Details</div>
+          <div class="modal-subtitle" id="userModalSubtitle"></div>
+        </div>
+        <button class="modal-close" onclick="closeUserModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="userModalBody">
+        <div style="color:var(--text3);text-align:center;padding:40px;">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== LEVEL 2: Link Detail Modal ===== -->
+  <div id="linkModal" class="modal-overlay" onclick="if(event.target===this) closeLinkModal()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="linkModalTitle">Link Access Detail</div>
+          <div class="modal-subtitle" id="linkModalSubtitle"></div>
+        </div>
+        <button class="modal-close" onclick="closeLinkModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body" id="linkModalBody">
+        <div style="color:var(--text3);text-align:center;padding:40px;">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="logo">
+        <div class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+        </div>
+        <span class="logo-text">Analytics</span>
+        <span class="logo-badge">OWNER</span>
+      </div>
+      <div class="tabs">
+        <a href="#summarySection" class="tab active" data-tab="summary">Overview</a>
+        <a href="#usersSection" class="tab" data-tab="users">Users</a>
+        <a href="#linksSection" class="tab" data-tab="links">Links</a>
+        <a href="#eventsSection" class="tab" data-tab="events">IP &amp; Geo</a>
+        <button class="btn" onclick="loadData()" id="refreshBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="filters">
+      <input id="search" class="filter-input" placeholder="Search files, links, usernames…" style="flex:1;min-width:200px"/>
+      <input id="userId" class="filter-input" placeholder="User ID" style="width:140px"/>
+      <input id="fromDt" class="filter-input" type="datetime-local" title="From date"/>
+      <input id="toDt" class="filter-input" type="datetime-local" title="To date"/>
+      <button class="btn btn-primary" onclick="usersPage=1;linksPage=1;eventsPage=1;loadData()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Apply
+      </button>
+    </div>
+
+    <div id="summarySection" class="section" style="animation-delay:0s">
+      <div class="stats-grid" id="summary"></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-bottom:20px">
+        <div class="chart-card" style="margin-bottom:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Clicks &amp; Bandwidth Over Time
+          </div>
+          <canvas id="clicksChart" height="140"></canvas>
+        </div>
+        <div class="chart-card" style="margin-bottom:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Top Users by Bandwidth
+          </div>
+          <canvas id="topUsersChart" height="140"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div id="usersSection" class="section" style="animation-delay:.1s">
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Users <span style="font-size:11px;font-weight:500;color:var(--text3);margin-left:4px">— click a row for full detail</span>
+          </div>
+          <div class="pager">
+            <button class="btn" onclick="usersPrev()">← Prev</button>
+            <span id="usersPageInfo" class="pager-info"></span>
+            <button class="btn" onclick="usersNext()">Next →</button>
+            <input id="usersPageSize" class="pager-size" type="number" min="10" max="200" value="50" onchange="usersPage=1;loadData()" title="Page size"/>
+          </div>
+        </div>
+        <div class="table-wrap"><table id="usersTable"></table></div>
+      </div>
+    </div>
+
+    <div id="linksSection" class="section" style="animation-delay:.2s">
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Generated Links <span style="font-size:11px;font-weight:500;color:var(--text3);margin-left:4px">— click a row to see IP breakdown</span>
+          </div>
+          <div class="pager">
+            <button class="btn" onclick="linksPrev()">← Prev</button>
+            <span id="linksPageInfo" class="pager-info"></span>
+            <button class="btn" onclick="linksNext()">Next →</button>
+            <input id="linksPageSize" class="pager-size" type="number" min="10" max="200" value="50" onchange="linksPage=1;loadData()" title="Page size"/>
+          </div>
+        </div>
+        <div class="table-wrap"><table id="linksTable"></table></div>
+      </div>
+    </div>
+
+    <div id="eventsSection" class="section" style="animation-delay:.3s">
+      <div class="section-card">
+        <div class="section-header">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Click Logs &amp; Geolocation
+          </div>
+          <div class="pager">
+            <button class="btn" onclick="eventsPrev()">← Prev</button>
+            <span id="eventsPageInfo" class="pager-info"></span>
+            <button class="btn" onclick="eventsNext()">Next →</button>
+            <input id="eventsPageSize" class="pager-size" type="number" min="10" max="200" value="50" onchange="eventsPage=1;loadData()" title="Page size"/>
+          </div>
+        </div>
+        <div class="table-wrap"><table id="eventsTable"></table></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Tab scroll highlight
+const tabEls = document.querySelectorAll('.tab[data-tab]');
+const sectionMap = {summary:'summarySection',users:'usersSection',links:'linksSection',events:'eventsSection'};
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      tabEls.forEach(t => t.classList.toggle('active', sectionMap[t.dataset.tab] === id));
+    }
+  });
+}, {threshold: 0.3});
+Object.values(sectionMap).forEach(id => { const el=document.getElementById(id); if(el) observer.observe(el); });
+
+// State
+let chart, modalChart, linkChart;
+let usersPage=1, linksPage=1, eventsPage=1;
+
+// Helpers
+function hb(n){if(!n)return"0 B";const u=["B","KB","MB","GB","TB"];let i=0;n=Number(n);while(n>=1024&&i<u.length-1){n/=1024;i++;}return n.toFixed(2)+" "+u[i];}
+function esc(s){return(s??"").toString().replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function ago(iso){if(!iso)return"—";const d=new Date(iso);if(isNaN(d))return esc(iso);const s=Math.floor((Date.now()-d)/1000);if(s<60)return s+"s ago";if(s<3600)return Math.floor(s/60)+"m ago";if(s<86400)return Math.floor(s/3600)+"h ago";return Math.floor(s/86400)+"d ago";}
+function fmtDate(iso){if(!iso)return"—";const d=new Date(iso);return isNaN(d)?"—":d.toLocaleString();}
+function showLoading(on){document.getElementById('loadingBar').classList.toggle('active',on);}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',4000);}
+function emptyRow(cols,msg){return`<tr class="empty-row"><td colspan="${cols}">${esc(msg)}</td></tr>`;}
+
+function buildStat(icon,cls,label,value){
+  return`<div class="stat-card"><div class="stat-icon ${cls}">${icon}</div><div class="stat-label">${label}</div><div class="stat-value">${value}</div></div>`;
+}
+const ICONS={
+  users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
+  links:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>',
+  clicks:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>',
+  bandwidth:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+};
+
+function makeChart(ctx,labels,d1,d2,label1,label2,c1,c2,type){
+  return new Chart(ctx,{type:type||"bar",data:{labels,datasets:[
+    {label:label1,data:d1,backgroundColor:c1,borderColor:type==="line"?c1:undefined,fill:type==="line",tension:0.4,borderRadius:4,yAxisID:"y",maxBarThickness:32,borderWidth:type==="line"?2:0,pointRadius:type==="line"?3:0},
+    {label:label2,data:d2,backgroundColor:c2,borderColor:type==="line"?c2:undefined,fill:type==="line",tension:0.4,borderRadius:4,yAxisID:"y1",maxBarThickness:32,borderWidth:type==="line"?2:0,pointRadius:type==="line"?3:0}
+  ]},options:{responsive:true,maintainAspectRatio:type!=="bar",interaction:{intersect:false,mode:'index'},
+    plugins:{legend:{labels:{color:"#94a3b8",font:{family:'Inter',size:11}}},tooltip:{backgroundColor:'rgba(15,23,42,0.95)',cornerRadius:8,padding:10,bodyFont:{family:'Inter'},titleFont:{family:'Inter'}}},
+    scales:{x:{grid:{display:false,color:"rgba(255,255,255,0.03)"},ticks:{color:"#64748b",font:{family:'Inter',size:10}}},y:{position:"left",grid:{color:"rgba(255,255,255,0.04)"},ticks:{color:"#64748b",font:{family:'Inter',size:10}}},y1:{position:"right",grid:{drawOnChartArea:false},ticks:{color:"#64748b",font:{family:'Inter',size:10}}}}}});
+}
+
+// Main data load
+async function loadData(){
+  showLoading(true);
+  const q=new URLSearchParams();
+  const sv=document.getElementById('search').value;
+  const uv=document.getElementById('userId').value;
+  const fv=document.getElementById('fromDt').value;
+  const tv=document.getElementById('toDt').value;
+  if(sv)q.set("q",sv);if(uv)q.set("user_id",uv);
+  if(fv)q.set("from",new Date(fv).toISOString());if(tv)q.set("to",new Date(tv).toISOString());
+  q.set("users_page",usersPage);q.set("links_page",linksPage);q.set("events_page",eventsPage);
+  q.set("users_page_size",document.getElementById('usersPageSize').value||"50");
+  q.set("links_page_size",document.getElementById('linksPageSize').value||"50");
+  q.set("events_page_size",document.getElementById('eventsPageSize').value||"50");
+  try{
+    const res=await fetch("/owner/dashboard/data?"+q.toString(),{credentials:"include"});
+    if(!res.ok){showToast("Failed to load data. Session may have expired.");showLoading(false);return;}
+    renderData(await res.json());
+  }catch(e){showToast("Network error.");}
+  showLoading(false);
+}
+
+function renderData(data){
+  const s=data.summary||{};
+  document.getElementById('summary').innerHTML=[
+    buildStat(ICONS.users,'users','Total Users',s.total_users??0),
+    buildStat(ICONS.links,'links','Total Links',s.total_links??0),
+    buildStat(ICONS.clicks,'clicks','Total Clicks',s.total_clicks??0),
+    buildStat(ICONS.bandwidth,'bandwidth','Bandwidth',hb(s.total_bandwidth_bytes??0)),
+  ].join("");
+
+  const labels=(data.graph||[]).map(x=>x._id);
+  const clicks=(data.graph||[]).map(x=>x.clicks||0);
+  const bytes=(data.graph||[]).map(x=>(x.bytes||0)/1048576);
+  if(chart)chart.destroy();
+  chart=makeChart(document.getElementById("clicksChart"),labels,clicks,bytes,"Clicks","Bandwidth (MB)","rgba(96,165,250,0.7)","rgba(167,139,250,0.7)","line");
+
+  // Top users bar chart
+  const topUsers=(data.users||[]).slice(0,10);
+  const uLabels=topUsers.map(u=>u.username?('@'+u.username):(u.first_name||String(u._id||'')));
+  const uBytes=topUsers.map(u=>(u.total_bytes_served||0)/1048576);
+  const uClicks=topUsers.map(u=>u.total_clicks||0);
+  if(window._topUsersChart)window._topUsersChart.destroy();
+  window._topUsersChart=makeChart(document.getElementById('topUsersChart'),uLabels,uBytes,uClicks,'Bandwidth (MB)','Clicks','rgba(52,211,153,0.75)','rgba(96,165,250,0.75)','bar');
+
+  const p=data.pagination||{};
+  const pu=p.users||{page:1,total_pages:1,total:0};
+  const pl=p.links||{page:1,total_pages:1,total:0};
+  const pe=p.events||{page:1,total_pages:1,total:0};
+  usersPage=pu.page||1;linksPage=pl.page||1;eventsPage=pe.page||1;
+  document.getElementById('usersPageInfo').textContent=`${pu.page}/${pu.total_pages} · ${pu.total} total`;
+  document.getElementById('linksPageInfo').textContent=`${pl.page}/${pl.total_pages} · ${pl.total} total`;
+  document.getElementById('eventsPageInfo').textContent=`${pe.page}/${pe.total_pages} · ${pe.total} total`;
+  window._p=p;
+
+  // Users table
+  const users=data.users||[];
+  document.getElementById('usersTable').innerHTML="<thead><tr><th>User ID</th><th>Username</th><th>Name</th><th>Lang</th><th>Premium</th><th>Links</th><th>Clicks</th><th>Bandwidth</th><th>First Seen</th><th>Last Seen</th></tr></thead><tbody>"+
+    (users.length?users.map(u=>{
+      const premium=u.is_premium?'<span class="badge badge-premium">⭐ Premium</span>':'';
+      return`<tr class="clickable-row" onclick="openUserModal(${u._id})"><td class="mono">${esc(u._id)}</td><td>${esc(u.username?('@'+u.username):'—')}</td><td>${esc(((u.first_name||'')+' '+(u.last_name||'')).trim()||'—')}</td><td>${esc(u.language_code||'—')}</td><td>${premium}</td><td><span style="color:var(--violet);font-weight:600">${u.links_generated||0}</span></td><td><span style="color:var(--cyan);font-weight:600">${u.total_clicks||0}</span></td><td><span style="color:var(--emerald);font-weight:600">${hb(u.total_bytes_served||0)}</span></td><td title="${esc(u.first_seen_at||'')}">${ago(u.first_seen_at)}</td><td title="${esc(u.last_seen_at||'')}">${ago(u.last_seen_at)}</td></tr>`;
+    }).join(""):emptyRow(10,"No user data yet."))+"</tbody>";
+
+  // Links table — clickable for IP drill-down
+  const links=data.links||[];
+  document.getElementById('linksTable').innerHTML="<thead><tr><th>File</th><th>User</th><th>Size</th><th>Source</th><th>Clicks</th><th>Bandwidth</th><th>Created</th><th>Last Access</th></tr></thead><tbody>"+
+    (links.length?links.map(l=>`<tr class="clickable-row" onclick="openLinkModal('${esc(l._id)}','${esc(l.file_name||'')}')"><td>${esc(l.file_name||'—')}</td><td class="mono">${esc((l.user_profile&&l.user_profile.username)?('@'+l.user_profile.username):l.user_id)}</td><td>${hb(l.file_size||0)}</td><td>${esc(l.source||'—')}</td><td><span style="color:var(--cyan);font-weight:600">${l.click_count||0}</span></td><td><span style="color:var(--emerald);font-weight:600">${hb(l.total_bytes_served||0)}</span></td><td title="${esc(l.created_at||'')}">${ago(l.created_at)}</td><td title="${esc(l.last_accessed_at||'')}">${ago(l.last_accessed_at)}</td></tr>`).join(""):emptyRow(8,"No links match current filters."))+"</tbody>";
+
+  // Events table
+  const events=data.events||[];
+  document.getElementById('eventsTable').innerHTML="<thead><tr><th>Time</th><th>User</th><th>Link</th><th>IP</th><th>Location</th><th>ISP</th><th>Path</th><th>Bandwidth</th></tr></thead><tbody>"+
+    (events.length?events.map(e=>{const g=e.geo||{};const loc=[g.city,g.region,g.country].filter(Boolean).join(", ")||"—";return`<tr><td title="${esc(e.created_at||'')}">${ago(e.created_at)}</td><td class="mono">${esc(e.user_id)}</td><td class="mono" style="font-size:10px">${esc(e.encoded_id)}</td><td class="mono">${esc(e.ip||'—')}</td><td>${esc(loc)}</td><td>${esc(g.isp||'—')}</td><td class="mono">${esc(e.request_path||'—')}</td><td>${hb(e.bytes_served||0)}</td></tr>`;}).join(""):emptyRow(8,"No access logs yet."))+"</tbody>";
+}
+
+// ===== LEVEL 1: User Detail Modal =====
+async function openUserModal(userId){
+  const m=document.getElementById('userModal');
+  m.style.display='flex';void m.offsetWidth;m.classList.add('active');
+  document.getElementById('userModalTitle').textContent=`User ${userId}`;
+  document.getElementById('userModalSubtitle').textContent='Loading Telegram data…';
+  document.getElementById('userModalBody').innerHTML='<div style="color:var(--text3);text-align:center;padding:40px">Loading…</div>';
+  if(modalChart){modalChart.destroy();modalChart=null;}
+
+  try{
+    const res=await fetch(`/owner/dashboard/user/${userId}`,{credentials:"include"});
+    if(!res.ok){
+      let detail='';
+      try{const j=await res.json();detail=j.error||'';}catch(e){}
+      document.getElementById('userModalBody').innerHTML=`<div style="color:#ef4444;text-align:center;padding:40px">Error ${res.status}: ${detail||res.statusText}<br><small style="color:var(--text3)">Session may have expired — re-open /dashboard link</small></div>`;
+      return;
+    }
+    const d=await res.json();
+    renderUserModal(userId, d);
+  }catch(e){
+    document.getElementById('userModalBody').innerHTML=`<div style="color:#ef4444;text-align:center;padding:40px">Network error: ${e.message}</div>`;
+  }
+}
+
+function renderUserModal(userId, d){
+  const tg=d.telegram||{};
+  const prof=d.profile||{};
+  const sub=d.subscription||{};
+  const links=d.links||[];
+  const topIps=d.top_ips||[];
+  const graph=d.graph||[];
+
+  // Header
+  const name=tg.first_name||(prof.first_name||'')+(prof.last_name?' '+prof.last_name:'');
+  const displayName=(name||'Unknown User').trim();
+  const initials=displayName.substring(0,2).toUpperCase();
+  document.getElementById('userModalTitle').textContent=displayName+(tg.username?' (@'+tg.username+')':'');
+  document.getElementById('userModalSubtitle').textContent=`Telegram ID: ${userId}${tg.language_code?' · lang: '+tg.language_code:''}`;
+
+  // Badges
+  const badges=[];
+  if(tg.is_premium||prof.is_premium)badges.push('<span class="badge badge-premium">⭐ Telegram Premium</span>');
+  if(tg.is_verified||prof.is_verified)badges.push('<span class="badge badge-verified">✓ Verified</span>');
+  if(tg.is_scam)badges.push('<span class="badge badge-scam">⚠ Scam</span>');
+  if(sub.is_admin)badges.push('<span class="badge badge-admin">🛡 Admin</span>');
+  if(sub.has_subscription&&!sub.is_admin)badges.push('<span class="badge badge-sub">✓ Subscriber</span>');
+  if(!sub.has_subscription&&!sub.is_admin)badges.push('<span class="badge badge-nosub">No Access</span>');
+
+  // Sub expiry
+  let subText='—';
+  if(sub.unlimited)subText='Unlimited';
+  else if(sub.expires_at)subText=fmtDate(sub.expires_at);
+
+  // Status
+  const statusStr=tg.status?String(tg.status).replace('UserStatus.',''):'—';
+
+  const html=`
+  <div class="user-profile-banner">
+    <div class="user-avatar">${initials}</div>
+    <div class="user-info-col">
+      <div class="user-display-name">${esc(displayName)}</div>
+      <div class="user-badges">${badges.join('')||'<span style="color:var(--text3);font-size:12px">No badges</span>'}</div>
+      <div class="user-meta-grid">
+        <div class="user-meta-item"><div class="user-meta-label">User ID</div><div class="user-meta-value mono">${esc(userId)}</div></div>
+        <div class="user-meta-item"><div class="user-meta-label">Username</div><div class="user-meta-value">${tg.username?('@'+esc(tg.username)):(prof.username?'@'+esc(prof.username):'—')}</div></div>
+        <div class="user-meta-item"><div class="user-meta-label">Status</div><div class="user-meta-value">${esc(statusStr)}</div></div>
+        <div class="user-meta-item"><div class="user-meta-label">Subscription</div><div class="user-meta-value">${esc(subText)}</div></div>
+        <div class="user-meta-item"><div class="user-meta-label">Total Links</div><div class="user-meta-value" style="color:var(--violet)">${links.length}</div></div>
+        <div class="user-meta-item"><div class="user-meta-label">Total Clicks</div><div class="user-meta-value" style="color:var(--cyan)">${esc(prof.total_clicks||0)}</div></div>
+        <div class="user-meta-item"><div class="user-meta-label">Total Bandwidth</div><div class="user-meta-value" style="color:var(--emerald)">${hb(prof.total_bytes_served||0)}</div></div>
+        <div class="user-meta-item"><div class="user-meta-label">First Seen</div><div class="user-meta-value">${ago(prof.first_seen_at)}</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="modal-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>Generated Links — click a row to inspect IPs</div>
+    <div class="table-wrap" style="max-height:280px;margin-top:10px">
+      <table><thead><tr><th>File</th><th>Size</th><th>Source</th><th>Clicks</th><th>Bandwidth</th><th>Created</th><th>Last Access</th></tr></thead><tbody>
+      ${links.length?links.map(l=>`<tr class="clickable-row" onclick="openLinkModal('${esc(l._id)}','${esc(l.file_name||'')}')"><td>${esc(l.file_name||'—')}</td><td>${hb(l.file_size||0)}</td><td>${esc(l.source||'—')}</td><td><span style="color:var(--cyan);font-weight:600">${l.click_count||0}</span></td><td><span style="color:var(--emerald);font-weight:600">${hb(l.total_bytes_served||0)}</span></td><td title="${esc(l.created_at||'')}">${ago(l.created_at)}</td><td title="${esc(l.last_accessed_at||'')}">${ago(l.last_accessed_at)}</td></tr>`).join(''):emptyRow(7,"No links generated by this user.")}
+      </tbody></table>
+    </div>
+  </div>
+
+  <div>
+    <div class="modal-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Top IPs (across all links)</div>
+    <div class="table-wrap" style="max-height:220px;margin-top:10px">
+      <table><thead><tr><th>IP</th><th>Country</th><th>City</th><th>Hits</th><th>Bandwidth</th><th>Last Seen</th></tr></thead><tbody>
+      ${topIps.length?topIps.map(ip=>`<tr><td class="mono">${esc(ip._id||'—')}</td><td>${esc(ip.country||'—')}</td><td>${esc(ip.city||'—')}</td><td><span style="color:var(--cyan);font-weight:600">${ip.hits||0}</span></td><td><span style="color:var(--emerald);font-weight:600">${hb(ip.bytes||0)}</span></td><td>${ago(ip.last_seen)}</td></tr>`).join(''):emptyRow(6,"No access events recorded.")}
+      </tbody></table>
+    </div>
+  </div>
+
+  <div>
+    <div class="modal-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Activity Over Time</div>
+    <div style="margin-top:10px;height:180px;position:relative"><canvas id="userActivityChart"></canvas></div>
+  </div>`;
+
+  document.getElementById('userModalBody').innerHTML=html;
+
+  // Draw chart
+  if(graph.length){
+    if(modalChart)modalChart.destroy();
+    modalChart=makeChart(document.getElementById('userActivityChart'),graph.map(x=>x._id),graph.map(x=>x.clicks||0),graph.map(x=>(x.bytes||0)/1048576),"Clicks","Bandwidth (MB)","rgba(96,165,250,0.75)","rgba(52,211,153,0.75)","bar");
+  }
+}
+
+function closeUserModal(){
+  const m=document.getElementById('userModal');
+  m.classList.remove('active');
+  setTimeout(()=>m.style.display='none',280);
+}
+
+// ===== LEVEL 2: Link Detail Modal =====
+async function openLinkModal(encodedId, fileName){
+  const m=document.getElementById('linkModal');
+  m.style.display='flex';void m.offsetWidth;m.classList.add('active');
+  document.getElementById('linkModalTitle').textContent=fileName||encodedId;
+  document.getElementById('linkModalSubtitle').textContent=`ID: ${encodedId} · Loading IP breakdown…`;
+  document.getElementById('linkModalBody').innerHTML='<div style="color:var(--text3);text-align:center;padding:40px">Loading…</div>';
+  if(linkChart){linkChart.destroy();linkChart=null;}
+
+  try{
+    const res=await fetch(`/owner/dashboard/link/${encodeURIComponent(encodedId)}/events`,{credentials:"include"});
+    if(!res.ok)throw new Error("Failed");
+    const d=await res.json();
+    renderLinkModal(encodedId, fileName, d);
+  }catch(e){
+    document.getElementById('linkModalBody').innerHTML='<div style="color:#ef4444;text-align:center;padding:40px">Error loading link detail.</div>';
+  }
+}
+
+function renderLinkModal(encodedId, fileName, d){
+  const link=d.link||{};
+  const ips=d.ip_breakdown||[];
+  const graph=d.graph||[];
+  const events=d.events||[];
+
+  document.getElementById('linkModalTitle').textContent=link.file_name||fileName||encodedId;
+  document.getElementById('linkModalSubtitle').textContent=`${hb(link.file_size||0)} · ${link.source||'—'} · ${link.click_count||0} total clicks · ${hb(link.total_bytes_served||0)} served`;
+
+  // IP breakdown: aggregate ua list per row but keep concise
+  const ipRows=ips.map(ip=>{
+    const loc=[ip.city,ip.region,ip.country].filter(Boolean).join(", ")||"—";
+    const uas=(ip.user_agents||[]).map(ua=>`<div style="font-size:10px;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:260px" title="${esc(ua)}">${esc(ua.substring(0,80)+(ua.length>80?"…":""))}</div>`).join('');
+    return`<tr>
+      <td class="mono" style="font-weight:700;color:var(--blue)">${esc(ip._id||'—')}</td>
+      <td>${esc(loc)}</td>
+      <td>${esc(ip.isp||'—')}</td>
+      <td><span style="color:var(--cyan);font-weight:700">${ip.hits||0}</span></td>
+      <td><span style="color:var(--emerald);font-weight:700">${hb(ip.bytes||0)}</span></td>
+      <td title="${esc(ip.first_seen||'')}">${ago(ip.first_seen)}</td>
+      <td title="${esc(ip.last_seen||'')}">${ago(ip.last_seen)}</td>
+      <td><div>${uas||'<span style="color:var(--text3)">—</span>'}</div></td>
+    </tr>`;
+  }).join('');
+
+  // Recent raw events
+  const rawRows=events.slice(0,100).map(e=>{
+    const g=e.geo||{};
+    const loc=[g.city,g.region,g.country].filter(Boolean).join(", ")||"—";
+    return`<tr><td title="${esc(e.created_at||'')}">${ago(e.created_at)}</td><td class="mono">${esc(e.ip||'—')}</td><td>${esc(loc)}</td><td>${esc(g.isp||'—')}</td><td>${hb(e.bytes_served||0)}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;font-size:10px;color:var(--text3)" title="${esc(e.user_agent||'')}">${esc((e.user_agent||'—').substring(0,60))}</td></tr>`;
+  }).join('');
+
+  const html=`
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+    <div class="user-meta-item"><div class="user-meta-label">File Size</div><div class="user-meta-value">${hb(link.file_size||0)}</div></div>
+    <div class="user-meta-item"><div class="user-meta-label">Source</div><div class="user-meta-value">${esc(link.source||'—')}</div></div>
+    <div class="user-meta-item"><div class="user-meta-label">Total Clicks</div><div class="user-meta-value" style="color:var(--cyan)">${link.click_count||0}</div></div>
+    <div class="user-meta-item"><div class="user-meta-label">Total Bandwidth</div><div class="user-meta-value" style="color:var(--emerald)">${hb(link.total_bytes_served||0)}</div></div>
+    <div class="user-meta-item"><div class="user-meta-label">Unique IPs</div><div class="user-meta-value" style="color:var(--violet)">${ips.length}</div></div>
+    <div class="user-meta-item"><div class="user-meta-label">Created</div><div class="user-meta-value">${ago(link.created_at)}</div></div>
+    <div class="user-meta-item"><div class="user-meta-label">Last Access</div><div class="user-meta-value">${ago(link.last_accessed_at)}</div></div>
+  </div>
+
+  <div>
+    <div class="modal-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Per-IP Breakdown — Bandwidth &amp; Hits</div>
+    <div class="table-wrap" style="max-height:300px;margin-top:10px">
+      <table style="min-width:800px"><thead><tr><th>IP Address</th><th>Location</th><th>ISP</th><th>Hits</th><th>Bandwidth</th><th>First Seen</th><th>Last Seen</th><th>User Agents</th></tr></thead>
+      <tbody>${ips.length?ipRows:emptyRow(8,"No access events recorded for this link.")}</tbody></table>
+    </div>
+  </div>
+
+  <div>
+    <div class="modal-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>Access Timeline</div>
+    <div style="height:180px;margin-top:10px;position:relative"><canvas id="linkTimelineChart"></canvas></div>
+  </div>
+
+  <div>
+    <div class="modal-section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Recent Raw Events (last ${Math.min(events.length,100)} of ${events.length})</div>
+    <div class="table-wrap" style="max-height:240px;margin-top:10px">
+      <table><thead><tr><th>Time</th><th>IP</th><th>Location</th><th>ISP</th><th>Bandwidth</th><th>User Agent</th></tr></thead>
+      <tbody>${events.length?rawRows:emptyRow(6,"No raw events.")}</tbody></table>
+    </div>
+  </div>`;
+
+  document.getElementById('linkModalBody').innerHTML=html;
+
+  if(graph.length){
+    if(linkChart)linkChart.destroy();
+    linkChart=makeChart(document.getElementById('linkTimelineChart'),graph.map(x=>x._id),graph.map(x=>x.hits||0),graph.map(x=>(x.bytes||0)/1048576),"Hits","Bandwidth (MB)","rgba(96,165,250,0.75)","rgba(52,211,153,0.75)","bar");
+  }
+}
+
+function closeLinkModal(){
+  const m=document.getElementById('linkModal');
+  m.classList.remove('active');
+  setTimeout(()=>m.style.display='none',280);
+}
+
+// Pagination helpers
+function usersPrev(){usersPage=Math.max(1,usersPage-1);loadData();}
+function usersNext(){const t=((window._p||{}).users||{}).total_pages||1;usersPage=Math.min(t,usersPage+1);loadData();}
+function linksPrev(){linksPage=Math.max(1,linksPage-1);loadData();}
+function linksNext(){const t=((window._p||{}).links||{}).total_pages||1;linksPage=Math.min(t,linksPage+1);loadData();}
+function eventsPrev(){eventsPage=Math.max(1,eventsPage-1);loadData();}
+function eventsNext(){const t=((window._p||{}).events||{}).total_pages||1;eventsPage=Math.min(t,eventsPage+1);loadData();}
+
+// Boot
+loadData();
+</script>
+</body>
+</html>

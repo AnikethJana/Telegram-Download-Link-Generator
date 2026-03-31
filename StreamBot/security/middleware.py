@@ -1,8 +1,6 @@
 # StreamBot/security/middleware.py
 import logging
 from aiohttp import web
-from .rate_limiter import web_rate_limiter
-from .validator import get_client_ip
 
 logger = logging.getLogger(__name__)
 
@@ -33,34 +31,41 @@ class SecurityMiddleware:
                     "connect-src 'self' https://oauth.telegram.org; "
                     "img-src 'self' data: https:; "
                 )
+            elif request.path.startswith('/owner/dashboard'):
+                # Owner dashboard uses inline script/style, Chart.js CDN, and Google Fonts.
+                csp = (
+                    "default-src 'self'; "
+                    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+                    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                    "connect-src 'self'; "
+                    "img-src 'self' data: https:; "
+                    "font-src 'self' data: https://fonts.gstatic.com; "
+                )
+            elif request.path.startswith('/dl/'):
+                # Download landing pages use inline styles only.
+                csp = (
+                    "default-src 'self'; "
+                    "style-src 'self' 'unsafe-inline'; "
+                    "img-src 'self' data: https:; "
+                    "connect-src 'self'; "
+                )
             else:
                 # Strict CSP for other pages
                 csp = "default-src 'self'"
             
             response.headers['Content-Security-Policy'] = csp
             response.headers['X-XSS-Protection'] = '1; mode=block'
-            response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+            response.headers['Referrer-Policy'] = 'no-referrer'
+            
+            # Prevent caching of sensitive dashboard and session pages
+            if request.path.startswith('/owner/dashboard') or request.path.startswith('/session'):
+                response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, private'
+                response.headers['Pragma'] = 'no-cache'
+                response.headers['Expires'] = '0'
         
         return response
-    
-    @staticmethod
-    @web.middleware
-    async def rate_limiter(request, handler):
-        """Rate limiting for download endpoints only."""
-        # Only rate limit download endpoints
-        if request.path.startswith('/dl/'):
-            client_ip = get_client_ip(request)
-            
-            if not await web_rate_limiter.is_allowed(client_ip):
-                logger.warning(f"Rate limit exceeded for IP {client_ip} on {request.path}")
-                raise web.HTTPTooManyRequests(
-                    text="Too many download requests. Please wait before trying again.",
-                    headers={'Retry-After': '600'}  # 10 minutes
-                )
-        
-        return await handler(request)
     
     @classmethod
     def get_middlewares(cls):
         """Get all security middlewares."""
-        return [cls.security_headers, cls.rate_limiter] 
+        return [cls.security_headers]

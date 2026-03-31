@@ -5,7 +5,6 @@ from pyrogram.errors import FloodWait, FileIdInvalid, RPCError
 import base64
 import binascii 
 import asyncio
-import datetime
 from ..config import Var 
 import logging
 
@@ -37,7 +36,7 @@ def is_video_file(mime_type: str) -> bool:
     return mime_type.lower() in VIDEO_MIME_TYPES
 
 async def get_media_message(bot_client: Client, message_id: int) -> Message:
-    """Fetch the media message object from the LOG_CHANNEL and check expiry."""
+    """Fetch the media message object from the LOG_CHANNEL."""
     from aiohttp import web  # Import here to avoid circular imports
     
     if not bot_client or not bot_client.is_connected:
@@ -77,20 +76,6 @@ async def get_media_message(bot_client: Client, message_id: int) -> Message:
     if not media_msg:
         logger.error(f"Failed to retrieve message {message_id} after retries, but no exception was raised (should not happen).")
         raise web.HTTPServiceUnavailable(text="Service temporarily unavailable.")
-
-    # --- Link Expiry Check ---
-    if hasattr(media_msg, 'date') and isinstance(media_msg.date, datetime.datetime):
-        message_timestamp = media_msg.date.replace(tzinfo=datetime.timezone.utc)
-        current_timestamp = datetime.datetime.now(datetime.timezone.utc)
-        time_difference = current_timestamp - message_timestamp
-        expiry_seconds = Var.LINK_EXPIRY_SECONDS
-        
-        # Check if expiry is enabled
-        if expiry_seconds > 0 and time_difference.total_seconds() > expiry_seconds:
-            logger.warning(f"Download link for message {message_id} expired. Age: {time_difference} > {expiry_seconds}s")
-            raise web.HTTPGone(text="Download link has expired.")
-    else:
-        logger.warning(f"Could not determine message timestamp for message {message_id}. Skipping expiry check.")
 
     return media_msg
 

@@ -16,8 +16,6 @@ services:
       # --- Channels (Required) ---
       - key: LOG_CHANNEL
         sync: false
-      - key: FORCE_SUB_CHANNEL
-        value: ""
       
       # --- Web Server (Required) ---
       - key: BASE_URL
@@ -32,8 +30,6 @@ services:
         value: https://cricster.pages.dev
       
       # --- Settings ---
-      - key: LINK_EXPIRY_SECONDS
-        value: 86400
       - key: SESSION_NAME
         value: MyBotSession
       - key: WORKERS
@@ -45,17 +41,29 @@ services:
       - key: ADMINS
         sync: false
       
-      # --- Rate Limiting ---
-      - key: MAX_LINKS_PER_DAY
-        value: 5
-      
-      # --- Bandwidth Limiting ---
-      - key: BANDWIDTH_LIMIT_GB
-        value: 100
-      
       # --- Session Generator Access Control ---
       - key: ALLOW_USER_LOGIN
         value: true
+
+      # --- Premium Access Owner ---
+      - key: OWNER_ID
+        sync: false
+
+      # --- Premium Transaction Channel ---
+      - key: TXN_CHNL_ID
+        sync: false
+
+      # --- Pricing Configuration ---
+      - key: PRICE_PER_DAY_USD
+        value: 0.15
+      - key: PRICE_PER_DAY_INR
+        value: 14.3
+
+      # --- Payment Methods ---
+      - key: USDT_BEP20_ADDRESS
+        value: ""
+      - key: UPI_ID
+        value: ""
       
       # --- Multiple Bot Support ---
       - key: ADDITIONAL_BOT_TOKENS
@@ -74,10 +82,3 @@ services:
         sync: false
       - key: DATABASE_NAME
         value: TgDlBotUsers
-      
-      # --- URL Shortener Configuration ---
-      - key: ADLINKFLY_URL
-        value: https://api.gplinks.com/api?api=your_api_key_here
-      - key: FILE_SIZE_THRESHOLD
-        value: 200
-

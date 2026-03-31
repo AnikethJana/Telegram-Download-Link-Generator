@@ -60,15 +60,21 @@ class RequestValidator:
 
 
 def get_client_ip(request) -> str:
-    """Get client IP safely."""
-    # Check for forwarded headers (common in reverse proxies)
-    forwarded_for = request.headers.get('X-Forwarded-For')
-    if forwarded_for:
-        # Take first IP in case of multiple
-        return forwarded_for.split(',')[0].strip()
+    """Get client IP safely, preventing X-Forwarded-For spoofing."""
+    import os
+    trusted_proxies_str = os.environ.get("TRUSTED_PROXY_IPS", "")
+    trusted_proxies = [p.strip() for p in trusted_proxies_str.split(',')] if trusted_proxies_str else []
     
-    return request.remote or '127.0.0.1'
-
+    remote_ip = request.remote or '127.0.0.1'
+    
+    # Check for forwarded headers if coming from a trusted proxy
+    if '*' in trusted_proxies or remote_ip in trusted_proxies:
+        forwarded_for = request.headers.get('X-Forwarded-For')
+        if forwarded_for:
+            # Take first IP in case of multiple
+            return forwarded_for.split(',')[0].strip()
+            
+    return remote_ip
 
 # Convenience functions for backward compatibility
 validate_range_header = RequestValidator.validate_range_header

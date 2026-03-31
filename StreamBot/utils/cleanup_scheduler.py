@@ -20,9 +20,6 @@ class CleanupScheduler:
         self.running = True
         logger.info("Starting cleanup scheduler...")
         
-        # Schedule bandwidth cleanup (daily)
-        self.tasks.append(asyncio.create_task(self._daily_bandwidth_cleanup()))
-        
         # Schedule memory cleanup (every 2 hours - consolidated interval)
         self.tasks.append(asyncio.create_task(self._memory_cleanup()))
         
@@ -31,6 +28,9 @@ class CleanupScheduler:
         
         # Schedule security cleanup (every 10 minutes - consolidated with rate limiters)
         self.tasks.append(asyncio.create_task(self._security_cleanup()))
+
+        # Schedule premium subscription cleanup (every 10 minutes)
+        self.tasks.append(asyncio.create_task(self._subscription_cleanup()))
         
         logger.info(f"Started {len(self.tasks)} cleanup tasks")
     
@@ -52,25 +52,6 @@ class CleanupScheduler:
         
         self.tasks.clear()
         logger.info("Cleanup scheduler stopped")
-    
-    async def _daily_bandwidth_cleanup(self):
-        """Run bandwidth cleanup daily."""
-        while self.running:
-            try:
-                await asyncio.sleep(24 * 3600)  # 24 hours
-                if not self.running:
-                    break
-                
-                logger.info("Running daily bandwidth cleanup...")
-                from .bandwidth import cleanup_old_bandwidth_records
-                deleted_count = await cleanup_old_bandwidth_records(keep_months=3)
-                logger.info(f"Daily cleanup: removed {deleted_count} old bandwidth records")
-                
-            except asyncio.CancelledError:
-                break
-            except Exception as e:
-                logger.error(f"Error in daily bandwidth cleanup: {e}")
-                await asyncio.sleep(3600)  # Wait 1 hour before retry
     
     async def _memory_cleanup(self):
         """Run memory cleanup every 2 hours (consolidated interval)."""
@@ -129,6 +110,23 @@ class CleanupScheduler:
             except Exception as e:
                 logger.error(f"Error in security cleanup: {e}")
                 await asyncio.sleep(900)  # Wait 15 minutes before retry
+
+    async def _subscription_cleanup(self):
+        """Revoke expired premium access periodically."""
+        while self.running:
+            try:
+                await asyncio.sleep(600)  # 10 minutes
+                if not self.running:
+                    break
+                from StreamBot.database.user_access import revoke_expired_users
+                deleted_count = await revoke_expired_users()
+                if deleted_count:
+                    logger.info(f"Subscription cleanup revoked {deleted_count} expired users")
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error in subscription cleanup: {e}")
+                await asyncio.sleep(900)
 
     
 

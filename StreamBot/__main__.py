@@ -7,8 +7,8 @@ This module initializes and orchestrates the core components of the application:
 - Background cleanup and memory management
 - Security middleware and rate limiting
 
-The application provides secure download links for Telegram files with features like
-session-based private channel access, bandwidth monitoring, and comprehensive logging.
+The application provides download links for Telegram files with session-based private
+channel access and comprehensive logging.
 """
 
 import sys
@@ -29,8 +29,6 @@ from .web.web import setup_webapp
 from .client_manager import ClientManager
 from .utils.cleanup_scheduler import cleanup_scheduler
 from .utils.memory_manager import memory_manager
-from .security.rate_limiter import initialize_rate_limiters
-
 # Configure logging with file and console handlers
 logging.basicConfig(
     level=logging.INFO,
@@ -78,9 +76,6 @@ async def main() -> None:
     logger.info(f"Base URL: {Var.BASE_URL}")
     logger.info(f"Log Channel ID: {Var.LOG_CHANNEL}")
     logger.info("Initializing Telegram Download Link Generator Bot...")
-
-    # Initialize security components with configured limits
-    initialize_rate_limiters(Var.MAX_LINKS_PER_DAY)
 
     # Log initial memory usage for monitoring
     memory_manager.log_memory_usage("startup")

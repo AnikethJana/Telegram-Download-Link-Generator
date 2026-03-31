@@ -5,7 +5,6 @@ from aiohttp import web
 from pyrogram.errors import FloodWait
 from StreamBot.config import Var
 from StreamBot.utils.utils import decode_message_id, get_file_attr, VIDEO_MIME_TYPES, get_media_message
-from StreamBot.utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
 from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_response
 from StreamBot.security.validator import validate_range_header, get_client_ip
 from StreamBot.utils.smart_logger import SmartRateLimitedLogger
@@ -29,10 +28,6 @@ async def stream_video_route(request: web.Request):
         raise web.HTTPBadRequest(text="Invalid or malformed stream link.")
 
     logger.info(f"Video stream request for message_id: {message_id} from {get_client_ip(request)}")
-
-    # Check bandwidth limit
-    if await is_bandwidth_limit_exceeded():
-        raise web.HTTPServiceUnavailable(text="Service temporarily unavailable due to bandwidth limits.")
 
     try:
         streamer_client = await asyncio.wait_for(
@@ -232,10 +227,6 @@ async def stream_video_route(request: web.Request):
                         )
                         break
                     await asyncio.sleep(2 * current_retry)  # Exponential backoff
-
-        # Record bandwidth usage
-        if bytes_streamed > 0:
-            await add_bandwidth_usage(bytes_streamed)
 
         logger.info(f"Video stream completed for {message_id}: {bytes_streamed} bytes (expected: {bytes_to_serve})")
         return response

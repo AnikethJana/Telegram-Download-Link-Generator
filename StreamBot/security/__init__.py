@@ -2,21 +2,16 @@
 """
 Security module for StreamBot.
 
-This module provides consolidated security components including:
-- Unified rate limiting for web endpoints, bot operations, and invalid requests
-- Request validation and sanitization
-- Security headers and middleware
-- Bandwidth monitoring and limiting
+Provides invalid-request protection, request validation, and security middleware.
 """
 
-from .rate_limiter import WebRateLimiter, BotRateLimiter, InvalidRequestGuard
+from .rate_limiter import InvalidRequestGuard, invalid_request_guard
 from .middleware import SecurityMiddleware
 from .validator import RequestValidator
 
 __all__ = [
-    "WebRateLimiter",
-    "BotRateLimiter", 
     "InvalidRequestGuard",
+    "invalid_request_guard",
     "SecurityMiddleware",
-    "RequestValidator"
-] 
+    "RequestValidator",
+]

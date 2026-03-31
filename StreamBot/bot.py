@@ -7,8 +7,7 @@ functions for managing user interactions with the Telegram bot. It handles:
 - Command processing (/start, /help, /login, /logout, etc.)
 - File upload processing with download link generation
 - Private channel link processing via user sessions
-- Rate limiting and security checks
-- User management and database operations
+- User management and database operations (including admin broadcast target list)
 
 All handlers are designed to be memory-efficient and thread-safe.
 """
@@ -17,17 +16,33 @@ import logging
 import asyncio
 import os
 import datetime
+import secrets
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from pyrogram.errors import FloodWait, UserNotParticipant, FloodWait, UserIsBlocked, InputUserDeactivated
+from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
 from .database.database import add_user, del_user, full_userbase
+from .database.user_access import (
+    is_user_allowed,
+    add_allowed_user,
+    remove_allowed_user,
+    create_pending_txn,
+    set_pending_txn_paid,
+    set_pending_txn_screenshot,
+    cancel_pending_txn,
+    get_latest_pending_txn_for_user,
+    get_pending_txn,
+    approve_pending_txn,
+    reject_pending_txn,
+    mark_pending_txn_submitted,
+    is_user_admin,
+    add_admin_user,
+)
+from .database.analytics import record_link_generated
+from .web.dashboard_auth import create_owner_one_time_token
 from .config import Var
 from .utils.utils import get_file_attr, humanbytes, encode_message_id, is_video_file
-from .security.rate_limiter import bot_rate_limiter
-from .utils.bandwidth import is_bandwidth_limit_exceeded, get_current_bandwidth_usage
 from .utils.smart_logger import SmartRateLimitedLogger
 from .link_handler import get_message_from_link
-from .utils import url_shortener
 
 logger = logging.getLogger(__name__)
 
@@ -35,45 +50,84 @@ logger = logging.getLogger(__name__)
 rate_limited_logger = SmartRateLimitedLogger(logger)
 
 
-async def process_link(original_link: str, file_size: int, user_id: int | None = None) -> str:
-    """
-    Process any externally shared link and shorten it if the file size exceeds the threshold.
+def is_privileged_user(user_id: int) -> bool:
+    """Admin/owner bypass premium restrictions."""
+    if user_id == Var.OWNER_ID:
+        return True
+    return bool(Var.ADMINS) and user_id in Var.ADMINS
 
-    This helper is used for download URLs, stream URLs and video frontend links. If
-    shortening fails, we gracefully fall back to the original link to ensure functionality
-    is not disrupted.
 
-    Args:
-        original_link (str): The original link to be shared
-        file_size (int): Size of the related file in bytes
-        user_id (int | None): Optional Telegram user ID for admin bypass logic
+async def user_has_premium_access(user_id: int) -> bool:
+    """Return True if user can use the bot (owner/admin or added user)."""
+    if is_privileged_user(user_id):
+        return True
+    if await is_user_admin(user_id):
+        return True
+    return await is_user_allowed(user_id)
 
-    Returns:
-        str: The processed link (shortened if needed, otherwise original)
-    """
-    try:
-        # Admins/owners should never be forced through shorteners
-        if user_id is not None and user_id in Var.ADMINS:
-            rate_limited_logger.log('debug', f"Bypassing URL shortener for admin user {user_id}")
-            return original_link
 
-        # Determine if URL shortening should be applied based on file size
-        if await url_shortener.should_use_short_url(file_size):
-            rate_limited_logger.log('info', f"File size {file_size} bytes exceeds threshold, shortening URL")
-            shortened_url = await url_shortener.shorten_url(original_link)
-            if shortened_url:
-                rate_limited_logger.log('info', f"URL shortened successfully: {original_link} -> {shortened_url}")
-                return shortened_url
-            else:
-                rate_limited_logger.log('warning', "URL shortening failed, using original link")
-                return original_link
-        else:
-            rate_limited_logger.log('debug', f"File size {file_size} bytes is below threshold, using original link")
-            return original_link
-    except Exception as e:
-        logger.error(f"Error processing download link: {e}", exc_info=True)
-        # Graceful fallback - return original link to maintain functionality
-        return original_link
+def premium_access_keyboard() -> InlineKeyboardMarkup:
+    """Entry keyboard for non-premium users."""
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton("🚀 GET STARTED", callback_data="premium:buy"),
+            ],
+            [
+                InlineKeyboardButton("📖 HOW IT WORKS", callback_data="premium:howitworks"),
+                InlineKeyboardButton("💬 FEATURES", callback_data="premium:features"),
+            ],
+            [
+                InlineKeyboardButton("💰 PRICING", callback_data="premium:pricing"),
+                InlineKeyboardButton("❓ HELP", callback_data="premium:help"),
+            ]
+        ]
+    )
+
+
+_DAYS_TIERS = [1, 3, 7, 14, 30]
+_DAYS_BUTTON_CHOICES = [1, 2, 3, 5, 7, 10, 14, 30]
+
+
+def _round_days_up(days: int) -> int:
+    """Round a chosen day count up to the next pricing tier."""
+    for tier in _DAYS_TIERS:
+        if days <= tier:
+            return tier
+    return _DAYS_TIERS[-1]
+
+
+def _method_pretty(method: str) -> str:
+    return "Crypto (USDT)" if method == "crypto" else "UPI"
+
+
+def buy_method_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton("Crypto (USDT BEP20)", callback_data="premium:method:crypto"),
+                InlineKeyboardButton("UPI", callback_data="premium:method:upi"),
+            ]
+        ]
+    )
+
+
+def buy_days_keyboard(method: str) -> InlineKeyboardMarkup:
+    buttons = []
+    row = []
+    for d in _DAYS_BUTTON_CHOICES:
+        row.append(InlineKeyboardButton(f"{d} day(s)", callback_data=f"premium:days:{method}:{d}"))
+        if len(row) == 4:
+            buttons.append(row)
+            row = []
+    if row:
+        buttons.append(row)
+    return InlineKeyboardMarkup(buttons)
+
+
+def process_link(original_link: str, *_args, **_kwargs) -> str:
+    """Return the direct link (no URL shortener or monetization layer)."""
+    return original_link
 
 
 def build_active_session_message(session_generator_url: str, is_localhost: bool) -> str:
@@ -179,72 +233,6 @@ Generate secure sessions to get download links from private Telegram channels an
 ⚠️ **Important Caution:**
 Using session-based access with newer accounts, downloading large files continuously, abusing the service, or sharing access with others who spam downloads may result in your Telegram account being banned. Please use responsibly and avoid excessive usage patterns that could trigger Telegram's anti-abuse systems."""
 
-async def check_force_sub(client: Client, message: Message) -> bool:
-    """
-    Check if user is subscribed to the required force subscription channel.
-
-    This function verifies that users have joined the mandatory channel before
-    allowing them to use the bot. If not subscribed, it provides a join link
-    and prevents further processing.
-
-    Args:
-        client (Client): The Pyrogram client instance
-        message (Message): The message from the user to check
-
-    Returns:
-        bool: True if user is subscribed or no force subscription is required,
-              False if user needs to join the channel
-    """
-    if not Var.FORCE_SUB_CHANNEL:
-        return True
-
-    try:
-        # Check user's membership status in the required channel
-        member = await client.get_chat_member(Var.FORCE_SUB_CHANNEL, message.from_user.id)
-        if member.status not in ["kicked", "left"]:
-            return True
-        else:
-            raise UserNotParticipant
-
-    except UserNotParticipant:
-        try:
-            # Get channel information and invite link
-            chat = await client.get_chat(Var.FORCE_SUB_CHANNEL)
-            invite_link = chat.invite_link
-            if not invite_link:
-                # Create new invite link if none exists
-                invite_link_obj = await client.create_chat_invite_link(Var.FORCE_SUB_CHANNEL)
-                invite_link = invite_link_obj.invite_link
-
-            # Create join button with channel name
-            button_text = f"Join {chat.title}" if chat.title else "Join Channel"
-            button = [[InlineKeyboardButton(button_text, url=invite_link)]]
-            await message.reply_text(
-                Var.FORCE_SUB_JOIN_TEXT,
-                reply_markup=InlineKeyboardMarkup(button),
-                quote=True
-            )
-        except FloodWait as e:
-            logger.warning(f"FloodWait creating invite link for {Var.FORCE_SUB_CHANNEL}: {e.value}s")
-            await message.reply_text(Var.FLOOD_WAIT_TEXT.format(seconds=e.value), quote=True)
-        except Exception as e:
-            logger.error(f"Could not get channel info or invite link for {Var.FORCE_SUB_CHANNEL}: {e}", exc_info=True)
-            await message.reply_text(
-                f"{Var.FORCE_SUB_JOIN_TEXT}\n\n(Could not retrieve channel link automatically. Please ensure you have joined the required channel.)",
-                quote=True
-            )
-        return False
-
-    except FloodWait as e:
-        logger.warning(f"FloodWait checking membership for {message.from_user.id} in {Var.FORCE_SUB_CHANNEL}: {e.value}s")
-        await message.reply_text(Var.FLOOD_WAIT_TEXT.format(seconds=e.value), quote=True)
-        return False
-
-    except Exception as e:
-        logger.error(f"Error checking membership for {message.from_user.id} in {Var.FORCE_SUB_CHANNEL}: {e}", exc_info=True)
-        await message.reply_text("An error occurred while checking channel membership.", quote=True)
-        return False
-
 
 def attach_handlers(app: Client) -> None:
     """
@@ -254,8 +242,6 @@ def attach_handlers(app: Client) -> None:
     - Command handlers (/start, /help, /login, /logout, etc.)
     - Message handlers for file uploads and URL processing
     - Callback query handlers for interactive buttons
-    - Rate limiting and security checks
-
     Args:
         app (Client): The Pyrogram client instance to attach handlers to
     """
@@ -268,12 +254,8 @@ def attach_handlers(app: Client) -> None:
     )
 
     # Inline keyboard builder for /start command
-    def build_start_keyboard(force_sub_link: str = None) -> InlineKeyboardMarkup | None:
+    def build_start_keyboard() -> InlineKeyboardMarkup | None:
         buttons = []
-
-        # Join Channel button (if force subscription is enabled)
-        if force_sub_link and Var.FORCE_SUB_CHANNEL:
-            buttons.append([InlineKeyboardButton("🔗 Join Channel", url=force_sub_link)])
 
         # Optional: Login shortcut if allowed and BASE_URL is public
         try:
@@ -299,32 +281,28 @@ def attach_handlers(app: Client) -> None:
         Handle the /start command for new users.
 
         This handler welcomes users, adds them to the database, and provides
-        an interactive keyboard with help options and force subscription links
-        if configured.
+        an interactive keyboard with help options.
 
         Args:
             client (Client): The Pyrogram client instance
             message (Message): The /start command message
         """
-        force_sub_link = None
-        if Var.FORCE_SUB_CHANNEL:
-            try:
-                # Get or create force subscription channel invite link
-                fsub_chat = await client.get_chat(Var.FORCE_SUB_CHANNEL)
-                invite_link = fsub_chat.invite_link
-                if not invite_link:
-                    invite_link_obj = await client.create_chat_invite_link(Var.FORCE_SUB_CHANNEL)
-                    invite_link = invite_link_obj.invite_link
-                force_sub_link = invite_link
-            except Exception as e:
-                logger.warning(f"Could not get ForceSub channel info for start message: {e}")
-
         user_id = message.from_user.id
         try:
             # Add user to database for tracking and broadcast functionality
             await add_user(user_id)
         except Exception as e:
             logger.error(f"Database error adding user {user_id} on start: {e}")
+
+        # Premium access gate for non-admin users.
+        if not await user_has_premium_access(user_id):
+            await message.reply_text(
+                Var.NON_PREMIUM_START_TEXT.format(mention=message.from_user.mention),
+                quote=True,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+            return
 
         # Send welcome message with interactive keyboard
         start_text = Var.START_TEXT.format(mention=message.from_user.mention)
@@ -333,15 +311,33 @@ def attach_handlers(app: Client) -> None:
             start_text,
             quote=True,
             disable_web_page_preview=True,
-            reply_markup=build_start_keyboard(force_sub_link)
+            reply_markup=build_start_keyboard(),
         )
 
     @app.on_message(filters.command("help") & filters.private)
     async def help_handler(client: Client, message: Message):
+        user_id = message.from_user.id
+        if not await user_has_premium_access(user_id):
+            await message.reply_text(
+                Var.PREMIUM_REQUIRED_TEXT,
+                quote=True,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+            return
         await message.reply_text(Var.HELP_TEXT, quote=True, disable_web_page_preview=True)
 
     @app.on_message(filters.command("about") & filters.private)
     async def about_handler(client: Client, message: Message):
+        user_id = message.from_user.id
+        if not await user_has_premium_access(user_id):
+            await message.reply_text(
+                Var.PREMIUM_REQUIRED_TEXT,
+                quote=True,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+            return
         await message.reply_text(Var.ABOUT_TEXT, quote=True, disable_web_page_preview=True)
 
     @app.on_callback_query(filters.regex(r"^start:(help|about|close)$"))
@@ -537,19 +533,6 @@ def attach_handlers(app: Client) -> None:
             except:
                 client_count = "N/A"
             
-            # Get bandwidth usage information
-            try:
-                bandwidth_usage = await get_current_bandwidth_usage()
-                bandwidth_info = f"""
-📊 **Bandwidth Usage**:
-• Used this month: {bandwidth_usage['gb_used']:.3f} GB
-• Limit: {Var.BANDWIDTH_LIMIT_GB} GB {'(enabled)' if Var.BANDWIDTH_LIMIT_GB > 0 else '(disabled)'}
-• Month: {bandwidth_usage['month_key']}"""
-            except Exception as e:
-                bandwidth_info = f"""
-📊 **Bandwidth Usage**:
-• Error retrieving data: {str(e)}"""
-            
             memory_text = f"""
 📊 **System Statistics**
 
@@ -561,7 +544,6 @@ def attach_handlers(app: Client) -> None:
 🌐 **Active Resources**:
 • Active Streams: {active_streams}
 • Telegram Clients: {client_count}
-{bandwidth_info}
 
 {cache_info}
 ⏰ **Uptime**: {uptime_str}
@@ -577,21 +559,623 @@ def attach_handlers(app: Client) -> None:
             logger.error(f"Error getting system stats for admin {user_id}: {e}", exc_info=True)
             await message.reply_text(f"❌ Error retrieving system stats: {str(e)}", quote=True)
 
+    @app.on_message(filters.command("add") & filters.private)
+    async def add_user_handler(client: Client, message: Message):
+        """Grant bot access to a user (owner/admin only)."""
+        requester_id = message.from_user.id
+
+        if not is_privileged_user(requester_id) and not await is_user_admin(requester_id):
+            await message.reply_text("❌ Only the owner/admin can use this command.", quote=True)
+            return
+
+        parts = (message.text or "").split()
+        if len(parts) != 2:
+            await message.reply_text("Usage: /add <user_id>", quote=True)
+            return
+
+        try:
+            target_user_id = int(parts[1])
+        except ValueError:
+            await message.reply_text("Invalid user_id. It must be a number.", quote=True)
+            return
+
+        ok = await add_admin_user(target_user_id)
+        if not ok:
+            await message.reply_text("Failed to add user. Please try again.", quote=True)
+            return
+
+        await message.reply_text(
+            f"✅ User `{target_user_id}` added as admin (dynamic admin).",
+            quote=True,
+            disable_web_page_preview=True,
+        )
+
+    @app.on_message(filters.command("ban") & filters.private)
+    async def ban_user_handler(client: Client, message: Message):
+        """Remove user from subscription (does not ban Telegram account)."""
+        requester_id = message.from_user.id
+        if not is_privileged_user(requester_id) and not await is_user_admin(requester_id):
+            await message.reply_text("❌ Only owner/admin can use this command.", quote=True)
+            return
+
+        parts = (message.text or "").split()
+        if len(parts) != 2:
+            await message.reply_text("Usage: /ban <user_id>", quote=True)
+            return
+
+        try:
+            target_user_id = int(parts[1])
+        except ValueError:
+            await message.reply_text("Invalid user_id. It must be a number.", quote=True)
+            return
+
+        removed = await remove_allowed_user(target_user_id)
+
+        # Invalidate in-memory private-session links generated by this user immediately.
+        try:
+            if hasattr(client, "user_session_files") and isinstance(client.user_session_files, dict):
+                keys_to_delete = [k for k, v in client.user_session_files.items() if v.get("user_id") == target_user_id]
+                for k in keys_to_delete:
+                    del client.user_session_files[k]
+        except Exception:
+            pass
+
+        if removed:
+            await message.reply_text(
+                f"✅ User `{target_user_id}` removed from subscription.\n"
+                "Their generated links will stop working.",
+                quote=True,
+            )
+        else:
+            await message.reply_text(
+                f"ℹ️ User `{target_user_id}` was not in active subscription list.",
+                quote=True,
+            )
+
+    @app.on_message(filters.command("dashboard") & filters.private)
+    async def dashboard_url_handler(client: Client, message: Message):
+        """Owner-only command: generate one-time dashboard URL (30 minutes)."""
+        user_id = message.from_user.id
+        if user_id != Var.OWNER_ID:
+            await message.reply_text("❌ Only the owner can use /dashboard.", quote=True)
+            return
+
+        token = create_owner_one_time_token(owner_id=user_id, expires_minutes=30)
+        dashboard_url = f"{Var.BASE_URL}/owner/dashboard?token={token}"
+        await message.reply_text(
+            "Owner dashboard link (one-time use, expires in 30 minutes):\n"
+            f"{dashboard_url}",
+            quote=True,
+            disable_web_page_preview=True,
+        )
+
+    @app.on_callback_query(filters.regex(r"^premium:buy$"))
+    async def premium_buy_entry(client: Client, callback_query):
+        """Show payment method selection."""
+        await callback_query.answer()
+        try:
+            await callback_query.message.edit_text(
+                "Choose your payment method:",
+                reply_markup=buy_method_keyboard(),
+                disable_web_page_preview=True,
+            )
+        except Exception as e:
+            logger.warning(f"premium_buy_entry edit_text failed: {e}")
+            await callback_query.message.reply_text(
+                "Choose your payment method:",
+                reply_markup=buy_method_keyboard(),
+                disable_web_page_preview=True,
+            )
+
+    @app.on_callback_query(filters.regex(r"^premium:features$"))
+    async def premium_features_entry(client: Client, callback_query):
+        """Show features text for non-premium users."""
+        await callback_query.answer()
+        try:
+            await callback_query.message.edit_text(
+                Var.FEATURES_TEXT,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+        except Exception:
+            await callback_query.message.reply_text(
+                Var.FEATURES_TEXT,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+
+    @app.on_callback_query(filters.regex(r"^premium:howitworks$"))
+    async def premium_howitworks_entry(client: Client, callback_query):
+        """Show how it works text for non-premium users."""
+        await callback_query.answer()
+        try:
+            await callback_query.message.edit_text(
+                Var.HOW_IT_WORKS_TEXT,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+        except Exception:
+            await callback_query.message.reply_text(
+                Var.HOW_IT_WORKS_TEXT,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+
+    @app.on_callback_query(filters.regex(r"^premium:pricing$"))
+    async def premium_pricing_entry(client: Client, callback_query):
+        """Show pricing overview for non-premium users."""
+        await callback_query.answer()
+        try:
+            await callback_query.message.edit_text(
+                Var.PRICING_TEXT,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+        except Exception:
+            await callback_query.message.reply_text(
+                Var.PRICING_TEXT,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+
+    @app.on_callback_query(filters.regex(r"^premium:help$"))
+    async def premium_help_entry(client: Client, callback_query):
+        """Show help text for non-premium users."""
+        await callback_query.answer()
+        try:
+            await callback_query.message.edit_text(
+                Var.HELP_TEXT,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+        except Exception:
+            await callback_query.message.reply_text(
+                Var.HELP_TEXT,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+
+    @app.on_callback_query(filters.regex(r"^premium:method:(crypto|upi)$"))
+    async def premium_method_selected(client: Client, callback_query):
+        """Show days selection after payment method."""
+        await callback_query.answer()
+        data = callback_query.data or ""
+        method = data.split(":")[-1]
+
+        try:
+            await callback_query.message.edit_text(
+                f"Selected payment method: {_method_pretty(method)}\n\n"
+                "Choose subscription duration.\n"
+                "If needed, days are rounded up to the next available tier.",
+                reply_markup=buy_days_keyboard(method),
+            )
+        except Exception as e:
+            logger.warning(f"premium_method_selected edit_text failed: {e}")
+            await callback_query.message.reply_text(
+                f"Selected payment method: {_method_pretty(method)}\nChoose subscription duration:",
+                reply_markup=buy_days_keyboard(method),
+            )
+
+    @app.on_callback_query(filters.regex(r"^premium:days:(crypto|upi):(\d+)$"))
+    async def premium_days_selected(client: Client, callback_query):
+        """Create a pending transaction and show payment instructions."""
+        await callback_query.answer()
+        data = callback_query.data or ""
+        _, _, method, days_raw = data.split(":", 3)
+        selected_days = int(days_raw)
+
+        priced_days = _round_days_up(selected_days)
+        if Var.PRICE_PER_DAY_USD <= 0 and Var.PRICE_PER_DAY_INR <= 0:
+            await callback_query.message.reply_text(
+                "Pricing is not configured. Please contact the owner.",
+                quote=True,
+            )
+            return
+
+        amount_usd = None
+        amount_inr = None
+        if Var.PRICE_PER_DAY_USD > 0:
+            amount_usd = Var.PRICE_PER_DAY_USD * priced_days
+        if Var.PRICE_PER_DAY_INR > 0:
+            amount_inr = Var.PRICE_PER_DAY_INR * priced_days
+
+        txn_id = secrets.token_hex(4)  # 8 hex chars, safe for callback_data
+
+        user = callback_query.from_user
+        user_snapshot = {
+            "user_id": user.id,
+            "first_name": getattr(user, "first_name", "") or "",
+            "last_name": getattr(user, "last_name", "") or "",
+            "username": getattr(user, "username", "") or "",
+            "language_code": getattr(user, "language_code", "") or "",
+        }
+
+        ok = await create_pending_txn(
+            txn_id=txn_id,
+            user_id=user.id,
+            method=method,
+            selected_days=selected_days,
+            priced_days=priced_days,
+            amount_usd=amount_usd,
+            amount_inr=amount_inr,
+            user_snapshot=user_snapshot,
+        )
+        if not ok:
+            await callback_query.message.reply_text(
+                "Failed to start purchase. Please try again.",
+                quote=True,
+            )
+            return
+
+        # Display amounts
+        if method == "crypto":
+            if amount_usd is None:
+                await callback_query.message.reply_text(
+                    "Crypto pricing is not configured correctly. Please contact the owner.",
+                    quote=True,
+                )
+                return
+            pay_line = f"Amount to pay: {amount_usd:.2f} USDT (BEP20)"
+            address_line = f"USDT BEP20 address:\n{Var.USDT_BEP20_ADDRESS}"
+        else:
+            if amount_inr is None:
+                await callback_query.message.reply_text(
+                    "UPI pricing is not configured correctly. Please contact the owner.",
+                    quote=True,
+                )
+                return
+            pay_line = f"Amount to pay: INR {amount_inr:.2f}"
+            address_line = f"UPI ID:\n{Var.UPI_ID}"
+
+        extra_round_note = ""
+        if priced_days != selected_days:
+            extra_round_note = f"\n\nRounded up: {selected_days} -> {priced_days} day(s)."
+
+        try:
+            payment_msg = (
+                "Premium purchase started.\n\n"
+                f"Payment method: {_method_pretty(method)}\n"
+                f"Subscription days: {priced_days}\n"
+                f"{pay_line}\n\n"
+                f"{address_line}"
+                f"{extra_round_note}\n\n"
+                "After making the payment, click I PAID.\n"
+                "Then upload your payment screenshot in this chat."
+            )
+            await callback_query.message.edit_text(
+                payment_msg,
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [
+                            InlineKeyboardButton("I PAID", callback_data=f"premium:paid:{txn_id}"),
+                            InlineKeyboardButton("CANCEL", callback_data=f"premium:cancel:{txn_id}"),
+                        ]
+                    ]
+                ),
+                disable_web_page_preview=True,
+            )
+        except Exception as e:
+            logger.warning(f"premium_days_selected edit_text failed: {e}")
+            await callback_query.message.reply_text(
+                payment_msg,
+                reply_markup=InlineKeyboardMarkup(
+                    [[
+                        InlineKeyboardButton("I PAID", callback_data=f"premium:paid:{txn_id}"),
+                        InlineKeyboardButton("CANCEL", callback_data=f"premium:cancel:{txn_id}"),
+                    ]]
+                ),
+                disable_web_page_preview=True,
+            )
+
+    @app.on_callback_query(filters.regex(r"^premium:paid:([0-9a-fA-F]{8})$"))
+    async def premium_paid_clicked(client: Client, callback_query):
+        """User marked payment as done; now request screenshot."""
+        await callback_query.answer()
+        txn_id = (callback_query.data or "").split(":")[-1]
+
+        ok = await set_pending_txn_paid(txn_id)
+        if not ok:
+            await callback_query.message.reply_text("Payment step failed or this request is no longer active.")
+            return
+
+        try:
+            await callback_query.message.edit_text(
+                "Payment marked as submitted.\n\n"
+                "Now upload your payment screenshot here (photo or document).\n"
+                "After upload, review your details and press CONFIRM.\n",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("CANCEL", callback_data=f"premium:cancel:{txn_id}")]]
+                ),
+                disable_web_page_preview=True,
+            )
+        except Exception:
+            await callback_query.message.reply_text(
+                "Now upload your payment screenshot here (photo or document).",
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton("CANCEL", callback_data=f"premium:cancel:{txn_id}")]]
+                ),
+                disable_web_page_preview=True,
+            )
+
+    @app.on_callback_query(filters.regex(r"^premium:cancel:([0-9a-fA-F]{8})$"))
+    async def premium_cancel_clicked(client: Client, callback_query):
+        await callback_query.answer()
+        txn_id = (callback_query.data or "").split(":")[-1]
+
+        ok = await cancel_pending_txn(txn_id)
+        if not ok:
+            return
+        await callback_query.message.reply_text("Purchase cancelled.")
+
+    @app.on_message(
+        filters.private
+        & (filters.photo | filters.document),
+        group=1,
+    )
+    async def premium_screenshot_handler(client: Client, message: Message):
+        """Receive screenshot after user clicks I PAID."""
+        user_id = message.from_user.id
+        pending = await get_latest_pending_txn_for_user(user_id)
+        if not pending or pending.get("status") != "awaiting_screenshot":
+            return
+
+        txn_id = pending.get("_id")
+        if not txn_id:
+            return
+
+        screenshot_file_id = None
+        screenshot_file_unique_id = None
+        screenshot_is_photo = None
+
+        if message.photo:
+            # Best-effort: take the largest photo variant
+            screenshot_is_photo = True
+            screenshot_file_id = message.photo.file_id
+            screenshot_file_unique_id = getattr(message.photo, "file_unique_id", None)
+        elif message.document:
+            screenshot_is_photo = False
+            screenshot_file_id = message.document.file_id
+            screenshot_file_unique_id = getattr(message.document, "file_unique_id", None)
+
+        if not screenshot_file_id:
+            await message.reply_text("Couldn't detect the screenshot file. Please send again.")
+            return
+
+        ok = await set_pending_txn_screenshot(
+            txn_id,
+            screenshot_file_id=screenshot_file_id,
+            screenshot_file_unique_id=screenshot_file_unique_id,
+            screenshot_is_photo=screenshot_is_photo,
+        )
+        if not ok:
+            await message.reply_text("Screenshot upload failed (step outdated). Please try again.")
+            return
+
+        pending2 = await get_pending_txn(txn_id)
+        if not pending2:
+            await message.reply_text("Unexpected error. Please try again.")
+            return
+
+        user_snapshot = pending2.get("user_snapshot", {}) or {}
+        amount_line = ""
+        if pending2.get("method") == "crypto" and pending2.get("amount_usd") is not None:
+            amount_line = f"{pending2['amount_usd']:.2f} USDT"
+        elif pending2.get("amount_inr") is not None:
+            amount_line = f"INR {pending2['amount_inr']:.2f}"
+
+        details_text = (
+            "Review your payment details:\n\n"
+            f"Transaction ID: {txn_id}\n"
+            f"User ID: {user_snapshot.get('user_id', user_id)}\n"
+            f"Username: @{user_snapshot.get('username', '') or 'N/A'}\n"
+            f"Name: {user_snapshot.get('first_name', '')} {user_snapshot.get('last_name', '')}".strip() + "\n"
+            f"Language: {user_snapshot.get('language_code', '') or 'N/A'}\n"
+            f"Payment method: {_method_pretty(pending2.get('method'))}\n"
+            f"Days: {pending2.get('priced_days')}\n"
+            f"Amount: {amount_line}\n"
+        )
+
+        markup = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("CONFIRM", callback_data=f"premium:submit:{txn_id}"),
+                    InlineKeyboardButton("CANCEL", callback_data=f"premium:cancel:{txn_id}"),
+                ]
+            ]
+        )
+        if screenshot_is_photo:
+            await message.reply_photo(
+                screenshot_file_id,
+                caption=details_text,
+                reply_markup=markup,
+            )
+        else:
+            await message.reply_document(
+                screenshot_file_id,
+                caption=details_text,
+                reply_markup=markup,
+            )
+
+    @app.on_callback_query(filters.regex(r"^premium:submit:([0-9a-fA-F]{8})$"))
+    async def premium_submit_clicked(client: Client, callback_query):
+        """User confirms; send to txn channel for admin approval."""
+        await callback_query.answer()
+        txn_id = (callback_query.data or "").split(":")[-1]
+        pending = await get_pending_txn(txn_id)
+        if not pending:
+            await callback_query.message.reply_text("Txn not found or expired.")
+            return
+        status = pending.get("status")
+        if status == "submitted_to_admin":
+            await callback_query.message.reply_text("Already submitted. Please wait for admin confirmation.")
+            return
+        if status != "awaiting_admin":
+            await callback_query.message.reply_text("This txn is not ready for submission.")
+            return
+
+        # Mark as submitted to prevent duplicates
+        await mark_pending_txn_submitted(txn_id)
+
+        user_snapshot = pending.get("user_snapshot", {}) or {}
+        method = pending.get("method")
+        priced_days = pending.get("priced_days")
+        amount_usd = pending.get("amount_usd")
+        amount_inr = pending.get("amount_inr")
+
+        if method == "crypto":
+            amount_line = f"{amount_usd:.2f} USDT"
+            address_line = f"USDT BEP20: {Var.USDT_BEP20_ADDRESS}"
+        else:
+            amount_line = f"INR {amount_inr:.2f}"
+            address_line = f"UPI ID: {Var.UPI_ID}"
+
+        caption = (
+            "New premium payment submission (pending admin approval)\n\n"
+            f"Transaction ID: {txn_id}\n"
+            f"User ID: {user_snapshot.get('user_id')}\n"
+            f"Username: @{user_snapshot.get('username') or 'N/A'}\n"
+            f"Name: {user_snapshot.get('first_name', '')} {user_snapshot.get('last_name', '')}".strip() + "\n"
+            f"Language: {user_snapshot.get('language_code', '') or 'N/A'}\n"
+            f"Method: {_method_pretty(method)}\n"
+            f"Days: {priced_days}\n"
+            f"Amount: {amount_line}\n\n"
+            f"{address_line}\n"
+        )
+
+        screenshot_file_id = pending.get("screenshot_file_id")
+        screenshot_is_photo = pending.get("screenshot_is_photo")
+        if not screenshot_file_id:
+            await callback_query.message.reply_text("Screenshot missing for this txn.")
+            return
+
+        try:
+            if screenshot_is_photo:
+                await client.send_photo(
+                    chat_id=Var.TXN_CHNL_ID,
+                    photo=screenshot_file_id,
+                    caption=caption,
+                    reply_markup=InlineKeyboardMarkup(
+                        [
+                            [
+                                InlineKeyboardButton(
+                                    "CONFIRM",
+                                    callback_data=f"txn:confirm:{txn_id}",
+                                ),
+                                InlineKeyboardButton(
+                                    "REJECT",
+                                    callback_data=f"txn:reject:{txn_id}",
+                                ),
+                            ]
+                        ]
+                    ),
+                )
+            else:
+                await client.send_document(
+                    chat_id=Var.TXN_CHNL_ID,
+                    document=screenshot_file_id,
+                    caption=caption,
+                    reply_markup=InlineKeyboardMarkup(
+                        [
+                            [
+                                InlineKeyboardButton(
+                                    "CONFIRM",
+                                    callback_data=f"txn:confirm:{txn_id}",
+                                ),
+                                InlineKeyboardButton(
+                                    "REJECT",
+                                    callback_data=f"txn:reject:{txn_id}",
+                                ),
+                            ]
+                        ]
+                    ),
+                )
+        except Exception as e:
+            logger.error(f"Failed to send transaction {txn_id} to TXN_CHNL_ID={Var.TXN_CHNL_ID}: {e}", exc_info=True)
+            await callback_query.message.reply_text(
+                "Failed to send to transaction channel. Please verify TXN_CHNL_ID, bot permissions, and try again."
+            )
+            return
+
+        await callback_query.message.reply_text("Submitted to owner/admin for approval. Please wait.")
+
+    @app.on_callback_query(filters.regex(r"^txn:(confirm|reject):([0-9a-fA-F]{8})$"))
+    async def txn_admin_decision(client: Client, callback_query):
+        """Owner/admin confirms/rejects a transaction from txn channel."""
+        await callback_query.answer()
+        if not callback_query.message or not callback_query.data:
+            return
+
+        # Only allow decision from the configured txn channel
+        try:
+            if callback_query.message.chat.id != Var.TXN_CHNL_ID:
+                return
+        except Exception:
+            return
+
+        actor_id = callback_query.from_user.id
+        if not is_privileged_user(actor_id) and not await is_user_admin(actor_id):
+            return
+
+        parts = callback_query.data.split(":")
+        action = parts[1]
+        txn_id = parts[2]
+
+        if action == "confirm":
+            approved = await approve_pending_txn(txn_id, admin_id=actor_id)
+            if not approved:
+                await callback_query.message.reply_text("Approval failed (txn not found/ready).")
+                return
+
+            # Notify user
+            user_id = int(approved["user_id"])
+            expires_at = approved["expires_at"]
+            await client.send_message(
+                chat_id=user_id,
+                text=(
+                    "✅ Premium approved!\n\n"
+                    f"Your access is active now and will expire at: {expires_at.isoformat()}\n"
+                    "You can now use the bot."
+                ),
+            )
+
+            try:
+                await callback_query.message.edit_reply_markup(reply_markup=None)
+            except Exception:
+                pass
+        else:
+            ok = await reject_pending_txn(txn_id, admin_id=actor_id)
+            if not ok:
+                await callback_query.message.reply_text("Rejection failed (txn not found/ready).")
+                return
+
+            pending = await get_pending_txn(txn_id)
+            user_id = pending.get("user_id") if pending else None
+            if user_id:
+                await client.send_message(chat_id=int(user_id), text="❌ Premium payment rejected. You can try again.")
+
+            try:
+                await callback_query.message.edit_reply_markup(reply_markup=None)
+            except Exception:
+                pass
+
     @app.on_message(filters.command("login") & filters.private)
     async def login_handler(client: Client, message: Message):
         """Handle the /login command to provide session generator web link."""
         user_id = message.from_user.id
 
+        if not await user_has_premium_access(user_id):
+            await message.reply_text(
+                Var.PREMIUM_REQUIRED_TEXT,
+                quote=True,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+            return
+
         if not Var.ALLOW_USER_LOGIN:
             await message.reply_text(SESSION_GENERATOR_DISABLED_TEXT, quote=True)
             logger.info(f"Session generator disabled - login denied for user {user_id}")
             return
-        
-        # Check bandwidth limit (admins bypass this check)
-        if user_id not in Var.ADMINS:
-            if await is_bandwidth_limit_exceeded():
-                await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
-                return
         
         try:
             # Add user to database if not exists (efficient single operation)
@@ -660,16 +1244,19 @@ def attach_handlers(app: Client) -> None:
         """Handle the /logout command to revoke user session."""
         user_id = message.from_user.id
 
+        if not await user_has_premium_access(user_id):
+            await message.reply_text(
+                Var.PREMIUM_REQUIRED_TEXT,
+                quote=True,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+            return
+
         if not Var.ALLOW_USER_LOGIN:
             await message.reply_text(SESSION_GENERATOR_DISABLED_TEXT, quote=True)
             logger.info(f"Session generator disabled - logout denied for user {user_id}")
             return
-        
-        # Check bandwidth limit (admins bypass this check)
-        if user_id not in Var.ADMINS:
-            if await is_bandwidth_limit_exceeded():
-                await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
-                return
         
         try:
             from StreamBot.database.user_sessions import check_user_has_session, revoke_user_session
@@ -740,16 +1327,19 @@ To generate download links again, use `/login` to create a new session."""
         from pyrogram.errors import AuthKeyUnregistered, UserDeactivated, UserDeactivatedBan
         user_id = message.from_user.id
 
+        if not await user_has_premium_access(user_id):
+            await message.reply_text(
+                Var.PREMIUM_REQUIRED_TEXT,
+                quote=True,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
+            return
+
         if not Var.ALLOW_USER_LOGIN:
             await message.reply_text(SESSION_GENERATOR_DISABLED_TEXT, quote=True)
             logger.info(f"Session generator disabled - session info denied for user {user_id}")
             return
-        
-        # Check bandwidth limit (admins bypass this check)
-        if user_id not in Var.ADMINS:
-            if await is_bandwidth_limit_exceeded():
-                await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
-                return
         
         if not await check_user_has_session(user_id):
             await message.reply_text("ℹ️ You don't have an active session. Use /login to create one.", quote=True)
@@ -800,35 +1390,14 @@ To generate download links again, use `/login` to create a new session."""
     async def link_handler(client: Client, message: Message):
         """Handle incoming Telegram message links."""
         user_id = message.from_user.id
-        
-        # Basic checks (rate limit, bandwidth, force sub)
-        if user_id not in Var.ADMINS:
-            if Var.MAX_LINKS_PER_DAY > 0:
-                can_generate = await bot_rate_limiter.check_and_record_link_generation(user_id)
-                if not can_generate:
-                    _, wait_time_seconds = await bot_rate_limiter.get_user_link_count_and_wait_time(user_id)
-                    wait_hours = wait_time_seconds / 3600
-                    wait_minutes = (wait_time_seconds % 3600) / 60
 
-                    if wait_time_seconds > 0:
-                        reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT.format(
-                            max_links=Var.MAX_LINKS_PER_DAY,
-                            wait_hours=wait_hours,
-                            wait_minutes=wait_minutes
-                        )
-                    else:
-                        reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT_NO_WAIT.format(max_links=Var.MAX_LINKS_PER_DAY)
-
-                    await message.reply_text(reply_text, quote=True)
-                    return
-            else:
-                await bot_rate_limiter.check_and_record_link_generation(user_id)
-
-        if await is_bandwidth_limit_exceeded():
-            await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
-            return
-
-        if not await check_force_sub(client, message):
+        if not await user_has_premium_access(user_id):
+            await message.reply_text(
+                Var.PREMIUM_REQUIRED_TEXT,
+                quote=True,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
             return
 
         processing_msg = await message.reply_text("⏳ Accessing your private content and generating download link...", quote=True)
@@ -873,9 +1442,24 @@ To generate download links again, use `/login` to create a new session."""
             # Generate download link using the same structure as forwarded files
             encoded_msg_id = encode_message_id(virtual_msg_id)
             download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
+            await record_link_generated(
+                encoded_id=encoded_msg_id,
+                user_id=user_id,
+                file_name=file_name,
+                file_size=file_size,
+                source="private_session",
+                user_profile={
+                    "username": getattr(message.from_user, "username", "") or "",
+                    "first_name": getattr(message.from_user, "first_name", "") or "",
+                    "last_name": getattr(message.from_user, "last_name", "") or "",
+                    "language_code": getattr(message.from_user, "language_code", "") or "",
+                    "is_premium": bool(getattr(message.from_user, "is_premium", False)),
+                    "is_verified": bool(getattr(message.from_user, "is_verified", False)),
+                },
+            )
 
             # Process download link (shorten if file size exceeds threshold)
-            processed_download_link = await process_link(download_link, file_size, user_id=user_id)
+            processed_download_link = process_link(download_link, file_size, user_id=user_id)
 
             is_video = is_video_file(file_mime_type)
             reply_markup = None
@@ -887,7 +1471,7 @@ To generate download links again, use `/login` to create a new session."""
                 import urllib.parse
                 encoded_stream_uri = urllib.parse.quote(processed_stream_link)
                 video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
-                video_play_url = await process_link(video_play_url, file_size, user_id=user_id)
+                video_play_url = process_link(video_play_url, file_size, user_id=user_id)
                 reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("🎬 Play Video", url=video_play_url)]])
 
             await processing_msg.edit_text(
@@ -895,7 +1479,6 @@ To generate download links again, use `/login` to create a new session."""
                 f"**File Name:** `{file_name}`\n"
                 f"**File Size:** {file_size_str}\n\n"
                 f"**Link:** {processed_download_link}\n\n"
-                f"⏳ **Expires:** In approximately 24 hours.\n\n"
                 f"🔒 This link uses your personal session to access the private content.",
                 reply_markup=reply_markup,
                 disable_web_page_preview=True
@@ -913,12 +1496,9 @@ To generate download links again, use `/login` to create a new session."""
     ))
     async def file_handler(client: Client, message: Message) -> None:
         """
-        Handle incoming media messages and generate secure download links.
+        Handle incoming media messages and generate download links.
 
-        This handler processes uploaded files by forwarding them to a log channel,
-        then generates time-limited download links. It includes comprehensive
-        security checks including rate limiting, bandwidth monitoring, and
-        force subscription verification.
+        This handler forwards uploads to the log channel and returns a direct download URL.
 
         Args:
             client (Client): The Pyrogram client instance
@@ -926,41 +1506,19 @@ To generate download links again, use `/login` to create a new session."""
         """
         user_id = message.from_user.id
 
-        # Rate limiting check - ensure proper enforcement
-        if user_id not in Var.ADMINS:  # Always check for non-admins
-            if Var.MAX_LINKS_PER_DAY > 0:  # Only if limit is positive
-                can_generate = await bot_rate_limiter.check_and_record_link_generation(user_id)
-                if not can_generate:
-                    _, wait_time_seconds = await bot_rate_limiter.get_user_link_count_and_wait_time(user_id)
-                    wait_hours = wait_time_seconds / 3600
-                    wait_minutes = (wait_time_seconds % 3600) / 60
+        # If the user is in the middle of a payment screenshot upload,
+        # don't trigger normal download-link logic.
+        pending = await get_latest_pending_txn_for_user(user_id)
+        if pending and pending.get("status") == "awaiting_screenshot":
+            return
 
-                    if wait_time_seconds > 0:
-                        reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT.format(
-                            max_links=Var.MAX_LINKS_PER_DAY,
-                            wait_hours=wait_hours,
-                            wait_minutes=wait_minutes
-                        )
-                    else:
-                        reply_text = Var.RATE_LIMIT_EXCEEDED_TEXT_NO_WAIT.format(max_links=Var.MAX_LINKS_PER_DAY)
-
-                    await message.reply_text(reply_text, quote=True)
-                    return
-            else:
-                # If MAX_LINKS_PER_DAY is 0 or negative, still record for stats but don't limit
-                await bot_rate_limiter.check_and_record_link_generation(user_id)
-
-        # Bandwidth limit check (non-admins only)
-        if await is_bandwidth_limit_exceeded():
-            if user_id in Var.ADMINS:
-                logger.info(f"Bandwidth limit reached but allowing admin user {user_id} to continue")
-            else:
-                logger.warning(f"File upload from user {user_id} rejected: bandwidth limit exceeded")
-                await message.reply_text(Var.BANDWIDTH_LIMIT_EXCEEDED_TEXT, quote=True)
-                return
-
-        # Force subscription check
-        if not await check_force_sub(client, message):
+        if not await user_has_premium_access(user_id):
+            await message.reply_text(
+                Var.PREMIUM_REQUIRED_TEXT,
+                quote=True,
+                reply_markup=premium_access_keyboard(),
+                disable_web_page_preview=True,
+            )
             return
 
         if not Var.LOG_CHANNEL:
@@ -989,9 +1547,24 @@ To generate download links again, use `/login` to create a new session."""
             # Generate download link
             encoded_msg_id = encode_message_id(log_msg.id)
             download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
+            await record_link_generated(
+                encoded_id=encoded_msg_id,
+                user_id=user_id,
+                file_name=file_name,
+                file_size=file_size,
+                source="uploaded_media",
+                user_profile={
+                    "username": getattr(message.from_user, "username", "") or "",
+                    "first_name": getattr(message.from_user, "first_name", "") or "",
+                    "last_name": getattr(message.from_user, "last_name", "") or "",
+                    "language_code": getattr(message.from_user, "language_code", "") or "",
+                    "is_premium": bool(getattr(message.from_user, "is_premium", False)),
+                    "is_verified": bool(getattr(message.from_user, "is_verified", False)),
+                },
+            )
 
             # Process download link (shorten if file size exceeds threshold)
-            processed_download_link = await process_link(download_link, file_size, user_id=user_id)
+            processed_download_link = process_link(download_link, file_size, user_id=user_id)
 
             # Check if it's a video file and create appropriate response
             is_video = is_video_file(file_mime_type)
@@ -1004,7 +1577,7 @@ To generate download links again, use `/login` to create a new session."""
                 import urllib.parse
                 encoded_stream_uri = urllib.parse.quote(stream_link)
                 video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
-                video_play_url = await process_link(video_play_url, file_size, user_id=user_id)
+                video_play_url = process_link(video_play_url, file_size, user_id=user_id)
 
                 reply_markup = InlineKeyboardMarkup([
                     [InlineKeyboardButton("🎬 Play Video", url=video_play_url)]
@@ -1030,6 +1603,40 @@ To generate download links again, use `/login` to create a new session."""
         except Exception as e:
             logger.error(f"Error processing file from user {user_id}: {e}", exc_info=True)
             await processing_msg.edit_text(Var.ERROR_TEXT)
+
+    @app.on_message(
+        filters.private
+        & filters.text
+        & ~filters.command(
+            [
+                "start",
+                "help",
+                "about",
+                "add",
+                "ban",
+                "dashboard",
+                "logs",
+                "stats",
+                "broadcast",
+                "login",
+                "logout",
+                "session",
+            ]
+        )
+        & ~filters.regex(r"https?://t\.me/.*")
+    )
+    async def premium_gate_text_fallback(client: Client, message: Message):
+        """Ask non-premium users to contact the owner."""
+        user_id = message.from_user.id
+        if await user_has_premium_access(user_id):
+            return
+
+        await message.reply_text(
+            Var.PREMIUM_REQUIRED_TEXT,
+            quote=True,
+            reply_markup=premium_access_keyboard(),
+            disable_web_page_preview=True,
+        )
 
     @app.on_message(filters.command("broadcast") & filters.private)
     async def broadcast_handler(client: Client, message: Message):

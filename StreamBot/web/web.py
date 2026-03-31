@@ -17,18 +17,18 @@ from StreamBot.config import Var
 from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id, get_media_message
 from StreamBot.utils.file_properties import parse_file_id
 from StreamBot.utils.exceptions import NoClientsAvailableError # Import custom exception
-from StreamBot.utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
 from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_response
 from StreamBot.security.middleware import SecurityMiddleware
 from StreamBot.security.validator import validate_range_header, sanitize_filename, get_client_ip
 from StreamBot.utils.custom_dl import ByteStreamer
+from StreamBot.utils.exceptions import NoClientsAvailableError
 from .streaming import stream_video_route
-from ..utils.stream_cleanup import stream_tracker, tracked_stream_response
-from ..utils.bandwidth import is_bandwidth_limit_exceeded, add_bandwidth_usage
-from ..utils.exceptions import NoClientsAvailableError
+from StreamBot.database.user_access import is_user_allowed, is_user_admin
+from StreamBot.database.analytics import record_link_access, get_dashboard_data, get_link_owner_user_id, get_user_detail, get_link_events
 from ..session_generator.interactive_login import interactive_login_manager
 from .auth_cookies import set_auth_cookies, get_session_token
 from ..security.rate_limiter import invalid_request_guard
+from .dashboard_auth import consume_owner_one_time_token, create_dashboard_session, get_dashboard_session_owner
 
 import hashlib
 from typing import Optional, Dict, Any
@@ -130,30 +130,18 @@ async def validate_session_token(token: str) -> int | None:
 
     return token_data['user_id']
 
-def check_session_generator_access(user_id: int) -> bool:
-    """Return True only when session generator logins are enabled."""
-    return bool(Var.ALLOW_USER_LOGIN)
+async def check_session_generator_access(user_id: int) -> bool:
+    """Return True if the user can access session generator (premium access)."""
+    if not Var.ALLOW_USER_LOGIN:
+        return False
+    if user_id == Var.OWNER_ID:
+        return True
+    if Var.ADMINS and user_id in Var.ADMINS:
+        return True
+    if await is_user_admin(user_id):
+        return True
+    return await is_user_allowed(user_id)
 
-
-async def get_force_sub_redirect_url(bot_client: Optional[Client]) -> Optional[str]:
-    """Resolve a shareable URL for the force-subscribe channel if configured."""
-    if not bot_client or not Var.FORCE_SUB_CHANNEL:
-        return None
-
-    try:
-        chat = await bot_client.get_chat(Var.FORCE_SUB_CHANNEL)
-        if getattr(chat, "username", None):
-            return f"https://telegram.dog/{chat.username}"
-        if getattr(chat, "invite_link", None):
-            return chat.invite_link
-
-        invite_link = await bot_client.create_chat_invite_link(Var.FORCE_SUB_CHANNEL)
-        return getattr(invite_link, "invite_link", None)
-    except FloodWait as e:
-        logger.warning(f"FloodWait while resolving force-subscribe link: {e.value}s")
-    except Exception as e:
-        logger.warning(f"Unable to resolve force-subscribe link: {e}")
-    return None
 
 # Request timeout for streaming operations (2 hours max)
 STREAM_TIMEOUT = 7200  # 2 hours
@@ -178,6 +166,441 @@ def format_uptime(start_time_dt: datetime.datetime) -> str:
         uptime_str += f"{minutes}m "
     uptime_str += f"{seconds}s"
     return uptime_str.strip() if uptime_str else "0s"
+
+
+def should_render_download_landing(request: web.Request) -> bool:
+    """Return True when browser users should see a landing page before download."""
+    if request.query.get("download") == "1":
+        return False
+    if request.headers.get("Range"):
+        return False
+
+    sec_fetch_dest = (request.headers.get("Sec-Fetch-Dest") or "").lower()
+    sec_fetch_mode = (request.headers.get("Sec-Fetch-Mode") or "").lower()
+    accept = (request.headers.get("Accept") or "").lower()
+
+    return (
+        sec_fetch_dest == "document"
+        or sec_fetch_mode == "navigate"
+        or "text/html" in accept
+    )
+
+
+async def _user_has_download_access(user_id: int) -> bool:
+    """Check if a user is privileged or has active subscription."""
+    if not isinstance(user_id, int) or user_id <= 0:
+        return False
+    if user_id == Var.OWNER_ID:
+        return True
+    if Var.ADMINS and user_id in Var.ADMINS:
+        return True
+    if await is_user_admin(user_id):
+        return True
+    return await is_user_allowed(user_id)
+
+
+def _detect_file_category(file_name: str) -> str:
+    """Detect file category from extension for icon display."""
+    ext = (file_name.rsplit('.', 1)[-1] if '.' in file_name else '').lower()
+    if ext in ('mp4', 'mkv', 'avi', 'mov', 'webm', 'flv', 'wmv', 'm4v', 'ts', '3gp'):
+        return 'video'
+    if ext in ('mp3', 'flac', 'wav', 'aac', 'ogg', 'wma', 'm4a', 'opus'):
+        return 'audio'
+    if ext in ('jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg', 'ico', 'tiff'):
+        return 'image'
+    if ext in ('zip', 'rar', '7z', 'tar', 'gz', 'bz2', 'xz', 'zst'):
+        return 'archive'
+    if ext in ('pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'csv', 'rtf', 'odt'):
+        return 'document'
+    if ext in ('py', 'js', 'ts', 'html', 'css', 'json', 'xml', 'yaml', 'yml', 'sh', 'bat', 'c', 'cpp', 'java', 'go', 'rs'):
+        return 'code'
+    if ext in ('exe', 'msi', 'dmg', 'deb', 'rpm', 'apk', 'appimage'):
+        return 'executable'
+    return 'file'
+
+
+def render_download_landing_page(*, file_name: str, file_size: int, direct_url: str) -> str:
+    """Premium download landing page with animated UI."""
+    safe_name = sanitize_filename(file_name or "file")
+    size_text = humanbytes(file_size or 0)
+    escaped_url = direct_url.replace("&", "&amp;")
+    category = _detect_file_category(safe_name)
+    ext = (safe_name.rsplit('.', 1)[-1] if '.' in safe_name else '').upper()
+
+    # SVG icons per category
+    icons = {
+        'video': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>',
+        'audio': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>',
+        'image': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>',
+        'archive': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>',
+        'document': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
+        'code': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>',
+        'executable': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>',
+        'file': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>',
+    }
+    icon_svg = icons.get(category, icons['file'])
+
+    # Accent colors per category
+    accent_map = {
+        'video': ('#a78bfa', '#7c3aed', 'rgba(167,139,250,0.15)'),
+        'audio': ('#f472b6', '#db2777', 'rgba(244,114,182,0.15)'),
+        'image': ('#34d399', '#059669', 'rgba(52,211,153,0.15)'),
+        'archive': ('#fbbf24', '#d97706', 'rgba(251,191,36,0.15)'),
+        'document': ('#60a5fa', '#2563eb', 'rgba(96,165,250,0.15)'),
+        'code': ('#a3e635', '#65a30d', 'rgba(163,230,53,0.15)'),
+        'executable': ('#fb923c', '#ea580c', 'rgba(251,146,60,0.15)'),
+        'file': ('#94a3b8', '#64748b', 'rgba(148,163,184,0.15)'),
+    }
+    accent1, accent2, accent_bg = accent_map.get(category, accent_map['file'])
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Download — {safe_name}</title>
+  <meta name="description" content="Download {safe_name} ({size_text}) — secure direct download link."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after {{ box-sizing:border-box; margin:0; padding:0; }}
+    :root {{
+      --bg: #06080f;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border-accent: rgba(255,255,255,0.12);
+      --text: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-tertiary: #64748b;
+      --accent1: {accent1};
+      --accent2: {accent2};
+      --accent-bg: {accent_bg};
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
+    }}
+    html {{ scroll-behavior:smooth; }}
+    body {{
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      padding: 20px;
+      overflow: hidden;
+      background: var(--bg);
+    }}
+    /* Animated gradient background */
+    .bg-gradient {{
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, {accent_bg}, transparent),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(99,102,241,0.08), transparent),
+        radial-gradient(ellipse 50% 40% at 50% 50%, rgba(15,23,42,0.5), transparent);
+      animation: bgPulse 8s ease-in-out infinite alternate;
+    }}
+    @keyframes bgPulse {{
+      0% {{ opacity:0.7; transform:scale(1); }}
+      100% {{ opacity:1; transform:scale(1.05); }}
+    }}
+    /* Floating particles */
+    .particles {{
+      position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none;
+    }}
+    .particles span {{
+      position:absolute; display:block; width:2px; height:2px;
+      background: var(--accent1); border-radius:50%; opacity:0;
+      animation: floatUp linear infinite;
+    }}
+    @keyframes floatUp {{
+      0% {{ opacity:0; transform:translateY(100vh) scale(0); }}
+      10% {{ opacity:0.6; }}
+      90% {{ opacity:0.3; }}
+      100% {{ opacity:0; transform:translateY(-10vh) scale(1); }}
+    }}
+    .container {{
+      position: relative;
+      z-index: 1;
+      width: min(520px, 100%);
+      animation: slideUp 0.6s cubic-bezier(0.16,1,0.3,1) forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }}
+    @keyframes slideUp {{
+      to {{ opacity:1; transform:translateY(0); }}
+    }}
+    /* Main card with glassmorphism */
+    .card {{
+      background: linear-gradient(165deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 36px 32px 32px;
+      backdrop-filter: blur(40px) saturate(1.4);
+      -webkit-backdrop-filter: blur(40px) saturate(1.4);
+      box-shadow:
+        0 32px 64px -12px rgba(0,0,0,0.5),
+        0 0 0 1px rgba(255,255,255,0.05),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      position: relative;
+      overflow: hidden;
+    }}
+    .card::before {{
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    }}
+    /* File icon area */
+    .file-icon-wrapper {{
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 28px;
+    }}
+    .file-icon {{
+      width: 56px; height: 56px;
+      border-radius: var(--radius-md);
+      background: var(--accent-bg);
+      border: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent1);
+      flex-shrink: 0;
+      position: relative;
+      animation: iconPulse 3s ease-in-out infinite;
+    }}
+    .file-icon svg {{ width: 26px; height: 26px; }}
+    @keyframes iconPulse {{
+      0%,100% {{ box-shadow: 0 0 0 0 var(--accent-bg); }}
+      50% {{ box-shadow: 0 0 20px 4px var(--accent-bg); }}
+    }}
+    .file-badge {{
+      position: absolute;
+      bottom: -4px; right: -4px;
+      background: var(--accent2);
+      color: white;
+      font-size: 8px;
+      font-weight: 700;
+      padding: 2px 5px;
+      border-radius: 6px;
+      letter-spacing: 0.04em;
+      line-height: 1;
+    }}
+    .file-icon-info {{ flex: 1; min-width: 0; }}
+    .file-category {{
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent1);
+      margin-bottom: 4px;
+    }}
+    .file-size-tag {{
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }}
+    /* File name */
+    .file-name {{
+      font-size: clamp(20px, 3.5vw, 28px);
+      font-weight: 700;
+      line-height: 1.25;
+      word-break: break-word;
+      margin-bottom: 24px;
+      letter-spacing: -0.02em;
+    }}
+    /* Meta grid */
+    .meta-grid {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }}
+    .meta-item {{
+      padding: 14px 16px;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }}
+    .meta-item:hover {{
+      background: var(--surface-hover);
+      border-color: var(--border-accent);
+    }}
+    .meta-label {{
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-tertiary);
+      margin-bottom: 6px;
+    }}
+    .meta-value {{
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-all;
+    }}
+    /* Download button */
+    .dl-btn {{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      height: 54px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent2) 0%, var(--accent1) 100%);
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+    }}
+    .dl-btn:hover {{
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+    }}
+    .dl-btn:active {{ transform: translateY(0); }}
+    .dl-btn svg {{ width:18px; height:18px; flex-shrink:0; }}
+    /* Ripple effect */
+    .dl-btn::after {{
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,255,255,0.25), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }}
+    .dl-btn:hover::after {{ opacity:1; }}
+    /* Secondary button */
+    .back-btn {{
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      height: 46px;
+      margin-top: 10px;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text-secondary);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }}
+    .back-btn:hover {{
+      background: var(--surface-hover);
+      color: var(--text);
+      border-color: var(--border-accent);
+    }}
+    .back-btn svg {{ width:14px; height:14px; }}
+    /* Footer hint */
+    .hint {{
+      margin-top: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-tertiary);
+      line-height: 1.6;
+    }}
+    .hint svg {{ width:12px; height:12px; vertical-align:-2px; margin-right:4px; opacity:0.6; }}
+    /* Responsive */
+    @media (max-width: 480px) {{
+      .card {{ padding: 24px 20px 20px; border-radius: 20px; }}
+      .meta-grid {{ grid-template-columns: 1fr; }}
+      .file-icon {{ width: 48px; height: 48px; }}
+      .file-icon svg {{ width: 22px; height: 22px; }}
+    }}
+  </style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+  <div class="particles" id="particles"></div>
+  <div class="container">
+    <div class="card">
+      <div class="file-icon-wrapper">
+        <div class="file-icon">
+          {icon_svg}
+          <span class="file-badge">{ext}</span>
+        </div>
+        <div class="file-icon-info">
+          <div class="file-category">{category} file</div>
+          <div class="file-size-tag">{size_text}</div>
+        </div>
+      </div>
+      <h1 class="file-name">{safe_name}</h1>
+      <div class="meta-grid">
+        <div class="meta-item">
+          <div class="meta-label">File Name</div>
+          <div class="meta-value">{safe_name}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">File Size</div>
+          <div class="meta-value">{size_text}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Format</div>
+          <div class="meta-value">{ext if ext else 'Unknown'}</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">Category</div>
+          <div class="meta-value" style="text-transform:capitalize">{category}</div>
+        </div>
+      </div>
+      <a id="dlBtn" class="dl-btn" href="{escaped_url}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Now
+      </a>
+      <a class="back-btn" href="javascript:history.back()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        Go Back
+      </a>
+      <div class="hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+        Click the button above to begin your download. This is a preview page.
+      </div>
+    </div>
+  </div>
+  <script>
+    // Particles
+    (function(){{
+      const c=document.getElementById('particles');
+      for(let i=0;i<20;i++){{
+        const s=document.createElement('span');
+        s.style.left=Math.random()*100+'%';
+        s.style.animationDuration=(6+Math.random()*8)+'s';
+        s.style.animationDelay=Math.random()*6+'s';
+        s.style.width=s.style.height=(1+Math.random()*2)+'px';
+        c.appendChild(s);
+      }}
+    }})();
+    // Ripple follow
+    const btn=document.getElementById('dlBtn');
+    btn.addEventListener('mousemove',e=>{{
+      const r=btn.getBoundingClientRect();
+      btn.style.setProperty('--x',((e.clientX-r.left)/r.width*100)+'%');
+      btn.style.setProperty('--y',((e.clientY-r.top)/r.height*100)+'%');
+    }});
+  </script>
+</body>
+</html>"""
 
 # get_media_message function moved to utils.py to avoid circular imports
 
@@ -214,11 +637,6 @@ async def download_route(request: web.Request):
 
     logger.info(f"Download request for decoded message_id: {message_id} (encoded: {encoded_id[:20]}...) from {get_client_ip(request)}")
 
-    # Check bandwidth limit before processing
-    if await is_bandwidth_limit_exceeded():
-        logger.warning(f"Download request {message_id} rejected: bandwidth limit exceeded")
-        raise web.HTTPServiceUnavailable(text="Service temporarily unavailable due to bandwidth limits.")
-
     try:
         # Check if this is a user session file (virtual message ID)
         is_user_session = isinstance(message_id, str) and message_id.startswith('user_')
@@ -231,13 +649,11 @@ async def download_route(request: web.Request):
                 raise web.HTTPNotFound(text="File not found or expired.")
             
             session_info = bot_client.user_session_files[message_id]
-            
-            # Check if expired (24 hours)
-            current_time = asyncio.get_event_loop().time()
-            if current_time - session_info['created_at'] > 86400:
-                del bot_client.user_session_files[message_id]
-                raise web.HTTPGone(text="Download link has expired.")
-            
+
+            # Subscription/admin gating for streamed private content
+            if not await _user_has_download_access(int(session_info["user_id"])):
+                raise web.HTTPUnauthorized(text="Premium required. Please renew your subscription.")
+
             # Get user's client for streaming
             from StreamBot.link_handler import user_session_streamer
             user_client = await user_session_streamer.get_user_client(session_info['user_id'])
@@ -260,6 +676,11 @@ async def download_route(request: web.Request):
             byte_streamer = ByteStreamer(streamer_client)
             
         else:
+            # For regular generated links, enforce owner subscription/admin status if owner is known.
+            link_owner_id = await get_link_owner_user_id(encoded_id)
+            if link_owner_id is not None and not await _user_has_download_access(link_owner_id):
+                raise web.HTTPUnauthorized(text="This link is no longer active.")
+
             # Handle regular forwarded file
             # Add timeout to prevent hanging requests - increased for large file support
             streamer_client = await asyncio.wait_for(
@@ -316,6 +737,17 @@ async def download_route(request: web.Request):
 
     # Sanitize filename for security
     safe_filename = sanitize_filename(file_name)
+
+    if should_render_download_landing(request):
+        landing_url = f"{request.path}?download=1"
+        return web.Response(
+            text=render_download_landing_page(
+                file_name=safe_filename,
+                file_size=file_size,
+                direct_url=landing_url,
+            ),
+            content_type="text/html",
+        )
 
     # Validate file size
     if file_size == 0:
@@ -495,11 +927,6 @@ async def download_route(request: web.Request):
     stream_duration = asyncio.get_event_loop().time() - stream_start_time
     expected_bytes_to_serve = (end_offset - start_offset + 1)
 
-    # Always record bandwidth for bytes actually streamed, if any
-    if bytes_streamed > 0:
-        await add_bandwidth_usage(bytes_streamed)
-        logger.info(f"Recorded {humanbytes(bytes_streamed)} for bandwidth usage for {message_id}.")
-
     if bytes_streamed == expected_bytes_to_serve:
         logger.info(f"Finished streaming {humanbytes(bytes_streamed)} for {message_id} in {stream_duration:.2f}s. Expected: {humanbytes(expected_bytes_to_serve)}.")
     else:
@@ -511,88 +938,19 @@ async def download_route(request: web.Request):
 
     total_request_duration = asyncio.get_event_loop().time() - start_time_request
     logger.info(f"Download request for {message_id} completed. Total duration: {total_request_duration:.2f}s")
+    try:
+        await record_link_access(
+            encoded_id=encoded_id,
+            request_path=request.path,
+            ip=client_ip,
+            user_agent=request.headers.get("User-Agent", ""),
+            bytes_served=bytes_streamed,
+        )
+    except Exception as analytics_e:
+        logger.warning(f"Failed to record analytics for {encoded_id}: {analytics_e}")
     return response
 
 
-# --- API Info Route --- (Keep as is, assuming it's working)
-@routes.get("/api/info")
-async def api_info_route(request: web.Request):
-    """Provides bot status and information via API."""
-    bot_client: Client = request.app.get('bot_client')
-    # Backward-compatible: support both 'start_time' and 'bot_start_time'
-    start_time = request.app.get('start_time') or request.app.get('bot_start_time')
-    if start_time is None:
-        try:
-            # Fallback to global if available
-            from StreamBot.__main__ import BOT_START_TIME  # type: ignore
-            start_time = BOT_START_TIME
-        except Exception:
-            start_time = None
-    user_count = 0
-    try:
-        from StreamBot.database.database import total_users_count # Assuming this exists
-        user_count = await total_users_count()
-    except Exception as e:
-         logger.error(f"Failed to get total user count for API info: {e}")
-
-    # Get bandwidth usage information
-    bandwidth_info = {}
-    try:
-        from StreamBot.utils.bandwidth import get_current_bandwidth_usage
-        bandwidth_usage = await get_current_bandwidth_usage()
-        bandwidth_info = {
-            "limit_gb": Var.BANDWIDTH_LIMIT_GB,
-            "used_gb": bandwidth_usage["gb_used"],
-            "used_bytes": bandwidth_usage["bytes_used"],
-            "month": bandwidth_usage["month_key"],
-            "limit_enabled": Var.BANDWIDTH_LIMIT_GB > 0,
-            "remaining_gb": max(0, Var.BANDWIDTH_LIMIT_GB - bandwidth_usage["gb_used"]) if Var.BANDWIDTH_LIMIT_GB > 0 else None
-        }
-    except Exception as e:
-        logger.error(f"Failed to get bandwidth info for API: {e}")
-        bandwidth_info = {"limit_enabled": False, "error": "Failed to retrieve bandwidth data"}
-
-    if not bot_client or not bot_client.is_connected:
-        return web.json_response({
-            "status": "error", "bot_status": "disconnected",
-            "message": "Bot service is not currently available.",
-            "uptime": format_uptime(start_time), "github_repo": Var.GITHUB_REPO_URL,
-            "totaluser": user_count,
-            "bandwidth_info": bandwidth_info
-        }, status=503)
-
-    try:
-        bot_me: User = getattr(bot_client, 'me', None)
-        if not bot_me: 
-            bot_me = await bot_client.get_me()
-            setattr(bot_client, 'me', bot_me)
-
-        features = {
-             "force_subscribe": bool(Var.FORCE_SUB_CHANNEL),
-             "force_subscribe_channel_id": Var.FORCE_SUB_CHANNEL if Var.FORCE_SUB_CHANNEL else None, # Use different key
-             "link_expiry_enabled": Var.LINK_EXPIRY_SECONDS > 0,
-             "link_expiry_duration_seconds": Var.LINK_EXPIRY_SECONDS,
-             "link_expiry_duration_human": Var._human_readable_duration(Var.LINK_EXPIRY_SECONDS)
-        }
-        info_data = {
-            "status": "ok", "bot_status": "connected",
-            "bot_info": {"id": bot_me.id, "username": bot_me.username, "first_name": bot_me.first_name, "mention": bot_me.mention},
-            "features": features, "uptime": format_uptime(start_time),
-            "github_repo": Var.GITHUB_REPO_URL,
-            "server_time_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            "totaluser": user_count,
-            "bandwidth_info": bandwidth_info
-        }
-        return web.json_response(info_data)
-    except Exception as e:
-        logger.error(f"Error fetching bot info for API: {e}", exc_info=True)
-        return web.json_response({
-            "status": "error", "bot_status": "unknown",
-            "message": "Service temporarily unavailable.",
-            "uptime": format_uptime(start_time), "github_repo": Var.GITHUB_REPO_URL,
-            "totaluser": user_count,
-            "bandwidth_info": bandwidth_info
-        }, status=500)
 
 # --- Setup Web App ---
 async def setup_webapp(bot_instance: Client, client_manager, start_time: datetime.datetime):
@@ -614,7 +972,6 @@ async def setup_webapp(bot_instance: Client, client_manager, start_time: datetim
     except Exception as e:
         logger.warning(f"Unable to fetch bot username for redirects: {e}")
     app["bot_username"] = bot_username
-    app["force_sub_url"] = await get_force_sub_redirect_url(bot_instance)
 
     # Add routes
     app.add_routes(routes)
@@ -669,36 +1026,7 @@ async def stream_route(request: web.Request):
 async def session_generator_route(request: web.Request):
     """Session generator main page route."""
     from aiohttp_jinja2 import render_template
-    
-    # Check bandwidth limit first (before any processing)
-    if await is_bandwidth_limit_exceeded():
-        # Check if user is admin
-        try:
-            session_token = get_session_token(request)
-            if session_token:
-                user_id = await validate_session_token(session_token)
-                # Allow admins to bypass bandwidth limit
-                if user_id and user_id not in Var.ADMINS:
-                    return web.Response(
-                        text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
-                        content_type='text/html',
-                        status=503
-                    )
-            else:
-                # No token, definitely not admin
-                return web.Response(
-                    text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
-                    content_type='text/html',
-                    status=503
-                )
-        except Exception:
-            # Error checking auth, show bandwidth limit
-            return web.Response(
-                text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
-                content_type='text/html',
-                status=503
-            )
-    
+
     bot_client: Client = request.app['bot_client']
     
     # If already authenticated via cookie and has session, go to success page
@@ -744,19 +1072,7 @@ async def session_generator_route_slash(request: web.Request):
 async def session_login_route(request: web.Request):
     """Route to display the interactive login form."""
     from aiohttp_jinja2 import render_template
-    
-    # Check bandwidth limit
-    if await is_bandwidth_limit_exceeded():
-        token = request.query.get('token')
-        user_id = await validate_session_token(token) if token else None
-        # Allow admins to bypass
-        if not user_id or user_id not in Var.ADMINS:
-            return web.Response(
-                text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
-                content_type='text/html',
-                status=503
-            )
-    
+
     # If already authenticated via cookie and has session, go to success page
     try:
         session_token_cookie = get_session_token(request)
@@ -986,21 +1302,13 @@ async def session_auth_route(request: web.Request):
             }, status=400)
         
         user_id = int(data['id'])
-        
-        # Check bandwidth limit (allow admins to bypass)
-        if await is_bandwidth_limit_exceeded():
-            if user_id not in Var.ADMINS:
-                return web.json_response({
-                    'success': False,
-                    'error': 'Bandwidth limit reached. Please come back next month.'
-                }, status=503)
-        
-        # Check if user has permission to use session generator
-        if not check_session_generator_access(user_id):
+
+        # Check if user has permission to use session generator (premium access)
+        if not await check_session_generator_access(user_id):
             logger.info(f"Session generator disabled - web access denied for user {user_id}")
             return web.json_response({
                 'success': False,
-                'error': 'The session generator is currently disabled. Please try again later.'
+                'error': Var.PREMIUM_REQUIRED_TEXT,
             }, status=403)
         
         from StreamBot.database.user_sessions import check_user_has_session
@@ -1040,16 +1348,7 @@ async def session_success_route(request: web.Request):
         # Prefer cookie/header session token
         session_token = get_session_token(request)
         user_id = await validate_session_token(session_token) if session_token else None
-        
-        # Check bandwidth limit (allow admins to bypass)
-        if await is_bandwidth_limit_exceeded():
-            if not user_id or user_id not in Var.ADMINS:
-                return web.Response(
-                    text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
-                    content_type='text/html',
-                    status=503
-                )
-        
+
         if not user_id:
             logger.warning("No valid session token or user_id provided for success page")
             return web.HTTPFound('/session')
@@ -1101,24 +1400,15 @@ async def session_dashboard_route(request: web.Request):
         elif user_id_param:
             user_id = int(user_id_param)
 
-        # Check bandwidth limit (allow admins to bypass)
-        if await is_bandwidth_limit_exceeded():
-            if not user_id or user_id not in Var.ADMINS:
-                return web.Response(
-                    text="<h1>Bandwidth Limit Reached</h1><p>Please Come Next Month</p>",
-                    content_type='text/html',
-                    status=503
-                )
-
         if not user_id:
             logger.warning("No valid session token or user_id provided")
             return web.HTTPFound('/session')
 
-        # Check if user has permission to use session generator
-        if not check_session_generator_access(user_id):
+        # Check if user has permission to use session generator (premium access)
+        if not await check_session_generator_access(user_id):
             logger.info(f"Session generator disabled - dashboard access denied for user {user_id}")
             return web.Response(
-                text="Access Denied: The session generator is currently disabled.",
+                text="Access Denied: Premium required.\n" + Var.PREMIUM_REQUIRED_TEXT,
                 status=403,
                 content_type='text/plain'
             )
@@ -1181,15 +1471,193 @@ async def session_dashboard_route(request: web.Request):
 # Note: /session/logout route removed per UI change
 
 
+@routes.get("/owner/dashboard")
+async def owner_dashboard_route(request: web.Request):
+    """Owner analytics dashboard (one-time token URL, then short-lived session)."""
+    client_ip = get_client_ip(request)
+    if invalid_request_guard.is_blocked(client_ip):
+        return web.Response(text="Too many invalid requests. Try again later.", status=429)
+
+    token = request.query.get("token")
+    session_id = request.cookies.get("owner_dash_session")
+
+    owner_id = None
+    if token:
+        owner_id = consume_owner_one_time_token(token)
+        if owner_id != Var.OWNER_ID:
+            invalid_request_guard.record_invalid(client_ip)
+            return web.Response(text="Invalid or expired dashboard token.", status=403)
+        session_id = create_dashboard_session(owner_id=owner_id, expires_minutes=30)
+    elif session_id:
+        owner_id = get_dashboard_session_owner(session_id)
+        if owner_id != Var.OWNER_ID:
+            invalid_request_guard.record_invalid(client_ip)
+            return web.Response(text="Dashboard session expired. Generate a new /dashboard link.", status=403)
+    else:
+        # Not logging as invalid if someone just hits the URL without any token/cookie, 
+        # as it could be casual browsing. But we will for actual APIs.
+        return web.Response(text="Dashboard token missing. Generate via /dashboard.", status=403)
+
+    # Load dashboard template from external file
+    template_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
+    template_file = os.path.join(template_dir, "owner_dashboard.html")
+    try:
+        with open(template_file, "r", encoding="utf-8") as f:
+            html = f.read()
+    except FileNotFoundError:
+        logger.error(f"Dashboard template not found at {template_file}")
+        return web.Response(text="Dashboard template missing.", status=500)
+
+    resp = web.Response(text=html, content_type="text/html")
+    if session_id:
+        is_secure = str(Var.BASE_URL).lower().startswith("https://")
+        resp.set_cookie("owner_dash_session", session_id, httponly=True, secure=is_secure, max_age=1800, samesite="Lax")
+    return resp
+
+
+@routes.get("/owner/dashboard/data")
+async def owner_dashboard_data_route(request: web.Request):
+    """Dashboard data endpoint (requires valid owner dashboard session cookie)."""
+    client_ip = get_client_ip(request)
+    if invalid_request_guard.is_blocked(client_ip):
+        return web.json_response({"error": "unauthorized"}, status=429)
+
+    session_id = request.cookies.get("owner_dash_session")
+    owner_id = get_dashboard_session_owner(session_id) if session_id else None
+    if owner_id != Var.OWNER_ID:
+        invalid_request_guard.record_invalid(client_ip)
+        return web.json_response({"error": "unauthorized"}, status=403)
+
+    q = (request.query.get("q") or "").strip()
+    user_id_raw = (request.query.get("user_id") or "").strip()
+    from_raw = (request.query.get("from") or "").strip()
+    to_raw = (request.query.get("to") or "").strip()
+
+    uid = None
+    if user_id_raw:
+        try:
+            uid = int(user_id_raw)
+        except ValueError:
+            uid = None
+
+    from_dt = None
+    to_dt = None
+    try:
+        if from_raw:
+            from_dt = datetime.datetime.fromisoformat(from_raw.replace("Z", "+00:00"))
+    except Exception:
+        from_dt = None
+    try:
+        if to_raw:
+            to_dt = datetime.datetime.fromisoformat(to_raw.replace("Z", "+00:00"))
+    except Exception:
+        to_dt = None
+
+    def _int_q(name: str, default: int) -> int:
+        raw = (request.query.get(name) or "").strip()
+        if not raw:
+            return default
+        try:
+            return int(raw)
+        except ValueError:
+            return default
+
+    data = await get_dashboard_data(
+        search=q,
+        user_id=uid,
+        start_dt=from_dt,
+        end_dt=to_dt,
+        links_page=_int_q("links_page", 1),
+        links_page_size=_int_q("links_page_size", 50),
+        events_page=_int_q("events_page", 1),
+        events_page_size=_int_q("events_page_size", 50),
+        users_page=_int_q("users_page", 1),
+        users_page_size=_int_q("users_page_size", 50),
+    )
+    return web.json_response(data)
+
+
+@routes.get("/owner/dashboard/user/{user_id}")
+async def owner_dashboard_user_detail_route(request: web.Request):
+    """Return granular data for one user (requires owner dashboard session)."""
+    client_ip = get_client_ip(request)
+    if invalid_request_guard.is_blocked(client_ip):
+        return web.json_response({"error": "unauthorized"}, status=429)
+
+    session_id = request.cookies.get("owner_dash_session")
+    owner_id = get_dashboard_session_owner(session_id) if session_id else None
+    if owner_id != Var.OWNER_ID:
+        invalid_request_guard.record_invalid(client_ip)
+        logger.warning(f"Dashboard user detail: unauthorized (owner_id={owner_id!r}) from IP {client_ip}")
+        return web.json_response({"error": "unauthorized"}, status=403)
+
+    user_id_raw = request.match_info.get("user_id", "")
+    try:
+        user_id = int(user_id_raw)
+    except ValueError:
+        return web.json_response({"error": "invalid user_id"}, status=400)
+
+    try:
+        data = await get_user_detail(user_id)
+    except Exception as e:
+        logger.error(f"get_user_detail error for {user_id}: {e}", exc_info=True)
+        data = {"profile": {}, "subscription": {}, "links": [], "top_ips": [], "graph": []}
+
+    # Build telegram dict from the stored profile fields (no live API call needed)
+    prof = data.get("profile") or {}
+    data["telegram"] = {
+        "id": user_id,
+        "first_name": prof.get("first_name") or "",
+        "last_name": prof.get("last_name") or "",
+        "username": prof.get("username") or "",
+        "is_premium": bool(prof.get("is_premium", False)),
+        "is_verified": bool(prof.get("is_verified", False)),
+        "is_scam": False,
+        "language_code": prof.get("language_code") or "",
+        "status": "",
+        "has_photo": False,
+    }
+
+    return web.json_response(data)
+
+
+
+@routes.get("/owner/dashboard/link/{encoded_id}/events")
+async def owner_dashboard_link_events_route(request: web.Request):
+    """Return per-IP event breakdown for one link (requires owner dashboard session)."""
+    client_ip = get_client_ip(request)
+    if invalid_request_guard.is_blocked(client_ip):
+        return web.json_response({"error": "unauthorized"}, status=429)
+
+    session_id = request.cookies.get("owner_dash_session")
+    owner_id = get_dashboard_session_owner(session_id) if session_id else None
+    if owner_id != Var.OWNER_ID:
+        invalid_request_guard.record_invalid(client_ip)
+        return web.json_response({"error": "unauthorized"}, status=403)
+
+    encoded_id = request.match_info.get("encoded_id", "")
+    if not encoded_id:
+        return web.json_response({"error": "missing encoded_id"}, status=400)
+
+    data = await get_link_events(encoded_id)
+    return web.json_response(data)
+
+
 @routes.route('*', '/{tail:.*}')
 async def fallback_redirect_route(request: web.Request):
-    """Redirect undefined routes to force-subscribe channel or bot link."""
-    redirect_url = request.app.get('force_sub_url')
+    """Redirect undefined routes to the bot or repository link."""
+    # Never redirect dashboard API sub-routes — they should be handled by
+    # their own route handlers.  If we reach here for them, it means the
+    # specific route wasn't matched (which should not happen, but guard anyway).
+    path = request.path
+    if path.startswith("/owner/dashboard/user/") or path.startswith("/owner/dashboard/link/"):
+        logger.warning(f"Catch-all hit for dashboard API path: {path}")
+        return web.json_response({"error": "not_found"}, status=404)
 
-    if not redirect_url:
-        bot_username = request.app.get('bot_username')
-        if bot_username:
-            redirect_url = f"https://telegram.dog/{bot_username}"
+    redirect_url = None
+    bot_username = request.app.get('bot_username')
+    if bot_username:
+        redirect_url = f"https://telegram.dog/{bot_username}"
 
     if not redirect_url:
         redirect_url = Var.GITHUB_REPO_URL or "https://telegram.dog"
