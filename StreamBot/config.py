@@ -91,7 +91,26 @@ class Var:
 
     LOG_CHANNEL = get_env("LOG_CHANNEL", required=True, is_int=True)
 
-    BASE_URL = str(get_env("BASE_URL", required=True)).rstrip('/')
+    _space_host = (
+        os.environ.get("SPACE_HOST", "").strip()
+        or os.environ.get("HF_SPACE_HOST", "").strip()
+    )
+    _space_id = (
+        os.environ.get("SPACE_ID", "").strip()
+        or os.environ.get("HF_SPACE_ID", "").strip()
+    )
+    _space_subdomain = _space_id.replace("/", "-") if _space_id else ""
+    _hf_default_base_url = (
+        f"https://{_space_host}" if _space_host
+        else (f"https://{_space_subdomain}.hf.space" if _space_subdomain else None)
+    )
+    BASE_URL = str(
+        get_env(
+            "BASE_URL",
+            default=_hf_default_base_url,
+            required=_hf_default_base_url is None
+        )
+    ).rstrip('/')
     PORT = get_env("PORT", 8080, is_int=True)
     BIND_ADDRESS = get_env("BIND_ADDRESS", "0.0.0.0")
 

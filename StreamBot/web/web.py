@@ -14,7 +14,7 @@ from pyrogram.types import Message, User
 import aiohttp_jinja2
 from StreamBot.config import Var
 # Ensure decode_message_id is imported from utils
-from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id, get_media_message
+from StreamBot.utils.utils import get_file_attr, humanbytes, decode_message_id, get_media_message, ChannelAccessError
 from StreamBot.utils.file_properties import parse_file_id
 from StreamBot.utils.exceptions import NoClientsAvailableError # Import custom exception
 from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_response
@@ -38,6 +38,16 @@ logger = logging.getLogger(__name__)
 stream_rate_limited_logger = SmartRateLimitedLogger(logger)
 
 routes = web.RouteTableDef()
+
+@routes.get("/")
+async def root_health_route(request: web.Request):
+    """Return 200 OK for platform health/readiness probes (HF Spaces, etc.)."""
+    bot_username = request.app.get('bot_username')
+    return web.json_response({
+        "status": "running",
+        "bot": f"@{bot_username}" if bot_username else None,
+    })
+
 
 # Favicon route to prevent 404 errors
 @routes.get("/favicon.ico")
@@ -681,19 +691,35 @@ async def download_route(request: web.Request):
             if link_owner_id is not None and not await _user_has_download_access(link_owner_id):
                 raise web.HTTPUnauthorized(text="This link is no longer active.")
 
-            # Handle regular forwarded file
-            # Add timeout to prevent hanging requests - increased for large file support
-            streamer_client = await asyncio.wait_for(
-                client_manager.get_streaming_client(),
-                timeout=60  # Increased from 30 to 60 seconds for large file handling
-            )
-            if not streamer_client or not getattr(streamer_client, "is_connected", False):
-                logger.error(f"Failed to obtain a connected streaming client for message_id {message_id}")
-                raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again shortly.")
-            logger.debug(f"Using client @{streamer_client.me.username} for streaming message_id {message_id}")
-            # Fetch the media message from the log channel using bot/worker client
-            media_msg = await get_media_message(streamer_client, message_id)
-            # Get ByteStreamer instance for the client from ClientManager
+            # Handle regular forwarded file — try up to 3 different clients on channel access errors
+            max_client_attempts = 3
+            excluded_clients = set()
+            for _attempt in range(max_client_attempts):
+                streamer_client = await asyncio.wait_for(
+                    client_manager.get_streaming_client(),
+                    timeout=60
+                )
+                if not streamer_client or not getattr(streamer_client, "is_connected", False):
+                    logger.error(f"Failed to obtain a connected streaming client for message_id {message_id}")
+                    raise web.HTTPServiceUnavailable(text="Service temporarily overloaded. Please try again shortly.")
+
+                if streamer_client.me.id in excluded_clients:
+                    alt = await client_manager.get_alternative_streaming_client(streamer_client)
+                    if alt and alt.me.id not in excluded_clients:
+                        streamer_client = alt
+                    else:
+                        break
+
+                try:
+                    logger.debug(f"Using client @{streamer_client.me.username} for streaming message_id {message_id}")
+                    media_msg = await get_media_message(streamer_client, message_id)
+                    break
+                except ChannelAccessError:
+                    excluded_clients.add(streamer_client.me.id)
+                    logger.warning(f"Client @{streamer_client.me.username} cannot access log channel. Trying another client ({_attempt+1}/{max_client_attempts}).")
+                    if _attempt == max_client_attempts - 1:
+                        raise web.HTTPServiceUnavailable(text="No bot has access to the file storage channel. Contact the admin.")
+
             byte_streamer = client_manager.get_streamer_for_client(streamer_client)
             if not byte_streamer:
                 logger.error(f"No ByteStreamer found for client @{streamer_client.me.username}")

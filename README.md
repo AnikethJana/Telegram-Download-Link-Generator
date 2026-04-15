@@ -1,3 +1,13 @@
+---
+title: Telegram Download Link Generator
+emoji: "🤖"
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # Telegram File Download & Streaming Link Generator Bot
 
 [![Python Version](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
@@ -80,7 +90,7 @@ FORCE_SUB_CHANNEL=-100yyyyyyyyyy # Leave empty or remove to disable
 # Full URL, including http:// or https://. MUST NOT end with a '/'
 # This is the public URL users will use to download/stream files.
 BASE_URL=https://yourdomain.com
-PORT=8080 # Port the web server will listen on
+PORT=7860 # Port the web server will listen on (Hugging Face Spaces: 7860)
 BIND_ADDRESS=0.0.0.0 # Address to bind the web server to
 
 # --- Video Streaming Frontend ---
@@ -99,6 +109,12 @@ WORKERS=4 # Number of Pyrogram worker threads
 GITHUB_REPO_URL=https://github.com/yourusername/your-repo # Optional: Link to your repo for /api/info
 # Space-separated list of numeric user IDs allowed to use /broadcast and /logs
 ADMINS=123456789 987654321
+
+# --- Premium Access / Payments ---
+# Owner Telegram user ID (required)
+OWNER_ID=123456789
+# Channel/group ID where payment screenshots are sent for approval (required)
+TXN_CHNL_ID=-100zzzzzzzzzz
 
 # --- Rate Limiting ---
 MAX_LINKS_PER_DAY=5 # Maximum links a user can generate per day (0 to disable)
@@ -155,6 +171,8 @@ FILE_SIZE_THRESHOLD=200 # Specify value in megabytes
 * **`WORKER_SESSIONS_IN_MEMORY`**: Whether to store worker bot sessions in memory only, avoiding disk writes (default: `true`).
 * **`DATABASE_URL`**: Your MongoDB connection string URI.
 * **`DATABASE_NAME`**: The name of the MongoDB database to use (default: `TgDlBotUsers`).
+* **`OWNER_ID`**: Telegram user ID of the bot owner/admin who can approve premium access.
+* **`TXN_CHNL_ID`**: Numeric channel/group ID where payment proof messages are sent for owner review.
 * **`ADLINKFLY_URL`**: Full GPLinks API URL including your API key. Get your API key from [GPLinks.com](https://gplinks.com).
 * **`FILE_SIZE_THRESHOLD`**: File size threshold in megabytes for URL shortening (default: `200`). Files larger than this will have their download and streaming URLs shortened automatically.
 
@@ -176,7 +194,43 @@ Deploy this bot to your preferred cloud platform with one click:
   </a>
 </p>
 
-> Note: After deployment, make sure to fill in all required environment variables (API_ID, API_HASH, BOT_TOKEN, DATABASE_URL, LOG_CHANNEL, BASE_URL, and ADMINS). The BASE_URL should be set to your deployed application URL.
+> Note: After deployment, make sure to fill in all required environment variables (API_ID, API_HASH, BOT_TOKEN, DATABASE_URL, LOG_CHANNEL, OWNER_ID, TXN_CHNL_ID, and ADMINS). BASE_URL should be set to your deployed URL if auto-detection is not available in your platform.
+
+## Deploy on Hugging Face Spaces
+
+This repository is now configured for **Docker Spaces**.
+
+### 1) Create the Space
+
+1. Create a new Space on Hugging Face.
+2. Select **Docker** as the SDK.
+3. Push this repository to the Space.
+
+### 2) Configure Space Secrets / Variables
+
+Set these required values in your Space settings:
+
+- `API_ID`
+- `API_HASH`
+- `BOT_TOKEN`
+- `LOG_CHANNEL`
+- `DATABASE_URL`
+- `DATABASE_NAME`
+- `OWNER_ID`
+- `TXN_CHNL_ID`
+- `ADMINS`
+
+Recommended:
+
+- `PORT=7860`
+- `BIND_ADDRESS=0.0.0.0`
+
+`BASE_URL` can be set explicitly to your Space URL (for example `https://<space-subdomain>.hf.space`), but if omitted the app will auto-detect it from Hugging Face runtime when available.
+
+### 3) Domain notes
+
+- Use your Space URL as `BASE_URL` for generated links.
+- If you use the Telegram Login Widget / session generator, set your BotFather domain to your Space host (without `https://`).
 
 ## Multi-Client Architecture
 

@@ -14,13 +14,16 @@ All handlers are designed to be memory-efficient and thread-safe.
 
 import logging
 import asyncio
+import math
 import os
 import datetime
 import secrets
+import pyrogram
 from pyrogram import Client, filters
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import FloodWait, UserIsBlocked, InputUserDeactivated
-from .database.database import add_user, del_user, full_userbase
+from .database.database import add_user, del_user, full_userbase, get_user_language, set_user_language
+from .locale_strings import t, LANG_PICKER_ROWS
 from .database.user_access import (
     is_user_allowed,
     add_allowed_user,
@@ -66,57 +69,70 @@ async def user_has_premium_access(user_id: int) -> bool:
     return await is_user_allowed(user_id)
 
 
-def premium_access_keyboard() -> InlineKeyboardMarkup:
-    """Entry keyboard for non-premium users."""
-    return InlineKeyboardMarkup(
+def language_picker_rows() -> list[list[InlineKeyboardButton]]:
+    """Inline buttons for /start language selection (English + requested locales)."""
+    return [
+        [InlineKeyboardButton(lbl, callback_data=f"lang:{code}") for lbl, code in row]
+        for row in LANG_PICKER_ROWS
+    ]
+
+
+def premium_access_keyboard(lang: str = "en") -> InlineKeyboardMarkup:
+    """Entry keyboard for non-premium users, including language picker."""
+    rows = [
+        [InlineKeyboardButton(t(lang, "premium_get_started"), callback_data="premium:buy")],
         [
-            [
-                InlineKeyboardButton("🚀 GET STARTED", callback_data="premium:buy"),
-            ],
-            [
-                InlineKeyboardButton("📖 HOW IT WORKS", callback_data="premium:howitworks"),
-                InlineKeyboardButton("💬 FEATURES", callback_data="premium:features"),
-            ],
-            [
-                InlineKeyboardButton("💰 PRICING", callback_data="premium:pricing"),
-                InlineKeyboardButton("❓ HELP", callback_data="premium:help"),
-            ]
-        ]
-    )
+            InlineKeyboardButton(t(lang, "premium_how_it_works"), callback_data="premium:howitworks"),
+            InlineKeyboardButton(t(lang, "premium_features"), callback_data="premium:features"),
+        ],
+        [
+            InlineKeyboardButton(t(lang, "premium_pricing"), callback_data="premium:pricing"),
+            InlineKeyboardButton(t(lang, "premium_help"), callback_data="premium:help"),
+        ],
+    ]
+    rows.extend(language_picker_rows())
+    return InlineKeyboardMarkup(rows)
 
 
-_DAYS_TIERS = [1, 3, 7, 14, 30]
 _DAYS_BUTTON_CHOICES = [1, 2, 3, 5, 7, 10, 14, 30]
 
 
-def _round_days_up(days: int) -> int:
-    """Round a chosen day count up to the next pricing tier."""
-    for tier in _DAYS_TIERS:
-        if days <= tier:
-            return tier
-    return _DAYS_TIERS[-1]
+def _ceil_money(amount: float, decimal_places: int = 2) -> float:
+    """Round monetary amount up to a fixed number of decimal places (never extend subscription days)."""
+    if amount <= 0:
+        return amount
+    factor = 10**decimal_places
+    # Small epsilon avoids float noise like 1.0050000000000001 missing the ceil boundary.
+    return math.ceil(amount * factor - 1e-9) / factor
 
 
-def _method_pretty(method: str) -> str:
-    return "Crypto (USDT)" if method == "crypto" else "UPI"
+def _method_label(method: str, lang: str) -> str:
+    if method == "crypto":
+        return t(lang, "pay_method_crypto")
+    return t(lang, "pay_method_upi")
 
 
-def buy_method_keyboard() -> InlineKeyboardMarkup:
+def buy_method_keyboard(lang: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("Crypto (USDT BEP20)", callback_data="premium:method:crypto"),
-                InlineKeyboardButton("UPI", callback_data="premium:method:upi"),
+                InlineKeyboardButton(t(lang, "pay_btn_crypto"), callback_data="premium:method:crypto"),
+                InlineKeyboardButton(t(lang, "pay_btn_upi"), callback_data="premium:method:upi"),
             ]
         ]
     )
 
 
-def buy_days_keyboard(method: str) -> InlineKeyboardMarkup:
+def buy_days_keyboard(method: str, lang: str) -> InlineKeyboardMarkup:
     buttons = []
     row = []
     for d in _DAYS_BUTTON_CHOICES:
-        row.append(InlineKeyboardButton(f"{d} day(s)", callback_data=f"premium:days:{method}:{d}"))
+        row.append(
+            InlineKeyboardButton(
+                t(lang, "pay_days_choice", n=d),
+                callback_data=f"premium:days:{method}:{d}",
+            )
+        )
         if len(row) == 4:
             buttons.append(row)
             row = []
@@ -253,8 +269,8 @@ def attach_handlers(app: Client) -> None:
         "Please try again later."
     )
 
-    # Inline keyboard builder for /start command
-    def build_start_keyboard() -> InlineKeyboardMarkup | None:
+    # Inline keyboard builder for /start command (localized + language picker)
+    def build_start_keyboard(lang: str) -> InlineKeyboardMarkup | None:
         buttons = []
 
         # Optional: Login shortcut if allowed and BASE_URL is public
@@ -268,10 +284,11 @@ def attach_handlers(app: Client) -> None:
 
         # Row: Help / About / Close
         buttons.append([
-            InlineKeyboardButton("❓ Help", callback_data="start:help"),
-            InlineKeyboardButton("ℹ️ About", callback_data="start:about"),
-            InlineKeyboardButton("✖️ Close", callback_data="start:close")
+            InlineKeyboardButton(t(lang, "btn_help"), callback_data="start:help"),
+            InlineKeyboardButton(t(lang, "btn_about"), callback_data="start:about"),
+            InlineKeyboardButton(t(lang, "btn_close"), callback_data="start:close"),
         ])
+        buttons.extend(language_picker_rows())
 
         return InlineKeyboardMarkup(buttons) if buttons else None
 
@@ -294,67 +311,111 @@ def attach_handlers(app: Client) -> None:
         except Exception as e:
             logger.error(f"Database error adding user {user_id} on start: {e}")
 
+        lang = await get_user_language(user_id)
+
         # Premium access gate for non-admin users.
         if not await user_has_premium_access(user_id):
             await message.reply_text(
-                Var.NON_PREMIUM_START_TEXT.format(mention=message.from_user.mention),
+                t(lang, "start_non_premium", mention=message.from_user.mention),
                 quote=True,
-                reply_markup=premium_access_keyboard(),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
             return
 
         # Send welcome message with interactive keyboard
-        start_text = Var.START_TEXT.format(mention=message.from_user.mention)
+        start_text = t(lang, "start_premium", mention=message.from_user.mention)
 
         await message.reply_text(
             start_text,
             quote=True,
             disable_web_page_preview=True,
-            reply_markup=build_start_keyboard(),
+            reply_markup=build_start_keyboard(lang),
         )
 
     @app.on_message(filters.command("help") & filters.private)
     async def help_handler(client: Client, message: Message):
         user_id = message.from_user.id
+        lang = await get_user_language(user_id)
         if not await user_has_premium_access(user_id):
             await message.reply_text(
-                Var.PREMIUM_REQUIRED_TEXT,
+                t(lang, "premium_required"),
                 quote=True,
-                reply_markup=premium_access_keyboard(),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
             return
-        await message.reply_text(Var.HELP_TEXT, quote=True, disable_web_page_preview=True)
+        await message.reply_text(t(lang, "help"), quote=True, disable_web_page_preview=True)
 
     @app.on_message(filters.command("about") & filters.private)
     async def about_handler(client: Client, message: Message):
         user_id = message.from_user.id
+        lang = await get_user_language(user_id)
         if not await user_has_premium_access(user_id):
             await message.reply_text(
-                Var.PREMIUM_REQUIRED_TEXT,
+                t(lang, "premium_required"),
                 quote=True,
-                reply_markup=premium_access_keyboard(),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
             return
-        await message.reply_text(Var.ABOUT_TEXT, quote=True, disable_web_page_preview=True)
+        await message.reply_text(
+            t(
+                lang,
+                "about",
+                pyro_version=getattr(pyrogram, "__version__", "unknown"),
+                github_url=Var.GITHUB_REPO_URL or "https://github.com",
+            ),
+            quote=True,
+            disable_web_page_preview=True,
+        )
+
+    @app.on_callback_query(filters.regex(r"^lang:(en|id|ms|ar|es|zh)$"))
+    async def language_select_callback(client: Client, callback_query):
+        """Persist language and refresh the welcome screen (premium or non-premium)."""
+        user_id = callback_query.from_user.id
+        lang_code = (callback_query.data or "").split(":")[-1]
+        await set_user_language(user_id, lang_code)
+        lang = await get_user_language(user_id)
+        await callback_query.answer(t(lang, "lang_saved"), show_alert=False)
+
+        mention = callback_query.from_user.mention
+        try:
+            if await user_has_premium_access(user_id):
+                text = t(lang, "start_premium", mention=mention)
+                markup = build_start_keyboard(lang)
+            else:
+                text = t(lang, "start_non_premium", mention=mention)
+                markup = premium_access_keyboard(lang)
+            await callback_query.message.edit_text(
+                text,
+                disable_web_page_preview=True,
+                reply_markup=markup,
+            )
+        except Exception as e:
+            logger.warning(f"language_select_callback edit_text failed: {e}")
 
     @app.on_callback_query(filters.regex(r"^start:(help|about|close)$"))
     async def start_menu_callbacks(client: Client, callback_query):
         action = callback_query.data.split(":", 1)[1]
+        lang = await get_user_language(callback_query.from_user.id)
         try:
             if action == "help":
                 await callback_query.message.edit_text(
-                    Var.HELP_TEXT,
+                    t(lang, "help"),
                     disable_web_page_preview=True,
-                    reply_markup=build_start_keyboard()
+                    reply_markup=build_start_keyboard(lang),
                 )
             elif action == "about":
                 await callback_query.message.edit_text(
-                    Var.ABOUT_TEXT,
+                    t(
+                        lang,
+                        "about",
+                        pyro_version=getattr(pyrogram, "__version__", "unknown"),
+                        github_url=Var.GITHUB_REPO_URL or "https://github.com",
+                    ),
                     disable_web_page_preview=True,
-                    reply_markup=build_start_keyboard()
+                    reply_markup=build_start_keyboard(lang),
                 )
             elif action == "close":
                 await callback_query.message.delete()
@@ -653,17 +714,18 @@ def attach_handlers(app: Client) -> None:
     async def premium_buy_entry(client: Client, callback_query):
         """Show payment method selection."""
         await callback_query.answer()
+        lang = await get_user_language(callback_query.from_user.id)
         try:
             await callback_query.message.edit_text(
-                "Choose your payment method:",
-                reply_markup=buy_method_keyboard(),
+                t(lang, "pay_choose_method"),
+                reply_markup=buy_method_keyboard(lang),
                 disable_web_page_preview=True,
             )
         except Exception as e:
             logger.warning(f"premium_buy_entry edit_text failed: {e}")
             await callback_query.message.reply_text(
-                "Choose your payment method:",
-                reply_markup=buy_method_keyboard(),
+                t(lang, "pay_choose_method"),
+                reply_markup=buy_method_keyboard(lang),
                 disable_web_page_preview=True,
             )
 
@@ -671,16 +733,17 @@ def attach_handlers(app: Client) -> None:
     async def premium_features_entry(client: Client, callback_query):
         """Show features text for non-premium users."""
         await callback_query.answer()
+        lang = await get_user_language(callback_query.from_user.id)
         try:
             await callback_query.message.edit_text(
-                Var.FEATURES_TEXT,
-                reply_markup=premium_access_keyboard(),
+                t(lang, "features"),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
         except Exception:
             await callback_query.message.reply_text(
-                Var.FEATURES_TEXT,
-                reply_markup=premium_access_keyboard(),
+                t(lang, "features"),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
 
@@ -688,16 +751,17 @@ def attach_handlers(app: Client) -> None:
     async def premium_howitworks_entry(client: Client, callback_query):
         """Show how it works text for non-premium users."""
         await callback_query.answer()
+        lang = await get_user_language(callback_query.from_user.id)
         try:
             await callback_query.message.edit_text(
-                Var.HOW_IT_WORKS_TEXT,
-                reply_markup=premium_access_keyboard(),
+                t(lang, "how_it_works"),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
         except Exception:
             await callback_query.message.reply_text(
-                Var.HOW_IT_WORKS_TEXT,
-                reply_markup=premium_access_keyboard(),
+                t(lang, "how_it_works"),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
 
@@ -705,16 +769,17 @@ def attach_handlers(app: Client) -> None:
     async def premium_pricing_entry(client: Client, callback_query):
         """Show pricing overview for non-premium users."""
         await callback_query.answer()
+        lang = await get_user_language(callback_query.from_user.id)
         try:
             await callback_query.message.edit_text(
-                Var.PRICING_TEXT,
-                reply_markup=premium_access_keyboard(),
+                t(lang, "pricing"),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
         except Exception:
             await callback_query.message.reply_text(
-                Var.PRICING_TEXT,
-                reply_markup=premium_access_keyboard(),
+                t(lang, "pricing"),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
 
@@ -722,16 +787,17 @@ def attach_handlers(app: Client) -> None:
     async def premium_help_entry(client: Client, callback_query):
         """Show help text for non-premium users."""
         await callback_query.answer()
+        lang = await get_user_language(callback_query.from_user.id)
         try:
             await callback_query.message.edit_text(
-                Var.HELP_TEXT,
-                reply_markup=premium_access_keyboard(),
+                t(lang, "help"),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
         except Exception:
             await callback_query.message.reply_text(
-                Var.HELP_TEXT,
-                reply_markup=premium_access_keyboard(),
+                t(lang, "help"),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
 
@@ -741,19 +807,20 @@ def attach_handlers(app: Client) -> None:
         await callback_query.answer()
         data = callback_query.data or ""
         method = data.split(":")[-1]
-
+        lang = await get_user_language(callback_query.from_user.id)
+        txt = t(lang, "pay_method_selected_header", method=_method_label(method, lang)) + t(
+            lang, "pay_choose_duration_hint"
+        )
         try:
             await callback_query.message.edit_text(
-                f"Selected payment method: {_method_pretty(method)}\n\n"
-                "Choose subscription duration.\n"
-                "If needed, days are rounded up to the next available tier.",
-                reply_markup=buy_days_keyboard(method),
+                txt,
+                reply_markup=buy_days_keyboard(method, lang),
             )
         except Exception as e:
             logger.warning(f"premium_method_selected edit_text failed: {e}")
             await callback_query.message.reply_text(
-                f"Selected payment method: {_method_pretty(method)}\nChoose subscription duration:",
-                reply_markup=buy_days_keyboard(method),
+                txt,
+                reply_markup=buy_days_keyboard(method, lang),
             )
 
     @app.on_callback_query(filters.regex(r"^premium:days:(crypto|upi):(\d+)$"))
@@ -763,11 +830,12 @@ def attach_handlers(app: Client) -> None:
         data = callback_query.data or ""
         _, _, method, days_raw = data.split(":", 3)
         selected_days = int(days_raw)
+        lang = await get_user_language(callback_query.from_user.id)
 
-        priced_days = _round_days_up(selected_days)
+        priced_days = selected_days
         if Var.PRICE_PER_DAY_USD <= 0 and Var.PRICE_PER_DAY_INR <= 0:
             await callback_query.message.reply_text(
-                "Pricing is not configured. Please contact the owner.",
+                t(lang, "pay_pricing_not_configured"),
                 quote=True,
             )
             return
@@ -775,9 +843,9 @@ def attach_handlers(app: Client) -> None:
         amount_usd = None
         amount_inr = None
         if Var.PRICE_PER_DAY_USD > 0:
-            amount_usd = Var.PRICE_PER_DAY_USD * priced_days
+            amount_usd = _ceil_money(Var.PRICE_PER_DAY_USD * priced_days)
         if Var.PRICE_PER_DAY_INR > 0:
-            amount_inr = Var.PRICE_PER_DAY_INR * priced_days
+            amount_inr = _ceil_money(Var.PRICE_PER_DAY_INR * priced_days)
 
         txn_id = secrets.token_hex(4)  # 8 hex chars, safe for callback_data
 
@@ -802,7 +870,7 @@ def attach_handlers(app: Client) -> None:
         )
         if not ok:
             await callback_query.message.reply_text(
-                "Failed to start purchase. Please try again.",
+                t(lang, "pay_failed_start"),
                 quote=True,
             )
             return
@@ -811,59 +879,55 @@ def attach_handlers(app: Client) -> None:
         if method == "crypto":
             if amount_usd is None:
                 await callback_query.message.reply_text(
-                    "Crypto pricing is not configured correctly. Please contact the owner.",
+                    t(lang, "pay_crypto_config_err"),
                     quote=True,
                 )
                 return
-            pay_line = f"Amount to pay: {amount_usd:.2f} USDT (BEP20)"
-            address_line = f"USDT BEP20 address:\n{Var.USDT_BEP20_ADDRESS}"
+            pay_line = t(lang, "pay_amount_usdt", amount=f"{amount_usd:.2f}")
+            address_line = t(lang, "pay_usdt_address_block", address=Var.USDT_BEP20_ADDRESS)
         else:
             if amount_inr is None:
                 await callback_query.message.reply_text(
-                    "UPI pricing is not configured correctly. Please contact the owner.",
+                    t(lang, "pay_upi_config_err"),
                     quote=True,
                 )
                 return
-            pay_line = f"Amount to pay: INR {amount_inr:.2f}"
-            address_line = f"UPI ID:\n{Var.UPI_ID}"
-
-        extra_round_note = ""
-        if priced_days != selected_days:
-            extra_round_note = f"\n\nRounded up: {selected_days} -> {priced_days} day(s)."
+            pay_line = t(lang, "pay_amount_inr", amount=f"{amount_inr:.2f}")
+            address_line = t(lang, "pay_upi_block", upi_id=Var.UPI_ID)
 
         try:
-            payment_msg = (
-                "Premium purchase started.\n\n"
-                f"Payment method: {_method_pretty(method)}\n"
-                f"Subscription days: {priced_days}\n"
-                f"{pay_line}\n\n"
-                f"{address_line}"
-                f"{extra_round_note}\n\n"
-                "After making the payment, click I PAID.\n"
-                "Then upload your payment screenshot in this chat."
+            payment_msg = t(
+                lang,
+                "pay_invoice",
+                method=_method_label(method, lang),
+                days=priced_days,
+                amount_line=pay_line,
+                address_block=address_line,
+            )
+            paid_cancel = InlineKeyboardMarkup(
+                [
+                    [
+                        InlineKeyboardButton(
+                            t(lang, "pay_btn_i_paid"),
+                            callback_data=f"premium:paid:{txn_id}",
+                        ),
+                        InlineKeyboardButton(
+                            t(lang, "pay_btn_cancel"),
+                            callback_data=f"premium:cancel:{txn_id}",
+                        ),
+                    ]
+                ]
             )
             await callback_query.message.edit_text(
                 payment_msg,
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton("I PAID", callback_data=f"premium:paid:{txn_id}"),
-                            InlineKeyboardButton("CANCEL", callback_data=f"premium:cancel:{txn_id}"),
-                        ]
-                    ]
-                ),
+                reply_markup=paid_cancel,
                 disable_web_page_preview=True,
             )
         except Exception as e:
             logger.warning(f"premium_days_selected edit_text failed: {e}")
             await callback_query.message.reply_text(
                 payment_msg,
-                reply_markup=InlineKeyboardMarkup(
-                    [[
-                        InlineKeyboardButton("I PAID", callback_data=f"premium:paid:{txn_id}"),
-                        InlineKeyboardButton("CANCEL", callback_data=f"premium:cancel:{txn_id}"),
-                    ]]
-                ),
+                reply_markup=paid_cancel,
                 disable_web_page_preview=True,
             )
 
@@ -872,28 +936,26 @@ def attach_handlers(app: Client) -> None:
         """User marked payment as done; now request screenshot."""
         await callback_query.answer()
         txn_id = (callback_query.data or "").split(":")[-1]
+        lang = await get_user_language(callback_query.from_user.id)
 
         ok = await set_pending_txn_paid(txn_id)
         if not ok:
-            await callback_query.message.reply_text("Payment step failed or this request is no longer active.")
+            await callback_query.message.reply_text(t(lang, "pay_step_inactive"))
             return
 
+        cancel_only = InlineKeyboardMarkup(
+            [[InlineKeyboardButton(t(lang, "pay_btn_cancel"), callback_data=f"premium:cancel:{txn_id}")]]
+        )
         try:
             await callback_query.message.edit_text(
-                "Payment marked as submitted.\n\n"
-                "Now upload your payment screenshot here (photo or document).\n"
-                "After upload, review your details and press CONFIRM.\n",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("CANCEL", callback_data=f"premium:cancel:{txn_id}")]]
-                ),
+                t(lang, "pay_marked_paid_intro"),
+                reply_markup=cancel_only,
                 disable_web_page_preview=True,
             )
         except Exception:
             await callback_query.message.reply_text(
-                "Now upload your payment screenshot here (photo or document).",
-                reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("CANCEL", callback_data=f"premium:cancel:{txn_id}")]]
-                ),
+                t(lang, "pay_upload_screenshot_short"),
+                reply_markup=cancel_only,
                 disable_web_page_preview=True,
             )
 
@@ -901,11 +963,12 @@ def attach_handlers(app: Client) -> None:
     async def premium_cancel_clicked(client: Client, callback_query):
         await callback_query.answer()
         txn_id = (callback_query.data or "").split(":")[-1]
+        lang = await get_user_language(callback_query.from_user.id)
 
         ok = await cancel_pending_txn(txn_id)
         if not ok:
             return
-        await callback_query.message.reply_text("Purchase cancelled.")
+        await callback_query.message.reply_text(t(lang, "pay_cancelled"))
 
     @app.on_message(
         filters.private
@@ -915,6 +978,7 @@ def attach_handlers(app: Client) -> None:
     async def premium_screenshot_handler(client: Client, message: Message):
         """Receive screenshot after user clicks I PAID."""
         user_id = message.from_user.id
+        lang = await get_user_language(user_id)
         pending = await get_latest_pending_txn_for_user(user_id)
         if not pending or pending.get("status") != "awaiting_screenshot":
             return
@@ -938,7 +1002,7 @@ def attach_handlers(app: Client) -> None:
             screenshot_file_unique_id = getattr(message.document, "file_unique_id", None)
 
         if not screenshot_file_id:
-            await message.reply_text("Couldn't detect the screenshot file. Please send again.")
+            await message.reply_text(t(lang, "err_screenshot_file"))
             return
 
         ok = await set_pending_txn_screenshot(
@@ -948,12 +1012,12 @@ def attach_handlers(app: Client) -> None:
             screenshot_is_photo=screenshot_is_photo,
         )
         if not ok:
-            await message.reply_text("Screenshot upload failed (step outdated). Please try again.")
+            await message.reply_text(t(lang, "err_screenshot_upload"))
             return
 
         pending2 = await get_pending_txn(txn_id)
         if not pending2:
-            await message.reply_text("Unexpected error. Please try again.")
+            await message.reply_text(t(lang, "err_unexpected_retry"))
             return
 
         user_snapshot = pending2.get("user_snapshot", {}) or {}
@@ -964,22 +1028,49 @@ def attach_handlers(app: Client) -> None:
             amount_line = f"INR {pending2['amount_inr']:.2f}"
 
         details_text = (
-            "Review your payment details:\n\n"
-            f"Transaction ID: {txn_id}\n"
-            f"User ID: {user_snapshot.get('user_id', user_id)}\n"
-            f"Username: @{user_snapshot.get('username', '') or 'N/A'}\n"
-            f"Name: {user_snapshot.get('first_name', '')} {user_snapshot.get('last_name', '')}".strip() + "\n"
-            f"Language: {user_snapshot.get('language_code', '') or 'N/A'}\n"
-            f"Payment method: {_method_pretty(pending2.get('method'))}\n"
-            f"Days: {pending2.get('priced_days')}\n"
-            f"Amount: {amount_line}\n"
+            t(lang, "pay_review_header")
+            + t(lang, "pay_review_txn_id", tid=txn_id)
+            + "\n"
+            + t(lang, "pay_review_user_id", uid=user_snapshot.get("user_id", user_id))
+            + "\n"
+            + t(
+                lang,
+                "pay_review_username",
+                username="@" + (user_snapshot.get("username", "") or "N/A"),
+            )
+            + "\n"
+            + t(
+                lang,
+                "pay_review_name",
+                name=(
+                    f"{user_snapshot.get('first_name', '')} {user_snapshot.get('last_name', '')}".strip()
+                    or "—"
+                ),
+            )
+            + "\n"
+            + t(
+                lang,
+                "pay_review_language",
+                tg_lang=user_snapshot.get("language_code", "") or "N/A",
+            )
+            + "\n"
+            + t(
+                lang,
+                "pay_review_method",
+                method=_method_label(pending2.get("method") or "upi", lang),
+            )
+            + "\n"
+            + t(lang, "pay_review_days", days=pending2.get("priced_days"))
+            + "\n"
+            + t(lang, "pay_review_amount", amount=amount_line)
+            + "\n"
         )
 
         markup = InlineKeyboardMarkup(
             [
                 [
-                    InlineKeyboardButton("CONFIRM", callback_data=f"premium:submit:{txn_id}"),
-                    InlineKeyboardButton("CANCEL", callback_data=f"premium:cancel:{txn_id}"),
+                    InlineKeyboardButton(t(lang, "pay_btn_confirm"), callback_data=f"premium:submit:{txn_id}"),
+                    InlineKeyboardButton(t(lang, "pay_btn_cancel"), callback_data=f"premium:cancel:{txn_id}"),
                 ]
             ]
         )
@@ -1001,16 +1092,17 @@ def attach_handlers(app: Client) -> None:
         """User confirms; send to txn channel for admin approval."""
         await callback_query.answer()
         txn_id = (callback_query.data or "").split(":")[-1]
+        u_lang = await get_user_language(callback_query.from_user.id)
         pending = await get_pending_txn(txn_id)
         if not pending:
-            await callback_query.message.reply_text("Txn not found or expired.")
+            await callback_query.message.reply_text(t(u_lang, "pay_txn_not_found"))
             return
         status = pending.get("status")
         if status == "submitted_to_admin":
-            await callback_query.message.reply_text("Already submitted. Please wait for admin confirmation.")
+            await callback_query.message.reply_text(t(u_lang, "pay_already_submitted"))
             return
         if status != "awaiting_admin":
-            await callback_query.message.reply_text("This txn is not ready for submission.")
+            await callback_query.message.reply_text(t(u_lang, "pay_txn_not_ready"))
             return
 
         # Mark as submitted to prevent duplicates
@@ -1036,7 +1128,7 @@ def attach_handlers(app: Client) -> None:
             f"Username: @{user_snapshot.get('username') or 'N/A'}\n"
             f"Name: {user_snapshot.get('first_name', '')} {user_snapshot.get('last_name', '')}".strip() + "\n"
             f"Language: {user_snapshot.get('language_code', '') or 'N/A'}\n"
-            f"Method: {_method_pretty(method)}\n"
+            f"Method: {_method_label(method, 'en')}\n"
             f"Days: {priced_days}\n"
             f"Amount: {amount_line}\n\n"
             f"{address_line}\n"
@@ -1045,7 +1137,7 @@ def attach_handlers(app: Client) -> None:
         screenshot_file_id = pending.get("screenshot_file_id")
         screenshot_is_photo = pending.get("screenshot_is_photo")
         if not screenshot_file_id:
-            await callback_query.message.reply_text("Screenshot missing for this txn.")
+            await callback_query.message.reply_text(t(u_lang, "pay_screenshot_missing"))
             return
 
         try:
@@ -1091,12 +1183,10 @@ def attach_handlers(app: Client) -> None:
                 )
         except Exception as e:
             logger.error(f"Failed to send transaction {txn_id} to TXN_CHNL_ID={Var.TXN_CHNL_ID}: {e}", exc_info=True)
-            await callback_query.message.reply_text(
-                "Failed to send to transaction channel. Please verify TXN_CHNL_ID, bot permissions, and try again."
-            )
+            await callback_query.message.reply_text(t(u_lang, "pay_fail_channel"))
             return
 
-        await callback_query.message.reply_text("Submitted to owner/admin for approval. Please wait.")
+        await callback_query.message.reply_text(t(u_lang, "pay_submitted_wait"))
 
     @app.on_callback_query(filters.regex(r"^txn:(confirm|reject):([0-9a-fA-F]{8})$"))
     async def txn_admin_decision(client: Client, callback_query):
@@ -1129,13 +1219,10 @@ def attach_handlers(app: Client) -> None:
             # Notify user
             user_id = int(approved["user_id"])
             expires_at = approved["expires_at"]
+            notify_lang = await get_user_language(user_id)
             await client.send_message(
                 chat_id=user_id,
-                text=(
-                    "✅ Premium approved!\n\n"
-                    f"Your access is active now and will expire at: {expires_at.isoformat()}\n"
-                    "You can now use the bot."
-                ),
+                text=t(notify_lang, "premium_approved", expires=expires_at.isoformat()),
             )
 
             try:
@@ -1151,7 +1238,8 @@ def attach_handlers(app: Client) -> None:
             pending = await get_pending_txn(txn_id)
             user_id = pending.get("user_id") if pending else None
             if user_id:
-                await client.send_message(chat_id=int(user_id), text="❌ Premium payment rejected. You can try again.")
+                rej_lang = await get_user_language(int(user_id))
+                await client.send_message(chat_id=int(user_id), text=t(rej_lang, "premium_rejected"))
 
             try:
                 await callback_query.message.edit_reply_markup(reply_markup=None)
@@ -1164,10 +1252,11 @@ def attach_handlers(app: Client) -> None:
         user_id = message.from_user.id
 
         if not await user_has_premium_access(user_id):
+            lang = await get_user_language(user_id)
             await message.reply_text(
-                Var.PREMIUM_REQUIRED_TEXT,
+                t(lang, "premium_required"),
                 quote=True,
-                reply_markup=premium_access_keyboard(),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
             return
@@ -1245,10 +1334,11 @@ def attach_handlers(app: Client) -> None:
         user_id = message.from_user.id
 
         if not await user_has_premium_access(user_id):
+            lang = await get_user_language(user_id)
             await message.reply_text(
-                Var.PREMIUM_REQUIRED_TEXT,
+                t(lang, "premium_required"),
                 quote=True,
-                reply_markup=premium_access_keyboard(),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
             return
@@ -1328,10 +1418,11 @@ To generate download links again, use `/login` to create a new session."""
         user_id = message.from_user.id
 
         if not await user_has_premium_access(user_id):
+            lang = await get_user_language(user_id)
             await message.reply_text(
-                Var.PREMIUM_REQUIRED_TEXT,
+                t(lang, "premium_required"),
                 quote=True,
-                reply_markup=premium_access_keyboard(),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
             return
@@ -1392,10 +1483,11 @@ To generate download links again, use `/login` to create a new session."""
         user_id = message.from_user.id
 
         if not await user_has_premium_access(user_id):
+            lang = await get_user_language(user_id)
             await message.reply_text(
-                Var.PREMIUM_REQUIRED_TEXT,
+                t(lang, "premium_required"),
                 quote=True,
-                reply_markup=premium_access_keyboard(),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
             return
@@ -1513,10 +1605,11 @@ To generate download links again, use `/login` to create a new session."""
             return
 
         if not await user_has_premium_access(user_id):
+            lang = await get_user_language(user_id)
             await message.reply_text(
-                Var.PREMIUM_REQUIRED_TEXT,
+                t(lang, "premium_required"),
                 quote=True,
-                reply_markup=premium_access_keyboard(),
+                reply_markup=premium_access_keyboard(lang),
                 disable_web_page_preview=True,
             )
             return
@@ -1631,10 +1724,11 @@ To generate download links again, use `/login` to create a new session."""
         if await user_has_premium_access(user_id):
             return
 
+        lang = await get_user_language(user_id)
         await message.reply_text(
-            Var.PREMIUM_REQUIRED_TEXT,
+            t(lang, "premium_required"),
             quote=True,
-            reply_markup=premium_access_keyboard(),
+            reply_markup=premium_access_keyboard(lang),
             disable_web_page_preview=True,
         )
 

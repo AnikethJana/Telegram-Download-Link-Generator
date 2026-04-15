@@ -22,7 +22,7 @@ allowed_users = database["allowed_users"]
 # - user_id: int
 # - method: "crypto" | "upi"
 # - selected_days: int
-# - priced_days: int (after rounding up)
+# - priced_days: int (subscription length; same as selected button unless logic changes)
 # - amount_usd: float | None
 # - amount_inr: float | None
 # - status: "awaiting_paid" | "awaiting_screenshot" | "awaiting_admin" | "approved" | "rejected" | "cancelled"

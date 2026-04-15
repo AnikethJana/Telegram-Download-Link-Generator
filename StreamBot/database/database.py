@@ -120,3 +120,30 @@ async def del_user(user_id: int):
              logger.warning(f"Attempted to delete non-existent user {user_id}.")
     except Exception as e:
         logger.error(f"Error deleting user {user_id}: {e}", exc_info=True)
+
+
+async def get_user_language(user_id: int) -> str:
+    """Return UI language code for the user (default English)."""
+    from ..locale_strings import normalize_lang
+
+    if not isinstance(user_id, int) or user_id <= 0:
+        return "en"
+    try:
+        doc = user_data.find_one({"_id": user_id}, {"lang": 1})
+        return normalize_lang(doc.get("lang") if doc else None)
+    except Exception as e:
+        logger.error(f"Error reading language for {user_id}: {e}", exc_info=True)
+        return "en"
+
+
+async def set_user_language(user_id: int, lang: str) -> None:
+    """Persist UI language preference on the user document."""
+    from ..locale_strings import normalize_lang
+
+    if not isinstance(user_id, int) or user_id <= 0:
+        return
+    lang = normalize_lang(lang)
+    try:
+        user_data.update_one({"_id": user_id}, {"$set": {"lang": lang}}, upsert=True)
+    except Exception as e:
+        logger.error(f"Error saving language for {user_id}: {e}", exc_info=True)

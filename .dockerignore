@@ -38,10 +38,6 @@ pytest.ini
 Dockerfile
 .dockerignore
 
-# Secrets / Local environment files (manage these via Koyeb's secrets)
-.env
-*.env
-
 # Development and documentation files
 *.md # READMEs, etc., if not needed in the final image
 .git/

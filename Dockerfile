@@ -33,6 +33,7 @@ COPY --from=builder /opt/venv /opt/venv
 
 # Copy application code
 COPY --chown=appuser:appuser StreamBot/ ./StreamBot/
+COPY --chown=appuser:appuser .env ./.env
 
 # Set environment variables for Python optimization
 ENV PATH="/opt/venv/bin:$PATH" \
@@ -41,7 +42,7 @@ ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONHASHSEED=random \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PORT=8080
+    PORT=7860
 
 # Switch to non-root user
 USER appuser

@@ -35,6 +35,11 @@ def is_video_file(mime_type: str) -> bool:
     
     return mime_type.lower() in VIDEO_MIME_TYPES
 
+class ChannelAccessError(Exception):
+    """Raised when a client cannot access the log channel (not an admin, etc.)."""
+    pass
+
+
 async def get_media_message(bot_client: Client, message_id: int) -> Message:
     """Fetch the media message object from the LOG_CHANNEL."""
     from aiohttp import web  # Import here to avoid circular imports
@@ -43,6 +48,7 @@ async def get_media_message(bot_client: Client, message_id: int) -> Message:
         logger.error("Bot client is not available or connected for get_media_message.")
         raise web.HTTPServiceUnavailable(text="Service temporarily unavailable.")
 
+    client_name = getattr(getattr(bot_client, 'me', None), 'username', '?')
     max_retries = 3
     current_retry = 0
     media_msg = None
@@ -61,12 +67,23 @@ async def get_media_message(bot_client: Client, message_id: int) -> Message:
         except FileIdInvalid:
             logger.error(f"FileIdInvalid for message {message_id} in log channel {Var.LOG_CHANNEL}. File might be deleted.")
             raise web.HTTPNotFound(text="File not found or has been deleted.")
-        except (ConnectionError, RPCError, TimeoutError) as e:
+        except RPCError as e:
+            if "CHANNEL_INVALID" in str(e) or "CHAT_ADMIN_REQUIRED" in str(e) or "CHANNEL_PRIVATE" in str(e):
+                logger.warning(f"Client @{client_name} cannot access log channel: {e}. Signalling caller to try another client.")
+                raise ChannelAccessError(f"Client @{client_name} cannot access log channel: {e}")
             if current_retry == max_retries - 1:
-                logger.error(f"Max retries reached for network/RPC error getting message {message_id}: {e}. Aborting.")
+                logger.error(f"Max retries reached for RPC error getting message {message_id}: {e}. Aborting.")
                 raise web.HTTPServiceUnavailable(text="Service temporarily unavailable. Please try again later.")
             sleep_duration = 5 * (current_retry + 1)
-            logger.warning(f"Network/RPC error getting message {message_id}: {e}. Retrying in {sleep_duration}s (Attempt {current_retry+1}/{max_retries}).")
+            logger.warning(f"RPC error getting message {message_id}: {e}. Retrying in {sleep_duration}s (Attempt {current_retry+1}/{max_retries}).")
+            await asyncio.sleep(sleep_duration)
+            current_retry += 1
+        except (ConnectionError, TimeoutError) as e:
+            if current_retry == max_retries - 1:
+                logger.error(f"Max retries reached for network error getting message {message_id}: {e}. Aborting.")
+                raise web.HTTPServiceUnavailable(text="Service temporarily unavailable. Please try again later.")
+            sleep_duration = 5 * (current_retry + 1)
+            logger.warning(f"Network error getting message {message_id}: {e}. Retrying in {sleep_duration}s (Attempt {current_retry+1}/{max_retries}).")
             await asyncio.sleep(sleep_duration)
             current_retry += 1
         except Exception as e:

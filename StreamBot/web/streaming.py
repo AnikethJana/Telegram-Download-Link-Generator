@@ -4,7 +4,7 @@ import math
 from aiohttp import web
 from pyrogram.errors import FloodWait
 from StreamBot.config import Var
-from StreamBot.utils.utils import decode_message_id, get_file_attr, VIDEO_MIME_TYPES, get_media_message
+from StreamBot.utils.utils import decode_message_id, get_file_attr, VIDEO_MIME_TYPES, get_media_message, ChannelAccessError
 from StreamBot.utils.stream_cleanup import stream_tracker, tracked_stream_response
 from StreamBot.security.validator import validate_range_header, get_client_ip
 from StreamBot.utils.smart_logger import SmartRateLimitedLogger
@@ -30,14 +30,31 @@ async def stream_video_route(request: web.Request):
     logger.info(f"Video stream request for message_id: {message_id} from {get_client_ip(request)}")
 
     try:
-        streamer_client = await asyncio.wait_for(
-            client_manager.get_streaming_client(),
-            timeout=30
-        )
-        if not streamer_client or not streamer_client.is_connected:
-            raise web.HTTPServiceUnavailable(text="Streaming service temporarily unavailable.")
+        max_client_attempts = 3
+        excluded_clients = set()
+        for _attempt in range(max_client_attempts):
+            streamer_client = await asyncio.wait_for(
+                client_manager.get_streaming_client(),
+                timeout=30
+            )
+            if not streamer_client or not streamer_client.is_connected:
+                raise web.HTTPServiceUnavailable(text="Streaming service temporarily unavailable.")
 
-        media_msg = await get_media_message(streamer_client, message_id)
+            if streamer_client.me.id in excluded_clients:
+                alt = await client_manager.get_alternative_streaming_client(streamer_client)
+                if alt and alt.me.id not in excluded_clients:
+                    streamer_client = alt
+                else:
+                    break
+
+            try:
+                media_msg = await get_media_message(streamer_client, message_id)
+                break
+            except ChannelAccessError:
+                excluded_clients.add(streamer_client.me.id)
+                logger.warning(f"Client @{streamer_client.me.username} cannot access log channel for streaming. Trying another ({_attempt+1}/{max_client_attempts}).")
+                if _attempt == max_client_attempts - 1:
+                    raise web.HTTPServiceUnavailable(text="No bot has access to the file storage channel. Contact the admin.")
         
         # Get file attributes
         file_id, file_name, file_size, file_mime_type, file_unique_id = get_file_attr(media_msg)
