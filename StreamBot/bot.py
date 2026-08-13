@@ -16,6 +16,8 @@ import logging
 import asyncio
 import math
 import os
+import re
+import urllib.parse
 import datetime
 import secrets
 import pyrogram
