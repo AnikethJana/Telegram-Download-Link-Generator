@@ -33,7 +33,6 @@ COPY --from=builder /opt/venv /opt/venv
 
 # Copy application code
 COPY --chown=appuser:appuser StreamBot/ ./StreamBot/
-COPY --chown=appuser:appuser .env ./.env
 
 # Set environment variables for Python optimization
 ENV PATH="/opt/venv/bin:$PATH" \

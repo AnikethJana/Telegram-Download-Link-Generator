@@ -5,6 +5,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Environment variables and secrets
+.env
+.env.*
+env.*
 # Virtual environment
 .venv/
 venv/
