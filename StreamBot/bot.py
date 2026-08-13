@@ -43,7 +43,7 @@ from .database.user_access import (
 from .database.analytics import record_link_generated
 from .web.dashboard_auth import create_owner_one_time_token
 from .config import Var
-from .utils.utils import get_file_attr, humanbytes, encode_message_id, is_video_file
+from .utils.utils import get_file_attr, humanbytes, encode_message_id, is_video_file, process_link
 from .utils.smart_logger import SmartRateLimitedLogger
 from .link_handler import get_message_from_link
 from .group_handler import attach_group_handlers
@@ -140,11 +140,6 @@ def buy_days_keyboard(method: str, lang: str) -> InlineKeyboardMarkup:
     if row:
         buttons.append(row)
     return InlineKeyboardMarkup(buttons)
-
-
-def process_link(original_link: str, *_args, **_kwargs) -> str:
-    """Return the direct link (no URL shortener or monetization layer)."""
-    return original_link
 
 
 def build_active_session_message(session_generator_url: str, is_localhost: bool) -> str:

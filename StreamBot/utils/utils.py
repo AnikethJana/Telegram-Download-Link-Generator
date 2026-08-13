@@ -280,3 +280,7 @@ def decode_message_id(encoded_id_str: str) -> int | str | None:
     except Exception as e:
         logger.error(f"Unexpected error decoding ID '{encoded_id_str[:50]}...': {e}", exc_info=True)
         return None
+
+def process_link(original_link: str, *_args, **_kwargs) -> str:
+    """Return the direct link (no URL shortener or monetization layer)."""
+    return original_link
