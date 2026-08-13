@@ -172,6 +172,18 @@ class Var:
         logger.error(f"Invalid ADMINS value '{_admin_str}'. Ensure it's a space-separated list of numbers.")
         ADMINS = []
 
+    _auth_groups_str = get_env("AUTHORIZED_GROUPS", default=get_env("AUTHORIZED_GROUP", default=""))
+    AUTHORIZED_GROUPS = []
+    if _auth_groups_str:
+        for g_id in re.split(r'[,\s]+', str(_auth_groups_str).strip()):
+            if g_id:
+                try:
+                    AUTHORIZED_GROUPS.append(int(g_id))
+                except ValueError:
+                    logger.error(f"Invalid group ID in AUTHORIZED_GROUPS: '{g_id}'")
+        if AUTHORIZED_GROUPS:
+            logger.info(f"Authorized group IDs loaded from config: {AUTHORIZED_GROUPS}")
+
     BROADCAST_REPLY_PROMPT = "Reply to the message you want to broadcast with the `/broadcast` command."
     BROADCAST_ADMIN_ONLY = "❌ Only authorized admins can use this command."
     BROADCAST_STARTING = "⏳ Starting broadcast... This may take some time."

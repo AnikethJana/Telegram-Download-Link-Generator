@@ -46,6 +46,7 @@ from .config import Var
 from .utils.utils import get_file_attr, humanbytes, encode_message_id, is_video_file
 from .utils.smart_logger import SmartRateLimitedLogger
 from .link_handler import get_message_from_link
+from .group_handler import attach_group_handlers
 
 logger = logging.getLogger(__name__)
 
@@ -262,6 +263,7 @@ def attach_handlers(app: Client) -> None:
         app (Client): The Pyrogram client instance to attach handlers to
     """
     logger.info("Attaching bot command and message handlers...")
+    attach_group_handlers(app)
 
     SESSION_GENERATOR_DISABLED_TEXT = (
         "🔒 **Session Generator Disabled**\n\n"
