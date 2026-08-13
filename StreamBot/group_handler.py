@@ -87,7 +87,7 @@ def attach_group_handlers(app: Client) -> None:
                 target_message = rep
             else:
                 text_content = rep.text or rep.caption or ""
-                url_match = re.search(r"https?://t\.me/\S+", text_content)
+                url_match = re.search(r"(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:me|dog))/\S+|tg://\S+", text_content, re.IGNORECASE)
                 if url_match:
                     tme_link = url_match.group(0)
 
@@ -97,7 +97,7 @@ def attach_group_handlers(app: Client) -> None:
 
         # Case 3: Command contains t.me URL argument
         elif message.text:
-            url_match = re.search(r"https?://t\.me/\S+", message.text)
+            url_match = re.search(r"(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:me|dog))/\S+|tg://\S+", message.text, re.IGNORECASE)
             if url_match:
                 tme_link = url_match.group(0)
 

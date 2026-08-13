@@ -45,7 +45,7 @@ from .web.dashboard_auth import create_owner_one_time_token
 from .config import Var
 from .utils.utils import get_file_attr, humanbytes, encode_message_id, is_video_file, process_link
 from .utils.smart_logger import SmartRateLimitedLogger
-from .link_handler import get_message_from_link
+from .link_handler import get_message_from_link, parse_message_link
 from .group_handler import attach_group_handlers
 
 logger = logging.getLogger(__name__)
@@ -1474,7 +1474,7 @@ To generate download links again, use `/login` to create a new session."""
         finally:
             await user_session_streamer.cleanup_user_client(user_id)
 
-    @app.on_message(filters.private & filters.text & filters.regex(r'https?://t\.me/.*'))
+    @app.on_message(filters.private & filters.text & filters.regex(r'(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:me|dog))/.+|tg://.+', re.IGNORECASE))
     async def link_handler(client: Client, message: Message):
         """Handle incoming Telegram message links."""
         user_id = message.from_user.id
@@ -1489,9 +1489,62 @@ To generate download links again, use `/login` to create a new session."""
             )
             return
 
-        processing_msg = await message.reply_text("⏳ Accessing your private content and generating download link...", quote=True)
-        
-        result = await get_message_from_link(user_id, message.text)
+        processing_msg = await message.reply_text("⏳ Processing link and generating download link...", quote=True)
+        link_text = message.text.strip()
+
+        # Step 1: First attempt direct fetch via bot client (if bot is in the chat/channel)
+        parsed_link = parse_message_link(link_text)
+        if parsed_link and Var.LOG_CHANNEL:
+            c_id, m_id = parsed_link
+            try:
+                bot_fetched = await client.get_messages(chat_id=c_id, message_ids=m_id)
+                if bot_fetched and bot_fetched.media:
+                    log_msg = await bot_fetched.forward(chat_id=Var.LOG_CHANNEL)
+                    if log_msg and log_msg.id:
+                        _file_id, file_name, file_size, file_mime_type, _file_unique_id = get_file_attr(log_msg)
+                        if file_name:
+                            file_size_str = humanbytes(file_size)
+                            encoded_msg_id = encode_message_id(log_msg.id)
+                            download_link = f"{Var.BASE_URL}/dl/{encoded_msg_id}"
+                            await record_link_generated(
+                                encoded_id=encoded_msg_id,
+                                user_id=user_id,
+                                file_name=file_name,
+                                file_size=file_size,
+                                source="bot_direct_link",
+                                user_profile={
+                                    "username": getattr(message.from_user, "username", "") or "",
+                                    "first_name": getattr(message.from_user, "first_name", "") or "",
+                                    "last_name": getattr(message.from_user, "last_name", "") or "",
+                                    "language_code": getattr(message.from_user, "language_code", "") or "",
+                                    "is_premium": bool(getattr(message.from_user, "is_premium", False)),
+                                    "is_verified": bool(getattr(message.from_user, "is_verified", False)),
+                                },
+                            )
+                            processed_download_link = process_link(download_link, file_size, user_id=user_id)
+                            reply_markup = None
+                            if is_video_file(file_mime_type) and Var.VIDEO_FRONTEND_URL:
+                                import urllib.parse
+                                encoded_stream_uri = urllib.parse.quote(download_link)
+                                video_play_url = f"{Var.VIDEO_FRONTEND_URL}?stream={encoded_stream_uri}"
+                                video_play_url = process_link(video_play_url, file_size, user_id=user_id)
+                                reply_markup = InlineKeyboardMarkup([[InlineKeyboardButton("🎬 Play Video", url=video_play_url)]])
+
+                            await processing_msg.edit_text(
+                                f"✅ **Download Link Generated!**\n\n"
+                                f"**File Name:** `{file_name}`\n"
+                                f"**File Size:** {file_size_str}\n\n"
+                                f"**Link:** {processed_download_link}",
+                                reply_markup=reply_markup,
+                                disable_web_page_preview=True
+                            )
+                            logger.info(f"Direct bot stream link generated for user {user_id} from URL: {link_text}")
+                            return
+            except Exception as ex:
+                logger.debug(f"Direct bot fetch/forward failed for chat {c_id}: {ex}; falling back to user session.")
+
+        # Step 2: Fallback to user session streaming (for private channels/groups where bot is not a member)
+        result = await get_message_from_link(user_id, link_text)
 
         if isinstance(result, str):
             # An error occurred

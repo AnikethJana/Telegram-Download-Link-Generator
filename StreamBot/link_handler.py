@@ -106,18 +106,55 @@ async def get_message_from_link(user_id: int, message_link: str):
 def parse_message_link(link: str) -> Optional[Tuple[str | int, int]]:
     """
     Parses a Telegram message link and extracts the chat ID and message ID.
-    Handles both public (t.me/username/123) and private (t.me/c/12345/678) links.
+    Handles:
+    - Private links: t.me/c/12345/678 -> (-10012345, 678)
+    - Private forum/topic links: t.me/c/12345/32/678 -> (-10012345, 678)
+    - Public links: t.me/username/678 -> (@username, 678)
+    - Public forum/topic links: t.me/username/32/678 -> (@username, 678)
+    - Web preview links: t.me/s/username/678 or t.me/s/username/32/678 -> (@username, 678)
+    - Domain variants: t.me, telegram.me, telegram.dog
+    - Strips query parameters (e.g. ?single, ?comment=12) and trailing slashes.
     """
-    # IMPORTANT: Check private links FIRST to avoid matching "/c/" as a public username
-    # Regex for private channels/supergroups: t.me/c/channel_id/message_id
-    private_match = re.match(r"https?://t\.me/c/(\d+)/(\d+)", link)
+    if not link or not isinstance(link, str):
+        return None
+
+    # Clean the link: remove whitespace, query params (?single), and hash fragments
+    clean_link = link.strip().split('?')[0].split('#')[0].rstrip('/')
+
+    # Check for tg:// URI schemes first
+    tg_resolve = re.match(r"^tg://resolve\?domain=([a-zA-Z0-9_]+)&post=(\d+)", clean_link, re.IGNORECASE)
+    if tg_resolve:
+        username, message_id = tg_resolve.groups()
+        return f"@{username}", int(message_id)
+
+    tg_msg = re.match(r"^tg://openmessage\?chat_id=(-?\d+)&message_id=(\d+)", clean_link, re.IGNORECASE)
+    if tg_msg:
+        cid_str, message_id = tg_msg.groups()
+        if cid_str.startswith("-100"):
+            chat_id = int(cid_str)
+        elif cid_str.startswith("-"):
+            chat_id = int(cid_str)
+        else:
+            chat_id = int(f"-100{cid_str}")
+        return chat_id, int(message_id)
+
+    # 1. Private channels/supergroups: t.me/c/<channel_id>/[<topic_id>/]<message_id>
+    # Notice the $ at the end so it matches the FULL path, and captures the LAST number as message_id
+    private_match = re.match(
+        r"^(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:me|dog))/c/(\d+)(?:/\d+)*?/(\d+)$",
+        clean_link,
+        re.IGNORECASE,
+    )
     if private_match:
         channel_id, message_id = private_match.groups()
-        # Private channel IDs need to be prefixed with -100
         return int(f"-100{channel_id}"), int(message_id)
 
-    # Regex for public channels/supergroups: t.me/channel_name/message_id
-    public_match = re.match(r"https?://t\.me/(\w+)/(\d+)", link)
+    # 2. Public channels/supergroups: t.me/[s/]<username>/[<topic_id>/]<message_id>
+    public_match = re.match(
+        r"^(?:https?://)?(?:www\.)?(?:t(?:elegram)?\.(?:me|dog))/(?:s/)?(?!c/|joinchat/|addstickers/|share/|login/)([a-zA-Z0-9_]+)(?:/\d+)*?/(\d+)$",
+        clean_link,
+        re.IGNORECASE,
+    )
     if public_match:
         channel_name, message_id = public_match.groups()
         return f"@{channel_name}", int(message_id)
